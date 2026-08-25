@@ -186,3 +186,24 @@ Both typefaces are vendored as subsets in `fonts/` and are used under the SIL Op
 ### If you installed the prototype
 
 The prototype registered a cache-first service worker at the repository root. If you loaded it from a served origin, that worker is still installed and will serve the old cached shell over the new app. Unregister it in DevTools → Application → Service Workers.
+
+## Dev notes
+
+### Todo
+
+- Osusume wa nan desu ka?: add alts and add note: "this is the more natural phrasing as opposed to "nani ga osusume desu ka"
+- for answers with alternates, give chance to get best answer
+- clicking on tile that was place removes only that tile, and next tile clicked goes in that spot
+- rough sequence for learning (ask for claude feedback)
+  - learn vocabulary
+  - learn how to use particles
+  - learn verb conjugation
+  - learn sentences
+- user can jump around as desired
+- star system
+  - one star: finished with zero incorrect
+  - two star: finished with zero misses
+  - three star: finished all sections with zero misses
+- todo: vocab before building sentences
+- todo: basic particle learning
+- todo: verb conjugation learning
