@@ -35,7 +35,7 @@ The score on the set-complete screen is sentences built on the first try.
 | --- | --- |
 | `index.html` | App shell — the 460px ruled column, header, and the three screens as static markup. App CSS lives in one `<style>` block. |
 | `app.js` | Content, tile-bank generation, drill rules, and rendering. The whole application. |
-| `fonts.css`, `fonts/` | Vendored Archivo (latin) and Noto Sans JP, subset to the 102 kana and kanji the sentence sets use. Both variable, wght 100–900. |
+| `fonts.css`, `fonts/` | Vendored Archivo (latin) and Noto Sans JP, subset to the 102 kana and kanji the sentence sets use. Both variable, wght 100–900, both OFL 1.1 with the license text alongside. |
 | `sw.js` | Cache-first service worker; precaches the shell so the app opens offline. |
 | `manifest.webmanifest`, `icons/` | Install metadata and the app icon at 192, 512, maskable-512, plus 180 for iOS. |
 | `_ds/modernist-…/` | The Modernist design system. `styles.css` is linked unmodified and is the source of every color, space and radius token. |
@@ -79,6 +79,22 @@ curl -sG -A 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 
 then download the single `woff2` the returned CSS points at, over `fonts/noto-sans-jp-subset.woff2`, and bump `CACHE` in `sw.js`. The browser User-Agent is required: without it Google Fonts serves TrueType across nine static weights instead of one variable woff2.
 
 **After changing any precached file** — bump `CACHE` in `sw.js` (currently `tsumiki-v2`). The service worker is cache-first, so without a bump anyone who has already loaded the app keeps the old copy indefinitely. The activate handler deletes the previous cache.
+
+## Credits
+
+The idea, the product decisions and the architecture are the author's. Two Claude tools were used to build it:
+
+- **Claude Design** produced the Modernist design system in `_ds/`, the design document in `DESIGN.md`, and the `Sentence Builder.dc.html` design component the app was ported from — the visual system, the screen structure and the drill rules as specified.
+- **Claude Code** ported that component to the installable PWA in this repository: the app shell, the plain-DOM rendering, the service worker, the manifest and icons, and the vendored font subsets.
+
+### Fonts
+
+Both typefaces are vendored as subsets in `fonts/` and are used under the SIL Open Font License 1.1. The full license text ships alongside them.
+
+| Font | Copyright | License |
+| --- | --- | --- |
+| Archivo | Omnibus-Type — The Archivo Project Authors | [OFL 1.1](fonts/OFL-Archivo.txt) |
+| Noto Sans JP | Adobe, with Reserved Font Name 'Source' | [OFL 1.1](fonts/OFL-NotoSansJP.txt) |
 
 ## Not built yet
 
