@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-47face9e-49d1-431f-a4b3-bbfe4229952e/styles.css">
+<script src="_ds/modernist-47face9e-49d1-431f-a4b3-bbfe4229952e/_ds_bundle.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+  html, body { margin: 0; background: var(--color-neutral-200, #e6e4e3); }
+  a { color: var(--color-accent-700); }
+  a:hover { color: var(--color-accent); }
+  button { font-family: var(--font-body); }
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; justify-content: center; background: var(--color-neutral-200, #e6e4e3);">
+  <div style="width: 100%; max-width: 460px; min-height: 100vh; background: var(--color-bg); border-left: 2px solid var(--color-divider); border-right: 2px solid var(--color-divider); display: flex; flex-direction: column;">
+
+    <div style="display: flex; align-items: baseline; justify-content: space-between; padding: 18px 20px 14px; border-bottom: 2px solid var(--color-divider);">
+      <div style="display: flex; align-items: baseline; gap: 12px;">
+        <sc-if value="{{ inDrill }}" hint-placeholder-val="{{ false }}">
+          <button type="button" onClick="{{ onHome }}" style="background: none; border: none; padding: 0; cursor: pointer; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; color: var(--color-accent-700);" style-hover="color: var(--color-accent);">← All</button>
+        </sc-if>
+        <div style="font-family: var(--font-heading); font-weight: 700; font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-text);">TSUMIKI</div>
+      </div>
+      <div style="display: flex; gap: 10px; align-items: baseline; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-neutral-700);">
+        <span>{{ headerLabel }}</span>
+        <span style="color: var(--color-accent-700); font-weight: 600;">{{ streak }}</span>
+      </div>
+    </div>
+
+    <div style="display: flex; height: 6px; border-bottom: 2px solid var(--color-divider);">
+      <div style="background: var(--color-accent); width: {{ progressPct }};"></div>
+    </div>
+
+    <sc-if value="{{ atHome }}" hint-placeholder-val="{{ true }}">
+      <div style="flex: 1; display: flex; flex-direction: column;">
+        <div style="padding: 26px 20px 22px; border-bottom: 2px solid var(--color-divider);">
+          <div style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-neutral-600); margin-bottom: 10px;">Choose a situation</div>
+          <div style="font-family: var(--font-heading); font-weight: 700; font-size: 30px; line-height: 1.1; letter-spacing: -0.02em; color: var(--color-text);">Build sentences you will actually need.</div>
+        </div>
+        <sc-for list="{{ scenarios }}" as="sc" hint-placeholder-count="2">
+          <button type="button" onClick="{{ sc.onOpen }}" style="display: block; width: 100%; text-align: left; background: none; border: none; border-bottom: 2px solid var(--color-divider); padding: 20px; cursor: pointer; font-family: var(--font-body);" style-hover="background: var(--color-accent-100);">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+              <span style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-accent-700); font-weight: 600;">{{ sc.kicker }}</span>
+              <span style="font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-neutral-600);">{{ sc.count }}</span>
+            </div>
+            <div style="font-family: var(--font-heading); font-weight: 600; font-size: 23px; line-height: 1.2; color: var(--color-text); margin-bottom: 6px;">{{ sc.name }}</div>
+            <div style="font-size: 14px; line-height: 1.5; color: var(--color-neutral-700);">{{ sc.blurb }}</div>
+          </button>
+        </sc-for>
+        <div style="padding: 20px; color: var(--color-neutral-600); font-size: 13px; line-height: 1.5;">Translate level only for now. The response level — where the shopkeeper or clerk speaks first — unlocks per situation.</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ inSession }}" hint-placeholder-val="{{ false }}">
+      <div style="flex: 1; display: flex; flex-direction: column;">
+
+        <div style="padding: 22px 20px 20px; border-bottom: 2px solid var(--color-divider);">
+          <div style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-neutral-600); margin-bottom: 10px;">Say this in Japanese — item {{ itemNo }} of {{ total }}</div>
+          <div style="font-family: var(--font-heading); font-weight: 600; font-size: 27px; line-height: 1.2; letter-spacing: -0.01em; color: var(--color-text); text-wrap: pretty;">{{ prompt }}</div>
+        </div>
+
+        <div style="padding: 20px; display: flex; flex-direction: column; gap: 8px; min-height: 104px; border-bottom: 2px solid var(--color-divider);">
+          <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start;">
+            <sc-for list="{{ placed }}" as="t" hint-placeholder-count="0">
+              <button type="button" onClick="{{ t.onTap }}" style="font-family: 'Noto Sans JP', var(--font-body); background: var(--color-text); color: var(--color-bg); border: 2px solid var(--color-text); padding: 7px 11px 6px; cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; line-height: 1.15;" style-hover="background: var(--color-accent-700); border-color: var(--color-accent-700);">
+                <span style="font-size: 19px; font-weight: 500;">{{ t.ja }}</span>
+                <span style="font-size: 10px; letter-spacing: 0.06em; opacity: 0.7;">{{ t.ro }}</span>
+              </button>
+            </sc-for>
+            <sc-for list="{{ slots }}" as="s" hint-placeholder-count="6">
+              <span style="display: block; width: 34px; height: 2px; background: var(--color-neutral-400); margin-top: 26px;"></span>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="padding: 18px 20px; display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; flex: 1;">
+          <sc-for list="{{ bank }}" as="t" hint-placeholder-count="15">
+            <button type="button" onClick="{{ t.onTap }}" style="font-family: 'Noto Sans JP', var(--font-body); background: var(--color-surface, #fff); color: var(--color-text); border: 2px solid var(--color-divider); padding: 7px 11px 6px; cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; line-height: 1.15; visibility: {{ t.vis }};" style-hover="border-color: var(--color-accent); color: var(--color-accent-700);">
+              <span style="font-size: 19px; font-weight: 500;">{{ t.ja }}</span>
+              <span style="font-size: 10px; letter-spacing: 0.06em; color: var(--color-neutral-600);">{{ t.ro }}</span>
+            </button>
+          </sc-for>
+        </div>
+
+        <div style="padding: 0 20px; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; min-height: 22px; color: {{ statusColor }}; font-weight: 600;">{{ statusText }}</div>
+
+        <sc-if value="{{ showNote }}" hint-placeholder-val="{{ false }}">
+          <div style="margin: 6px 20px 16px; border-top: 2px solid var(--color-accent); background: var(--color-accent-100); padding: 14px 16px;">
+            <div style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-accent-700); font-weight: 600; margin-bottom: 6px;">{{ noteLabel }}</div>
+            <div style="font-size: 14px; line-height: 1.5; color: var(--color-accent-900);">{{ note }}</div>
+          </div>
+        </sc-if>
+
+        <div style="padding: 10px 20px 20px;">
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <sc-if value="{{ canReveal }}" hint-placeholder-val="{{ false }}">
+              <button type="button" class="btn btn-secondary btn-block" onClick="{{ onReveal }}">Show me the answer</button>
+            </sc-if>
+            <button type="button" class="btn btn-primary btn-block" onClick="{{ onPrimary }}" disabled="{{ primaryDisabled }}">{{ primaryLabel }}</button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ finished }}" hint-placeholder-val="{{ false }}">
+      <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 28px 20px;">
+        <div style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-neutral-600);">Set complete</div>
+        <div style="font-family: var(--font-heading); font-weight: 700; font-size: 64px; line-height: 1; letter-spacing: -0.03em; color: var(--color-accent); margin: 10px 0 4px;">{{ scoreLine }}</div>
+        <div style="font-size: 15px; color: var(--color-text); margin-bottom: 22px;">built first try</div>
+        <hr class="hr">
+        <div style="font-size: 14px; line-height: 1.6; color: var(--color-neutral-700); margin: 16px 0 24px;">Next set unlocks the response level: a shopkeeper speaks first and you build the reply.</div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <button type="button" class="btn btn-primary btn-block" onClick="{{ onRestart }}">Practise this set again</button>
+          <button type="button" class="btn btn-secondary btn-block" onClick="{{ onHome }}">Choose another situation</button>
+        </div>
+      </div>
+    </sc-if>
+
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;tileMultiplier&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:3,&quot;min&quot;:1.5,&quot;max&quot;:4.5,&quot;step&quot;:0.5,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Difficulty&quot;},&quot;noteAfterMisses&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:2,&quot;min&quot;:1,&quot;max&quot;:3,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Difficulty&quot;},&quot;showRomaji&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Display&quot;}}">
+const BAKERY = [
+  { en: "One bread, please.", ans: [["パン","pan"],["を","o"],["ください","kudasai"]], alts: ["パンをお願いします"],
+    note: "を marks the direct object — the thing you are asking for. は would make it the topic, which sounds like you are commenting on bread, not requesting it." },
+  { en: "I'd like two croissants.", ans: [["クロワッサン","kurowassan"],["を","o"],["二つ","futatsu"],["ください","kudasai"]],
+    note: "The counter comes after を, not attached to the noun: ＸをNください. 二つ is the generic counter for small objects." },
+  { en: "Do you have melon bread?", ans: [["メロンパン","meronpan"],["は","wa"],["あります","arimasu"],["か","ka"]],
+    note: "For existence questions the item is the topic, so は. か turns the sentence into a question — no rising intonation needed." },
+  { en: "How much is this?", ans: [["これ","kore"],["は","wa"],["いくら","ikura"],["です","desu"],["か","ka"]],
+    note: "これ is 'this thing' on its own; この needs a noun after it (この パン)." },
+  { en: "Is this bread sweet?", ans: [["この","kono"],["パン","pan"],["は","wa"],["甘い","amai"],["です","desu"],["か","ka"]],
+    note: "甘い is already an adjective — です only adds politeness, it never becomes 甘いだです or takes が here." },
+  { en: "I want to eat something warm.", ans: [["温かい","atatakai"],["もの","mono"],["が","ga"],["食べ","tabe"],["たい","tai"],["です","desu"]],
+    note: "〜たい takes が for its object, not を. Attach たい to the verb stem: 食べ + たい." },
+  { en: "I'll take this one.", ans: [["これ","kore"],["を","o"],["お願いします","onegaishimasu"]], alts: ["これをください","これをもらいます"],
+    note: "お願いします is softer than ください at the point of paying. Both are fine; the particle stays を." },
+  { en: "Can I pay by card?", ans: [["カード","kaado"],["で","de"],["払え","harae"],["ます","masu"],["か","ka"]],
+    note: "で marks the means or instrument — by card, by train, in Japanese. 払え+ます is the potential form: 'can pay'." },
+  { en: "Please give me a bag.", ans: [["袋","fukuro"],["を","o"],["ください","kudasai"]],
+    note: "Same frame as the first sentence. Once ＸをＹください is automatic, only the noun changes." },
+  { en: "What do you recommend?", ans: [["おすすめ","osusume"],["は","wa"],["何","nani"],["です","desu"],["か","ka"]],
+    note: "何 stays where the answer would go — Japanese does not move question words to the front." }
+];
+
+const STATION = [
+  { en: "Two tickets to Kyoto, please.", ans: [["京都","kyouto"],["まで","made"],["切符","kippu"],["を","o"],["二枚","nimai"],["ください","kudasai"]],
+    note: "まで marks the end point of travel — 'as far as Kyoto'. 枚 is the counter for flat things: tickets, sheets, plates." },
+  { en: "Which platform is the Osaka train?", ans: [["大阪行き","oosaka-yuki"],["は","wa"],["何番線","nanbansen"],["です","desu"],["か","ka"]],
+    note: "〜行き means 'bound for'. The whole phrase is the topic, so it takes は." },
+  { en: "Does this train stop at Nara?", ans: [["この","kono"],["電車","densha"],["は","wa"],["奈良","nara"],["に","ni"],["止まり","tomari"],["ます","masu"],["か","ka"]],
+    note: "に marks the point a motion verb arrives at or stops at. で would mean the action happens there, not that it arrives there." },
+  { en: "What time does the next train leave?", ans: [["次","tsugi"],["の","no"],["電車","densha"],["は","wa"],["何時","nanji"],["に","ni"],["出","de"],["ます","masu"],["か","ka"]],
+    note: "の joins two nouns: 次の電車, 'the next train'. Clock times take に." },
+  { en: "I'd like a reserved seat.", ans: [["指定席","shiteiseki"],["を","o"],["お願いします","onegaishimasu"]], alts: ["指定席をください"],
+    note: "お願いします is the standard counter-window request. The object still takes を." },
+  { en: "Where is the ticket gate?", ans: [["改札","kaisatsu"],["は","wa"],["どこ","doko"],["です","desu"],["か","ka"]],
+    note: "Location questions follow Ｘはどこですか — は, not が, because you already know what you are looking for." },
+  { en: "Can I use this ticket tomorrow?", ans: [["この","kono"],["切符","kippu"],["は","wa"],["明日","ashita"],["使え","tsukae"],["ます","masu"],["か","ka"]],
+    note: "使え+ます is the potential form, 'can use'. Time words like 明日 need no particle." },
+  { en: "I want to go to Shibuya.", ans: [["渋谷","shibuya"],["に","ni"],["行き","iki"],["たい","tai"],["です","desu"]], alts: ["渋谷へ行きたいです"],
+    note: "〜たい attaches to the verb stem: 行き + たい. に marks the destination; へ is also correct and slightly softer." }
+];
+
+const GRAMMAR = [["は","wa"],["が","ga"],["を","o"],["に","ni"],["で","de"],["も","mo"],["の","no"],["へ","e"],["と","to"],["か","ka"],["まで","made"],["から","kara"],
+  ["です","desu"],["ます","masu"],["ました","mashita"],["ません","masen"],["たい","tai"],["ている","teiru"],
+  ["ください","kudasai"],["お願いします","onegaishimasu"],["あります","arimasu"],["ありません","arimasen"],["もらいます","moraimasu"],["どこ","doko"],["何","nani"]];
+
+const BAKERY_WORDS = [["一つ","hitotsu"],["二つ","futatsu"],["三つ","mittsu"],["これ","kore"],["それ","sore"],["この","kono"],["あの","ano"],
+  ["パン","pan"],["ケーキ","keeki"],["コーヒー","koohii"],["袋","fukuro"],["カード","kaado"],["現金","genkin"],
+  ["おいしい","oishii"],["甘い","amai"],["温かい","atatakai"],["冷たい","tsumetai"],["もの","mono"],
+  ["食べ","tabe"],["飲み","nomi"],["買い","kai"],["払え","harae"],["いくら","ikura"],["おすすめ","osusume"]];
+
+const STATION_WORDS = [["一枚","ichimai"],["二枚","nimai"],["三枚","sanmai"],["この","kono"],["次","tsugi"],["切符","kippu"],["電車","densha"],
+  ["新幹線","shinkansen"],["何番線","nanbansen"],["何時","nanji"],["指定席","shiteiseki"],["自由席","jiyuuseki"],["改札","kaisatsu"],["出口","deguchi"],
+  ["京都","kyouto"],["大阪行き","oosaka-yuki"],["奈良","nara"],["渋谷","shibuya"],["明日","ashita"],["今日","kyou"],
+  ["止まり","tomari"],["行き","iki"],["出","de"],["使え","tsukae"],["乗り","nori"],["降り","ori"]];
+
+const SCENARIOS = [
+  { name: "Bakery", kicker: "Set 01", blurb: "Asking for items, counting them, paying at the counter.", items: BAKERY, words: BAKERY_WORDS },
+  { name: "Train station", kicker: "Set 02", blurb: "Buying tickets, platforms, departure times, gates.", items: STATION, words: STATION_WORDS }
+];
+
+class Component extends DCLogic {
+  state = { screen: "home", sc: 0, i: 0, placed: [], misses: 0, status: "idle", firstTry: 0, finished: false };
+
+  items() { return SCENARIOS[this.state.sc].items; }
+
+  open(sc) { this.setState({ screen: "drill", sc: sc, i: 0, placed: [], misses: 0, status: "idle", firstTry: 0, finished: false }); }
+  home() { this.setState({ screen: "home" }); }
+
+  bankFor(i) {
+    const item = this.items()[i];
+    const mult = this.props.tileMultiplier ?? 3;
+    const need = Math.max(12, Math.ceil(item.ans.length * mult));
+    const used = {};
+    item.ans.forEach(t => { used[t[0]] = 1; });
+    const bank = item.ans.slice();
+    const pool = GRAMMAR.concat(SCENARIOS[this.state.sc].words).filter(t => !used[t[0]]);
+    let n = 0;
+    while (bank.length < need && pool.length) {
+      bank.push(pool.splice((i * 7 + n * 13 + 3) % pool.length, 1)[0]);
+      n++;
+    }
+    for (let k = bank.length - 1; k > 0; k--) {
+      const j = (k * 31 + i * 17 + 5) % (k + 1);
+      const tmp = bank[k]; bank[k] = bank[j]; bank[j] = tmp;
+    }
+    return bank;
+  }
+
+  tap(k) {
+    if (this.state.status === "right" || this.state.status === "shown") return;
+    this.setState(s => ({ placed: s.placed.concat([k]), status: "idle" }));
+  }
+  untap(pos) {
+    if (this.state.status === "right" || this.state.status === "shown") return;
+    this.setState(s => ({ placed: s.placed.filter((_, x) => x !== pos), status: "idle" }));
+  }
+
+  check() {
+    const s = this.state;
+    const item = this.items()[s.i];
+    const bank = this.bankFor(s.i);
+    const built = s.placed.map(k => bank[k][0]).join("");
+    const ok = [item.ans.map(t => t[0]).join("")].concat(item.alts || []).indexOf(built) !== -1;
+    if (ok) this.setState({ status: "right", firstTry: s.firstTry + (s.misses === 0 ? 1 : 0) });
+    else this.setState({ status: "wrong", misses: s.misses + 1, placed: [] });
+  }
+
+  reveal() {
+    const bank = this.bankFor(this.state.i);
+    const taken = {};
+    const placed = this.items()[this.state.i].ans.map(t => {
+      for (let k = 0; k < bank.length; k++) if (bank[k][0] === t[0] && !taken[k]) { taken[k] = 1; return k; }
+      return 0;
+    });
+    this.setState({ placed: placed, status: "shown" });
+  }
+
+  next() {
+    const last = this.state.i === this.items().length - 1;
+    this.setState(s => ({ i: last ? s.i : s.i + 1, placed: [], misses: 0, status: "idle", finished: last }));
+  }
+
+  renderVals() {
+    const s = this.state;
+    const item = this.items()[s.i];
+    const bank = this.bankFor(s.i);
+    const romaji = this.props.showRomaji ?? true;
+    const noteAfter = this.props.noteAfterMisses ?? 2;
+    const right = s.status === "right";
+    const shown = s.status === "shown";
+    const done = right || shown;
+
+    const statusMap = {
+      idle: ["", "var(--color-neutral-600)"],
+      wrong: [s.misses >= noteAfter ? "Not yet — read the note" : "Not quite. Try again.", "var(--color-accent-700)"],
+      right: ["Correct", "var(--color-text)"],
+      shown: ["Answer shown", "var(--color-neutral-700)"]
+    };
+
+    return {
+      streak: "Day 12",
+      atHome: s.screen === "home",
+      inDrill: s.screen === "drill",
+      headerLabel: s.screen === "home" ? "Japanese · beginner" : SCENARIOS[s.sc].name + " · " + SCENARIOS[s.sc].kicker.replace("Set ", ""),
+      onHome: () => this.home(),
+      scenarios: SCENARIOS.map((sc, k) => ({
+        name: sc.name, kicker: sc.kicker, blurb: sc.blurb,
+        count: sc.items.length + " sentences",
+        onOpen: () => this.open(k)
+      })),
+      inSession: s.screen === "drill" && !s.finished,
+      finished: s.screen === "drill" && s.finished,
+      total: this.items().length,
+      itemNo: s.i + 1,
+      progressPct: Math.round(((s.finished ? this.items().length : s.i) / this.items().length) * 100) + "%",
+      prompt: item.en,
+      placed: s.placed.map((k, pos) => ({ ja: bank[k][0], ro: romaji ? bank[k][1] : "", onTap: () => this.untap(pos) })),
+      slots: new Array(Math.max(0, item.ans.length - s.placed.length)).fill(0).map((_, x) => ({ x })),
+      bank: bank.map((t, k) => ({
+        ja: t[0], ro: romaji ? t[1] : "",
+        vis: s.placed.indexOf(k) === -1 ? "visible" : "hidden",
+        onTap: () => this.tap(k)
+      })),
+      statusText: statusMap[s.status][0],
+      statusColor: statusMap[s.status][1],
+      showNote: s.misses >= noteAfter || done,
+      note: item.note,
+      noteLabel: done ? "Additional grammar tips" : "Grammar",
+      primaryLabel: done ? (s.i === this.items().length - 1 ? "Finish set" : "Next sentence") : "Check",
+      primaryDisabled: !done && s.placed.length === 0,
+      onPrimary: done ? () => this.next() : () => this.check(),
+      canReveal: s.misses >= 3 && !done,
+      onReveal: () => this.reveal(),
+      scoreLine: s.firstTry + " / " + this.items().length,
+      onRestart: () => this.setState({ i: 0, placed: [], misses: 0, status: "idle", firstTry: 0, finished: false })
+    };
+  }
+}
+
+</script>
+</body>
+</html>

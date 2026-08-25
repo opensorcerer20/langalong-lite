@@ -1,0 +1,23 @@
+/* Vendored web fonts, so the app renders correctly on a cold offline launch.
+   The design system's own stylesheet @imports Archivo from Google Fonts; that
+   import fails offline, and these faces — declared after it — cover the gap.
+   Both files are variable (wght 100–900) and carry no unicode-range, so any
+   glyph they lack falls through to the next family in the stack. */
+
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 100 900;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url('fonts/archivo-latin-var.woff2') format('woff2');
+}
+
+/* Subset to the 102 kana and kanji used by the two sentence sets. */
+@font-face {
+  font-family: 'Noto Sans JP';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('fonts/noto-sans-jp-subset.woff2') format('woff2');
+}
