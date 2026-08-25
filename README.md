@@ -4,7 +4,7 @@ A Japanese sentence-building app for English-speaking learners. An English promp
 
 18 sentences across two situations: **Bakery** (10) and **Train station** (8).
 
-React and TypeScript, built with Vite. The app is organised so each piece can be read on its own: the Japanese content is inert data that imports nothing, the drill rules are pure functions that import no content, and the components are presentational.
+React and TypeScript, built with Vite. The app is organised so each piece can be read on its own: the Japanese content is inert data that imports nothing, the drill rules are pure functions that import no content, and the components are presentational — one file each, styles included.
 
 ## Running it
 
@@ -59,7 +59,31 @@ components/  ──►  state/useTsumiki  ──►  state/appReducer  ──►
 - **`src/lib/`** is the processing: bank generation, segmentation, answer checking, reveal placement. Pure functions that take the content they need as arguments and never import `data/`.
 - **`src/state/appReducer.ts`** is every drill rule, as one pure reducer. It does not import content either — the `check` and `reveal` actions carry the item and bank in the action itself.
 - **`src/state/useTsumiki.ts`** is the single seam where content, state and logic meet. It resolves the current scenario, item and tile bank and applies the config dials.
-- **`src/components/`** are presentational: props in, callbacks out. Only `App` calls the hook. Each owns a co-located `.module.css`.
+- **`src/components/`** are presentational: props in, callbacks out. Only `App` calls the hook. One file per component, with its styles in it.
+
+### Styling
+
+Styles are [StyleX](https://stylexjs.com) — Meta's web successor to React Native's `StyleSheet.create`. Each component ends with a `stylex.create({ … })` block holding only its own rules, so there is never a second file to open to find out what an element looks like:
+
+```tsx
+export function ProgressBar({ value }: ProgressBarProps) {
+  return <div {...stylex.props(s.track)}>…</div>;
+}
+
+const s = stylex.create({
+  track: { display: 'flex', height: 6, borderBottomWidth: 2 },
+});
+```
+
+It compiles away entirely: `stylex.create` is replaced at build time with atomic class names and the CSS is extracted to `dist/assets/stylex.css`. Nothing ships at runtime.
+
+Three consequences worth knowing before editing a stylesheet:
+
+- **Longhands only.** `background`, `border` and `padding` shorthands are silently dropped — write `backgroundColor`, `borderWidth`/`borderStyle`/`borderColor`, `paddingTop`/`paddingRight`/… StyleX needs one property per atomic class. This bites quietly: the styles simply do not appear.
+- **No descendant selectors and no attribute selectors.** Every rule sits on the element it applies to. A child that needs to vary picks its own style — see how `Tile` styles the romaji span for each variant rather than reaching down into it.
+- **Conditions live inside the property, next to its resting value.** `borderColor: { default: …, ':hover:not(:disabled)': … }`. A hover-only style composed on afterwards would *replace* the resting value rather than add to it, because StyleX merges per property and the last style applied wins.
+
+Values still come from the design system: `var(--color-accent)` and friends are ordinary strings to StyleX, so `_ds/…/styles.css` remains the single source of every colour and space, and its `.btn` and `.hr` stay plain global classes.
 
 | Path | What it is |
 | --- | --- |
@@ -73,8 +97,10 @@ components/  ──►  state/useTsumiki  ──►  state/appReducer  ──►
 | `src/lib/checkAnswer.ts` | Building the answer string and judging it |
 | `src/lib/revealPlacement.ts` | Which bank positions spell the answer |
 | `src/state/` | The reducer and the hook |
-| `src/components/<Name>/` | `<Name>.tsx` and `<Name>.module.css` |
-| `src/styles/` | `global.css` (page ground, `.screen`, `.kicker`) and `fonts.css` |
+| `src/components/<Name>.tsx` | One component and its StyleX styles, in one file |
+| `src/styles/shared.ts` | The two styles used by more than one component: `screen` and `kicker` |
+| `src/styles/global.css` | The page ground — `html`, `body`, `button`. No element owns these, so they stay CSS |
+| `src/styles/fonts.css` | The two `@font-face` rules |
 | `tests/` | One file per component and per module, mirroring `src/` |
 | `tests/fixtures/prototype-banks.json` | All 18 tile banks as the prototype generated them |
 | `fonts/`, `icons/` | Vendored Archivo (latin) and Noto Sans JP, subset to the 102 kana and kanji in use. Both variable, wght 100–900, both OFL 1.1 with the license text alongside. Pulled in through the bundler, which is why there is no `public/` |

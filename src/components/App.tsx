@@ -1,13 +1,13 @@
 /* The whole app in one screenful: state comes from the hook, and which of the
    three screens is showing follows from it. */
 
-import { useTsumiki } from '../../state/useTsumiki';
-import { DoneScreen } from '../DoneScreen/DoneScreen';
-import { DrillScreen } from '../DrillScreen/DrillScreen';
-import { Header } from '../Header/Header';
-import { HomeScreen } from '../HomeScreen/HomeScreen';
-import { PhoneColumn } from '../PhoneColumn/PhoneColumn';
-import { ProgressBar } from '../ProgressBar/ProgressBar';
+import { useTsumiki } from '../state/useTsumiki';
+import { DoneScreen } from './DoneScreen';
+import { DrillScreen } from './DrillScreen';
+import { Header } from './Header';
+import { HomeScreen } from './HomeScreen';
+import { PhoneColumn } from './PhoneColumn';
+import { ProgressBar } from './ProgressBar';
 
 /* Static chrome: nothing is persisted between sessions yet. */
 const STREAK = 'Day 12';

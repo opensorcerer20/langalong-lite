@@ -5,7 +5,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
-import { App } from '../../src/components/App/App';
+import { App } from '../../src/components/App';
 import { TILE_MULTIPLIER } from '../../src/config';
 import { GRAMMAR } from '../../src/data/grammar';
 import { SCENARIOS } from '../../src/data/scenarios';
@@ -19,7 +19,7 @@ const bankFor = (index: number) =>
 
 /** The tile bank as rendered — the hidden used tiles included. */
 const bankTiles = () => {
-  const bank = document.querySelectorAll('button[class*="bank"]');
+  const bank = document.querySelectorAll('[data-variant="bank"]');
   return Array.from(bank) as HTMLElement[];
 };
 
@@ -123,7 +123,7 @@ describe('App', () => {
     await user.click(bankTiles()[1]!);
     await user.click(primary());
 
-    const placed = container.querySelectorAll('button[class*="placed"]');
+    const placed = container.querySelectorAll('[data-variant="placed"]');
     expect(placed).toHaveLength(0);
   });
 
@@ -133,11 +133,11 @@ describe('App', () => {
     await user.click(screen.getByText('Bakery'));
 
     await user.click(bankTiles()[0]!);
-    const placed = container.querySelector('button[class*="placed"]')!;
+    const placed = container.querySelector('[data-variant="placed"]')!;
     expect(bankTiles()[0]).toHaveAttribute('data-used');
 
     await user.click(placed);
-    expect(container.querySelectorAll('button[class*="placed"]')).toHaveLength(0);
+    expect(container.querySelectorAll('[data-variant="placed"]')).toHaveLength(0);
     expect(bankTiles()[0]).not.toHaveAttribute('data-used');
   });
 
@@ -152,7 +152,7 @@ describe('App', () => {
 
     expect(screen.getByRole('heading')).toHaveTextContent(BAKERY.items[1]!.en);
     expect(screen.getByText(/item 2 of 10/)).toBeInTheDocument();
-    expect(container.querySelectorAll('button[class*="placed"]')).toHaveLength(0);
+    expect(container.querySelectorAll('[data-variant="placed"]')).toHaveLength(0);
     expect(screen.getByRole('status')).toHaveTextContent('');
   });
 

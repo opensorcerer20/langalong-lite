@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-import { ScenarioRow } from '../../src/components/ScenarioRow/ScenarioRow';
+import { ScenarioRow } from '../../src/components/ScenarioRow';
 import type { Scenario, SentenceItem } from '../../src/data/types';
 
 const item = (en: string): SentenceItem => ({

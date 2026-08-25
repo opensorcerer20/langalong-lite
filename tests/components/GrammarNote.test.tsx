@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { GrammarNote } from '../../src/components/GrammarNote/GrammarNote';
+import { GrammarNote } from '../../src/components/GrammarNote';
 
 const NOTE = 'を marks the direct object — the thing you are asking for.';
 

@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { StatusLine } from '../../src/components/StatusLine/StatusLine';
+import { StatusLine } from '../../src/components/StatusLine';
 
 const line = () => screen.getByRole('status');
 

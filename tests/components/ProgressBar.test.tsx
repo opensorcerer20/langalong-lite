@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { ProgressBar } from '../../src/components/ProgressBar/ProgressBar';
+import { ProgressBar } from '../../src/components/ProgressBar';
 
 const bar = () => screen.getByRole('progressbar');
 

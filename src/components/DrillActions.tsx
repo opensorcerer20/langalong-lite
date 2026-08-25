@@ -2,9 +2,12 @@
 
    One primary button does both jobs: it checks the answer while the item is
    open, and advances once the answer is settled. The reveal button only appears
-   after enough misses — see REVEAL_AFTER_MISSES. */
+   after enough misses — see REVEAL_AFTER_MISSES.
 
-import styles from './DrillActions.module.css';
+   The buttons themselves are the design system's `.btn` classes, unstyled by
+   this component — only their container is StyleX. */
+
+import * as stylex from '@stylexjs/stylex';
 
 export interface DrillActionsProps {
   /** The answer is settled, so the primary button advances instead of checking. */
@@ -31,7 +34,7 @@ export function DrillActions({
   const label = done ? (isLastItem ? 'Finish set' : 'Next sentence') : 'Check';
 
   return (
-    <div className={styles.actions}>
+    <div {...stylex.props(s.actions)}>
       {showReveal && (
         <button type="button" className="btn btn-secondary btn-block" onClick={onReveal}>
           Show me the answer
@@ -48,3 +51,15 @@ export function DrillActions({
     </div>
   );
 }
+
+const s = stylex.create({
+  actions: {
+    paddingTop: 10,
+    paddingRight: 20,
+    paddingBottom: 20,
+    paddingLeft: 20,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+  },
+});

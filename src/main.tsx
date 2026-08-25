@@ -17,7 +17,7 @@ import '../_ds/modernist-47face9e-49d1-431f-a4b3-bbfe4229952e/styles.css';
 import './styles/fonts.css';
 import './styles/global.css';
 
-import { App } from './components/App/App';
+import { App } from './components/App';
 
 const root = document.getElementById('root');
 if (!root) throw new Error('#root is missing from index.html');

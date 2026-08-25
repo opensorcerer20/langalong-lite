@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-import { DoneScreen } from '../../src/components/DoneScreen/DoneScreen';
+import { DoneScreen } from '../../src/components/DoneScreen';
 
 const done = (props: Partial<Parameters<typeof DoneScreen>[0]> = {}) => {
   const handlers = { onRestart: vi.fn(), onHome: vi.fn() };

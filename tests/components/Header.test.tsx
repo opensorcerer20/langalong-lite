@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-import { Header } from '../../src/components/Header/Header';
+import { Header } from '../../src/components/Header';
 
 describe('Header', () => {
   it('shows the wordmark, the label and the streak', () => {

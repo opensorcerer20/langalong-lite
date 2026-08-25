@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { PhoneColumn } from '../../src/components/PhoneColumn/PhoneColumn';
+import { PhoneColumn } from '../../src/components/PhoneColumn';
 
 describe('PhoneColumn', () => {
   it('renders what it is given', () => {

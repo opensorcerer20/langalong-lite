@@ -1,7 +1,7 @@
 /* The situations, one ruled row each. */
 
-import type { Scenario } from '../../data/types';
-import { ScenarioRow } from '../ScenarioRow/ScenarioRow';
+import type { Scenario } from '../data/types';
+import { ScenarioRow } from './ScenarioRow';
 
 export interface ScenarioListProps {
   readonly scenarios: readonly Scenario[];

@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { PromptBand } from '../../src/components/PromptBand/PromptBand';
+import { PromptBand } from '../../src/components/PromptBand';
 
 describe('PromptBand', () => {
   it('shows the English sentence to build as the heading', () => {

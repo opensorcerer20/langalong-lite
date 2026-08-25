@@ -1,9 +1,0 @@
-.bank {
-  padding: 18px 20px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-content: flex-start;
-  /* Takes the slack in the column, so the actions sit at the bottom. */
-  flex: 1;
-}

@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-import { HomeScreen } from '../../src/components/HomeScreen/HomeScreen';
+import { HomeScreen } from '../../src/components/HomeScreen';
 import { SCENARIOS } from '../../src/data/scenarios';
 
 describe('HomeScreen', () => {

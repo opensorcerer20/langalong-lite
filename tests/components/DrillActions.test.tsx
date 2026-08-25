@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-import { DrillActions } from '../../src/components/DrillActions/DrillActions';
+import { DrillActions } from '../../src/components/DrillActions';
 
 const actions = (props: Partial<Parameters<typeof DrillActions>[0]> = {}) => {
   const handlers = { onCheck: vi.fn(), onNext: vi.fn(), onReveal: vi.fn() };

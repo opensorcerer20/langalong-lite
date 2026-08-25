@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-import { Tile } from '../../src/components/Tile/Tile';
+import { Tile } from '../../src/components/Tile';
 import type { Tile as TileData } from '../../src/data/types';
 
 const PAN: TileData = ['パン', 'pan'];
@@ -52,6 +52,13 @@ describe('Tile', () => {
     expect(button).not.toHaveAttribute('aria-hidden');
   });
 
+  it('says which row it belongs to', () => {
+    const { container: bank } = render(<Tile tile={PAN} variant="bank" />);
+    const { container: placed } = render(<Tile tile={PAN} variant="placed" />);
+    expect(bank.querySelector('button')).toHaveAttribute('data-variant', 'bank');
+    expect(placed.querySelector('button')).toHaveAttribute('data-variant', 'placed');
+  });
+
   it('styles the two variants differently', () => {
     const { container: bank } = render(<Tile tile={PAN} variant="bank" />);
     const { container: placed } = render(<Tile tile={PAN} variant="placed" />);
@@ -59,6 +66,12 @@ describe('Tile', () => {
       placed.querySelector('button')?.className,
     );
   });
+
+  /* A settled tile must not light up under the cursor. That guard is the
+     `:hover:not(:disabled)` condition in Tile's stylesheet, which jsdom does not
+     evaluate — so it is verified against the emitted CSS at build time, not
+     here. What this file can assert is the behavioural half: a disabled tile
+     carries the disabled attribute and ignores clicks (above). */
 
   it('is a plain button, so it never submits anything', () => {
     render(<Tile tile={PAN} variant="bank" />);

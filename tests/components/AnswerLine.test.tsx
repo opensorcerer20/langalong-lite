@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-import { AnswerLine } from '../../src/components/AnswerLine/AnswerLine';
+import { AnswerLine } from '../../src/components/AnswerLine';
 import type { Tile } from '../../src/data/types';
 
 const BANK: readonly Tile[] = [
@@ -27,17 +27,17 @@ describe('AnswerLine', () => {
   /* The empty rules are how the learner sees how much sentence is left. */
   it('shows one empty slot per tile still to come', () => {
     const { container } = line([2]);
-    expect(container.querySelectorAll('span[class*="slot"]')).toHaveLength(2);
+    expect(container.querySelectorAll('[data-slot]')).toHaveLength(2);
   });
 
   it('shows no slots once the line is full', () => {
     const { container } = line([2, 3, 0]);
-    expect(container.querySelectorAll('span[class*="slot"]')).toHaveLength(0);
+    expect(container.querySelectorAll('[data-slot]')).toHaveLength(0);
   });
 
   it('does not show negative slots when more tiles are placed than needed', () => {
     const { container } = line([2, 3, 0, 1]);
-    expect(container.querySelectorAll('span[class*="slot"]')).toHaveLength(0);
+    expect(container.querySelectorAll('[data-slot]')).toHaveLength(0);
   });
 
   it('removes a tile by its position on the line, not its bank index', async () => {
@@ -69,6 +69,6 @@ describe('AnswerLine', () => {
   it('is all slots when nothing is placed yet', () => {
     const { container } = line([]);
     expect(screen.queryAllByRole('button')).toHaveLength(0);
-    expect(container.querySelectorAll('span[class*="slot"]')).toHaveLength(3);
+    expect(container.querySelectorAll('[data-slot]')).toHaveLength(3);
   });
 });

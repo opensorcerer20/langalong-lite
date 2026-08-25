@@ -5,6 +5,11 @@
 node_modules/
 dist/
 
+# Local environment overrides — per-machine settings that must not be shared.
+# .env.example is committed as the documented list of what can be set.
+.env.local
+.env.*.local
+
 # Note: fonts/ and icons/ are vendored on purpose and must stay tracked —
 # there is no build step that regenerates them, and the app needs both to
 # render and install correctly offline. Vite pulls them through the bundler

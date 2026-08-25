@@ -4,9 +4,10 @@
    elimination. Tiles already on the answer line are hidden in place rather than
    removed, which keeps the rest of the bank from reflowing mid-sentence. */
 
-import type { Tile as TileData } from '../../data/types';
-import { Tile } from '../Tile/Tile';
-import styles from './TileBank.module.css';
+import * as stylex from '@stylexjs/stylex';
+
+import type { Tile as TileData } from '../data/types';
+import { Tile } from './Tile';
 
 export interface TileBankProps {
   readonly bank: readonly TileData[];
@@ -22,7 +23,7 @@ export function TileBank({ bank, placed, showRomaji, locked = false, onPlace }: 
   const used = new Set(placed);
 
   return (
-    <div className={styles.bank}>
+    <div {...stylex.props(s.bank)}>
       {bank.map((tile, bankIndex) => (
         <Tile
           /* Keyed by bank position, which is stable for the life of the item —
@@ -40,3 +41,18 @@ export function TileBank({ bank, placed, showRomaji, locked = false, onPlace }: 
     </div>
   );
 }
+
+const s = stylex.create({
+  bank: {
+    paddingTop: 18,
+    paddingRight: 20,
+    paddingBottom: 18,
+    paddingLeft: 20,
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 6,
+    alignContent: 'flex-start',
+    /* Takes the slack in the column, so the actions sit at the bottom. */
+    flex: 1,
+  },
+});

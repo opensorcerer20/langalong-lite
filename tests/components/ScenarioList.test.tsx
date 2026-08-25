@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-import { ScenarioList } from '../../src/components/ScenarioList/ScenarioList';
+import { ScenarioList } from '../../src/components/ScenarioList';
 import type { Scenario } from '../../src/data/types';
 
 const scenario = (name: string, kicker: string): Scenario => ({

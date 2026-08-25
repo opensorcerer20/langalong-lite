@@ -1,10 +1,9 @@
-/* App-level rules only.
+/* The page ground, and nothing else.
 
-   Everything that belongs to one component lives in that component's
-   .module.css. What is left here is the page ground plus the two type
-   primitives that genuinely appear in more than one component — `.screen` and
-   `.kicker` — which are used as plain global class names, the same way the
-   design system's own `.btn` and `.hr` are.
+   These rules belong to no component — no element in the React tree owns
+   `html` or `body` — so they stay as CSS. Everything a component can own is
+   StyleX, declared in that component's own file; the two rules shared across
+   components are style objects in shared.ts.
 
    Every value comes from a design system token. Do not hard-code a hex, a font
    name, or a px value the tokens already carry. */
@@ -23,20 +22,4 @@ body {
 /* The design system sets this on body, but buttons do not inherit it. */
 button {
   font-family: var(--font-body);
-}
-
-/* One screen fills the column below the header and progress rule. */
-.screen {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-/* The small uppercase label above a heading. */
-.kicker {
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--color-neutral-600);
-  margin-bottom: 10px;
 }
