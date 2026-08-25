@@ -1,0 +1,25 @@
+/* The page ground, and nothing else.
+
+   These rules belong to no component — no element in the React tree owns
+   `html` or `body` — so they stay as CSS. Everything a component can own is
+   StyleX, declared in that component's own file; the two rules shared across
+   components are style objects in shared.ts.
+
+   Every value comes from a design system token. Do not hard-code a hex, a font
+   name, or a px value the tokens already carry. */
+
+html {
+  background: var(--color-neutral-200);
+}
+
+body {
+  margin: 0;
+  background: var(--color-neutral-200);
+  /* Stops the whole page rubber-banding on iOS when a tile list is dragged. */
+  overscroll-behavior-y: none;
+}
+
+/* The design system sets this on body, but buttons do not inherit it. */
+button {
+  font-family: var(--font-body);
+}
