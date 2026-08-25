@@ -1,0 +1,28 @@
+/* Vendored web fonts, so the app renders correctly with no network.
+
+   The design system's own stylesheet @imports Archivo from Google Fonts. These
+   faces are declared after it and win the match, so the vendored files are what
+   actually render. Both are variable (wght 100–900) and carry no unicode-range,
+   so any glyph they lack falls through to the next family in the stack.
+
+   The urls are relative: Vite resolves them at build and emits hashed copies
+   into dist/assets, which is why there is no public/ directory. */
+
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 100 900;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url('../../fonts/archivo-latin-var.woff2') format('woff2');
+}
+
+/* Subset to the 102 kana and kanji used by the two sentence sets. Adding
+   vocabulary with new kanji means regenerating this file — see the README. */
+@font-face {
+  font-family: 'Noto Sans JP';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../../fonts/noto-sans-jp-subset.woff2') format('woff2');
+}

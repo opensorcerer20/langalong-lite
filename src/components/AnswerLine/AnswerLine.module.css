@@ -1,0 +1,26 @@
+.answer {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* Holds two rows of tiles, so the bank below does not move as the sentence
+     grows past the first line. */
+  min-height: 104px;
+  border-bottom: 2px solid var(--color-divider);
+}
+
+.tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+/* A tile still to come. Sits on the tiles' baseline, not their top. */
+.slot {
+  display: block;
+  width: 34px;
+  height: 2px;
+  background: var(--color-neutral-400);
+  margin-top: 26px;
+}

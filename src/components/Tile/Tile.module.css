@@ -1,0 +1,58 @@
+.tile {
+  font-family: 'Noto Sans JP', var(--font-body);
+  padding: 7px 11px 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  line-height: 1.15;
+}
+
+.kana {
+  font-size: 19px;
+  font-weight: 500;
+}
+
+.romaji {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+/* Placed tiles invert to ink-on-ground. */
+.placed {
+  background: var(--color-text);
+  color: var(--color-bg);
+  border: 2px solid var(--color-text);
+}
+
+.placed .romaji {
+  opacity: 0.7;
+}
+
+.placed:hover:not(:disabled) {
+  background: var(--color-accent-700);
+  border-color: var(--color-accent-700);
+}
+
+/* Bank tiles are surface with a 2px rule, taking the accent on hover. */
+.bank {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 2px solid var(--color-divider);
+}
+
+.bank .romaji {
+  color: var(--color-neutral-600);
+}
+
+.bank:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent-700);
+}
+
+/* A placed tile's slot in the bank: hidden, but still occupying its space so
+   the remaining tiles do not reflow under the learner's finger mid-sentence. */
+.bank[data-used] {
+  visibility: hidden;
+}

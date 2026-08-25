@@ -10,7 +10,7 @@
   font-weight: 100 900;
   font-stretch: 100%;
   font-display: swap;
-  src: url('fonts/archivo-latin-var.woff2') format('woff2');
+  src: url('../fonts/archivo-latin-var.woff2') format('woff2');
 }
 
 /* Subset to the 102 kana and kanji used by the two sentence sets. */
@@ -19,5 +19,5 @@
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url('fonts/noto-sans-jp-subset.woff2') format('woff2');
+  src: url('../fonts/noto-sans-jp-subset.woff2') format('woff2');
 }

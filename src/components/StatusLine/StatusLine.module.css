@@ -1,0 +1,9 @@
+.status {
+  padding: 0 20px;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  /* Reserved height, so the actions below do not jump as the message changes. */
+  min-height: 22px;
+  font-weight: 600;
+}

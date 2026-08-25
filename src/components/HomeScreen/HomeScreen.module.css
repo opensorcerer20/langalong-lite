@@ -1,0 +1,22 @@
+.band {
+  padding: 26px 20px 22px;
+  border-bottom: 2px solid var(--color-divider);
+}
+
+.display {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 30px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+}
+
+.foot {
+  margin: 0;
+  padding: 20px;
+  color: var(--color-neutral-600);
+  font-size: 13px;
+  line-height: 1.5;
+}

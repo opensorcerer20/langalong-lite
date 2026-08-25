@@ -1,0 +1,42 @@
+/* App-level rules only.
+
+   Everything that belongs to one component lives in that component's
+   .module.css. What is left here is the page ground plus the two type
+   primitives that genuinely appear in more than one component — `.screen` and
+   `.kicker` — which are used as plain global class names, the same way the
+   design system's own `.btn` and `.hr` are.
+
+   Every value comes from a design system token. Do not hard-code a hex, a font
+   name, or a px value the tokens already carry. */
+
+html {
+  background: var(--color-neutral-200);
+}
+
+body {
+  margin: 0;
+  background: var(--color-neutral-200);
+  /* Stops the whole page rubber-banding on iOS when a tile list is dragged. */
+  overscroll-behavior-y: none;
+}
+
+/* The design system sets this on body, but buttons do not inherit it. */
+button {
+  font-family: var(--font-body);
+}
+
+/* One screen fills the column below the header and progress rule. */
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The small uppercase label above a heading. */
+.kicker {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-neutral-600);
+  margin-bottom: 10px;
+}

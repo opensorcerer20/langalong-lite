@@ -1,22 +1,38 @@
 # Tsumiki
 
-A Japanese sentence-building PWA for English-speaking learners. An English prompt is shown; you assemble the Japanese sentence from a bank of tiles. The tile bank is deliberately oversupplied — roughly 3x the tiles needed, minimum 12 — so a correct sentence cannot be brute-forced by elimination.
+A Japanese sentence-building app for English-speaking learners. An English prompt is shown; you assemble the Japanese sentence from a bank of tiles. The tile bank is deliberately oversupplied — roughly 3x the tiles needed, minimum 12 — so a correct sentence cannot be brute-forced by elimination.
 
 18 sentences across two situations: **Bakery** (10) and **Train station** (8).
 
-Installable and fully offline after the first visit. No build step, no dependencies, no framework.
+React and TypeScript, built with Vite. The app is organised so each piece can be read on its own: the Japanese content is inert data that imports nothing, the drill rules are pure functions that import no content, and the components are presentational.
 
 ## Running it
 
-The app is static files, but it needs a real origin — a service worker will not register over `file://`, so opening `index.html` directly gives you the app without offline support or installability.
+```
+npm install
+npm run dev
+```
+
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Dev server with hot reload |
+| `npm test` | The full suite once |
+| `npm run test:watch` | The suite in watch mode |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run build` | Typecheck, then a production build into `dist/` |
+| `npm run preview` | Serve the production build |
+
+`dist/` is a folder of static files and deploys to any static host.
+
+### The original prototype
+
+`prototype/` holds the pre-React app — one `app.js`, one `index.html` with all the CSS in a `<style>` block, and no build step. It is kept for side-by-side comparison and is not part of the build. To run it, serve the repository root and open `/prototype/`:
 
 ```
 python3 -m http.server 8000
 ```
 
-Then open `http://localhost:8000`. Any static host works for deployment; it must be HTTPS for the service worker to register anywhere other than localhost.
-
-To install on a phone, load the deployed HTTPS URL and use the browser's install / "Add to Home Screen" action. It opens standalone, in portrait, with no browser chrome.
+It shares `fonts/`, `icons/` and `_ds/` with the React app, so it must be served from the repository root rather than from inside `prototype/`.
 
 ## How a drill works
 
@@ -29,43 +45,71 @@ To install on a phone, load the deployed HTTPS URL and use the browser's install
 
 The score on the set-complete screen is sentences built on the first try.
 
-## Files
+## How the code is arranged
+
+The one rule that shapes everything: **dependencies point one way, and language data is never imported by logic.**
+
+```
+components/  ──►  state/useTsumiki  ──►  state/appReducer  ──►  lib/       (pure, data-free)
+                        │
+                        └────────────►  data/                              (inert, logic-free)
+```
+
+- **`src/data/`** is the Japanese. Content and types, no functions. Nothing here imports anything but its own types.
+- **`src/lib/`** is the processing: bank generation, segmentation, answer checking, reveal placement. Pure functions that take the content they need as arguments and never import `data/`.
+- **`src/state/appReducer.ts`** is every drill rule, as one pure reducer. It does not import content either — the `check` and `reveal` actions carry the item and bank in the action itself.
+- **`src/state/useTsumiki.ts`** is the single seam where content, state and logic meet. It resolves the current scenario, item and tile bank and applies the config dials.
+- **`src/components/`** are presentational: props in, callbacks out. Only `App` calls the hook. Each owns a co-located `.module.css`.
 
 | Path | What it is |
 | --- | --- |
-| `index.html` | App shell — the 460px ruled column, header, and the three screens as static markup. App CSS lives in one `<style>` block. |
-| `app.js` | Content, tile-bank generation, drill rules, and rendering. The whole application. |
-| `fonts.css`, `fonts/` | Vendored Archivo (latin) and Noto Sans JP, subset to the 102 kana and kanji the sentence sets use. Both variable, wght 100–900, both OFL 1.1 with the license text alongside. |
-| `sw.js` | Cache-first service worker; precaches the shell so the app opens offline. |
-| `manifest.webmanifest`, `icons/` | Install metadata and the app icon at 192, 512, maskable-512, plus 180 for iOS. |
-| `_ds/modernist-…/` | The Modernist design system. `styles.css` is linked unmodified and is the source of every color, space and radius token. |
-| `DESIGN.md` | The design document the app was built from. |
-| `Sentence Builder.dc.html`, `support.js` | The original Claude Design handoff the app was ported from. Not part of the running app and not precached — kept for reference. |
+| `src/data/types.ts` | `Tile`, `SentenceItem`, `Scenario` |
+| `src/data/grammar.ts` | The 25 shared particles, endings and question words distractors draw on |
+| `src/data/bakery.ts`, `src/data/station.ts` | One situation's sentences and vocabulary each |
+| `src/data/scenarios.ts` | The situation list, in home-screen order |
+| `src/config.ts` | The four difficulty and display dials |
+| `src/lib/buildBank.ts` | The deterministic tile bank |
+| `src/lib/segment.ts` | Splitting a written-out sentence back into tiles, longest match first |
+| `src/lib/checkAnswer.ts` | Building the answer string and judging it |
+| `src/lib/revealPlacement.ts` | Which bank positions spell the answer |
+| `src/state/` | The reducer and the hook |
+| `src/components/<Name>/` | `<Name>.tsx` and `<Name>.module.css` |
+| `src/styles/` | `global.css` (page ground, `.screen`, `.kicker`) and `fonts.css` |
+| `tests/` | One file per component and per module, mirroring `src/` |
+| `tests/fixtures/prototype-banks.json` | All 18 tile banks as the prototype generated them |
+| `fonts/`, `icons/` | Vendored Archivo (latin) and Noto Sans JP, subset to the 102 kana and kanji in use. Both variable, wght 100–900, both OFL 1.1 with the license text alongside. Pulled in through the bundler, which is why there is no `public/` |
+| `_ds/modernist-…/` | The Modernist design system. `styles.css` is imported unmodified and is the source of every color, space and radius token |
+| `DESIGN.md` | The design document the app was built from |
+| `prototype/` | The pre-React app, kept for reference |
+| `Sentence Builder.dc.html`, `support.js` | The original Claude Design handoff the prototype was ported from. Not part of the app |
 
 ## Changing things
 
-**Difficulty and display** — three constants at the top of `app.js`:
+**Difficulty and display** — `src/config.ts`:
 
-```js
-const TILE_MULTIPLIER = 3;      /* distractor density, 1.5–4.5 */
-const NOTE_AFTER_MISSES = 2;    /* misses before the grammar note appears */
-const SHOW_ROMAJI = true;       /* romaji beneath the kana on every tile */
+```ts
+export const TILE_MULTIPLIER = 3;      /* distractor density, 1.5–4.5 */
+export const NOTE_AFTER_MISSES = 2;    /* misses before the grammar note appears */
+export const REVEAL_AFTER_MISSES = 3;  /* misses before "Show me the answer" appears */
+export const SHOW_ROMAJI = true;       /* romaji beneath the kana on every tile */
 ```
 
-**Adding a sentence** — push an object onto `BAKERY` or `STATION` in `app.js`:
+**Adding a sentence** — push an object onto the items array in `src/data/bakery.ts` or `src/data/station.ts`:
 
-```js
+```ts
 {
-  en: "Please give me a bag.",
-  ans: [["袋","fukuro"],["を","o"],["ください","kudasai"]],
-  alts: ["袋をお願いします"],
-  note: "Same frame as the first sentence. Once ＸをＹください is automatic, only the noun changes."
+  en: 'Please give me a bag.',
+  ans: [['袋', 'fukuro'], ['を', 'o'], ['ください', 'kudasai']],
+  alts: ['袋をお願いします'],
+  note: 'Same frame as the first sentence. Once ＸをＹください is automatic, only the noun changes.',
 }
 ```
 
 `ans` is the canonical answer as `[kana, romaji]` tiles — particles split out, conjugation endings as their own tiles (食べ + たい). `alts` is optional and holds other accepted answers as plain strings; the bank generator segments each one and seeds any tile the canonical answer doesn't already supply, so every accepted answer is always buildable. `note` is required — it is what the learner sees after a second miss.
 
-**Adding a situation** — add an entry to `SCENARIOS` with its own `items` array and a `words` pool. Distractors are drawn from `GRAMMAR` (25 shared particles, endings and question words) plus that situation's own `words`, so a wrong tile is always plausible within the scene.
+`npm test` checks all of this: that every item has a note, that every tile is a well-formed pair, and that every alternate is actually segmentable from the vocabulary in play. An alternate the tiles cannot spell is the failure mode worth guarding against — it would be accepted by the checker but impossible to build.
+
+**Adding a situation** — write its items and words in a file beside `bakery.ts`, then add an entry to `SCENARIOS` in `src/data/scenarios.ts`. Nothing else changes. Distractors are drawn from `GRAMMAR` plus that situation's own `words`, so a wrong tile is always plausible within the scene.
 
 **New Japanese glyphs** — the vendored `fonts/noto-sans-jp-subset.woff2` covers only the characters currently in use. Adding vocabulary with new kanji means regenerating it, or those glyphs fall back to the OS Japanese font:
 
@@ -76,16 +120,25 @@ curl -sG -A 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 
      'https://fonts.googleapis.com/css2'
 ```
 
-then download the single `woff2` the returned CSS points at, over `fonts/noto-sans-jp-subset.woff2`, and bump `CACHE` in `sw.js`. The browser User-Agent is required: without it Google Fonts serves TrueType across nine static weights instead of one variable woff2.
+then download the single `woff2` the returned CSS points at, over `fonts/noto-sans-jp-subset.woff2`. The browser User-Agent is required: without it Google Fonts serves TrueType across nine static weights instead of one variable woff2.
 
-**After changing any precached file** — bump `CACHE` in `sw.js` (currently `tsumiki-v2`). The service worker is cache-first, so without a bump anyone who has already loaded the app keeps the old copy indefinitely. The activate handler deletes the previous cache.
+## Tests
+
+```
+npm test
+```
+
+270 tests. Most are ordinary unit tests, but two are worth knowing about:
+
+- **`tests/lib/buildBank.test.ts`** checks the generated tile bank against `tests/fixtures/prototype-banks.json`, which holds all 18 banks exactly as the original `app.js` produced them. The bank is deterministic — no RNG, just arithmetic on the item's index — so any change to the draw stride or the shuffle shows up here as a diff rather than as a silently different app.
+- **`tests/components/App.test.tsx`** plays real drills through the real content: the miss ladder, the reveal forfeiting first-try credit, finishing a set and reading the score.
 
 ## Credits
 
 The idea, the product decisions and the architecture are the author's. Two Claude tools were used to build it:
 
 - **Claude Design** produced the Modernist design system in `_ds/`, the design document in `DESIGN.md`, and the `Sentence Builder.dc.html` design component the app was ported from — the visual system, the screen structure and the drill rules as specified.
-- **Claude Code** ported that component to the installable PWA in this repository: the app shell, the plain-DOM rendering, the service worker, the manifest and icons, and the vendored font subsets.
+- **Claude Code** ported that component to the PWA now in `prototype/`, and then converted that prototype to the React and TypeScript app in `src/`.
 
 ### Fonts
 
@@ -98,9 +151,12 @@ Both typefaces are vendored as subsets in `fonts/` and are used under the SIL Op
 
 ## Not built yet
 
-Carried over from `DESIGN.md`:
-
+- **PWA support.** The prototype was installable and worked fully offline; the React app is not and does not. The service worker and manifest were left behind in `prototype/` during the conversion rather than being ported, to be re-added once the component tree settled. Vite hashes built filenames, so the hand-maintained precache list needs replacing with a generated one.
 - The **response level** — a Japanese line is spoken in a social situation and the learner assembles a reply, ranked by politeness register rather than judged literally.
 - **Persistence** — progress and the streak are not stored between sessions. The "Day 12" streak is static chrome.
 - **Notifications** and the daily reminder.
 - **Audio** playback of prompts, and a kana keyboard fallback.
+
+### If you installed the prototype
+
+The prototype registered a cache-first service worker at the repository root. If you loaded it from a served origin, that worker is still installed and will serve the old cached shell over the new app. Unregister it in DevTools → Application → Service Workers.

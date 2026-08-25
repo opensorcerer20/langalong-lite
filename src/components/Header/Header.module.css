@@ -1,0 +1,54 @@
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  /* Clears the status bar when installed and running standalone. */
+  padding: calc(18px + env(safe-area-inset-top)) 20px 14px;
+  border-bottom: 2px solid var(--color-divider);
+}
+
+.left {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.right {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-neutral-700);
+}
+
+.back {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-accent-700);
+}
+
+.back:hover {
+  color: var(--color-accent);
+}
+
+.brand {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+
+.streak {
+  color: var(--color-accent-700);
+  font-weight: 600;
+}

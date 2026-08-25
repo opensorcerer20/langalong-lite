@@ -1,0 +1,52 @@
+.row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  border-bottom: 2px solid var(--color-divider);
+  padding: 20px;
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+.row:hover {
+  background: var(--color-accent-100);
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.kicker {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent-700);
+  font-weight: 600;
+}
+
+.count {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-neutral-600);
+}
+
+.name {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 23px;
+  line-height: 1.2;
+  color: var(--color-text);
+  margin-bottom: 6px;
+}
+
+.blurb {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-neutral-700);
+}
