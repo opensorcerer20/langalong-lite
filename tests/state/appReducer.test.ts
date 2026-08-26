@@ -37,7 +37,10 @@ const run = (state: AppState, ...actions: AppAction[]) => actions.reduce(appRedu
 const place = (state: AppState, positions: number[]) =>
   run(state, ...positions.map((bankIndex): AppAction => ({ type: 'tap', bankIndex })));
 
-const CHECK: AppAction = { type: 'check', item: ITEM, bank: BANK };
+/* The fixture is Japanese, which joins its tiles with nothing between them. The
+   reducer never looks at this — it hands it straight to checkAnswer — but it
+   has to carry it, which is what keeps the reducer free of language content. */
+const CHECK: AppAction = { type: 'check', item: ITEM, bank: BANK, joiner: '' };
 const REVEAL: AppAction = { type: 'reveal', item: ITEM, bank: BANK };
 
 describe('navigation', () => {

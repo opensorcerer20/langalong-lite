@@ -17,8 +17,13 @@
   src: url('../../fonts/archivo-latin-var.woff2') format('woff2');
 }
 
-/* Subset to the 102 kana and kanji used by the two sentence sets. Adding
-   vocabulary with new kanji means regenerating this file — see the README. */
+/* The face the `ja` pack names in its fontStack. It stays here rather than in
+   the pack because an @font-face is an asset declaration, not content, and a
+   face nothing references is never downloaded — so a second language adds its
+   own rule below without costing this one anything.
+
+   Subset to the 102 kana and kanji used by the two sentence sets. Adding
+   vocabulary with new kanji means regenerating this file — see docs/AUTHORING.md. */
 @font-face {
   font-family: 'Noto Sans JP';
   font-style: normal;

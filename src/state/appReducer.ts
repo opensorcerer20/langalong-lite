@@ -1,10 +1,10 @@
 /* The whole of the app's behaviour, as one pure function.
 
-   This file deliberately imports no Japanese content. Where a transition needs
-   to know what the answer is — `check` and `reveal` — the caller puts the item
-   and the tile bank in the action itself. That keeps the rules readable on
-   their own and testable without loading a single sentence, and it is why
-   useTsumiki, not this file, is the place data meets state. */
+   This file deliberately imports no language content. Where a transition needs
+   to know what the answer is — `check` and `reveal` — the caller puts the item,
+   the tile bank and the language's joiner in the action itself. That keeps the
+   rules readable on their own and testable without loading a single sentence,
+   and it is why useTsumiki, not this file, is the place data meets state. */
 
 import type { SentenceItem, Tile } from '../data/types';
 import { buildString, isCorrect } from '../lib/checkAnswer';
@@ -54,7 +54,10 @@ export type AppAction =
   | { type: 'goHome' }
   | { type: 'tap'; bankIndex: number }
   | { type: 'untap'; position: number }
-  | { type: 'check'; item: SentenceItem; bank: readonly Tile[] }
+  /* `joiner` rides along for the same reason `item` and `bank` do: judging the
+     answer means joining tiles into a string, and how they join is the
+     language's business. `reveal` works on tiles alone and so needs none. */
+  | { type: 'check'; item: SentenceItem; bank: readonly Tile[]; joiner: string }
   | { type: 'reveal'; item: SentenceItem; bank: readonly Tile[] }
   | { type: 'next'; itemCount: number }
   | { type: 'restart' };
@@ -103,7 +106,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       if (isDone(state)) return state;
       if (state.placed.length === 0) return state;
 
-      if (isCorrect(action.item, buildString(action.bank, state.placed))) {
+      const built = buildString(action.bank, state.placed, action.joiner);
+      if (isCorrect(action.item, built, action.joiner)) {
         return {
           ...state,
           status: 'right',

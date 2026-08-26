@@ -11,6 +11,7 @@ Two lists at two levels of finish. **Planned** is decided work that hasn't been 
 - **Persistence** — progress and the streak are not stored between sessions. The "Day 12" streak is static chrome.
 - **Notifications** and the daily reminder.
 - **Audio** playback of prompts, and a kana keyboard fallback.
+- **A second language.** The content is already isolated behind a `LanguagePack` and the app reads one active pack, so a new language is a folder plus a registry entry — see [AUTHORING.md](AUTHORING.md#adding-a-language). What is still missing is everything around it: an in-app picker, progress and streak stored per language rather than globally, and a font subset per pack. Grammar itself is the open question — the drill teaches word order and particles, which suits Japanese; a language whose difficulty sits in conjugation or agreement may want a different exercise rather than the same one with different tiles.
 
 ## Todo
 

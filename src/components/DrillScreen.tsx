@@ -3,7 +3,7 @@
 
 import * as stylex from '@stylexjs/stylex';
 
-import { NOTE_AFTER_MISSES, SHOW_ROMAJI } from '../config';
+import { NOTE_AFTER_MISSES, SHOW_READING } from '../config';
 import type { Tsumiki } from '../state/useTsumiki';
 import { shared } from '../styles/shared';
 import { AnswerLine } from './AnswerLine';
@@ -18,17 +18,17 @@ export interface DrillScreenProps {
 }
 
 export function DrillScreen({ tsumiki }: DrillScreenProps) {
-  const { state, item, bank, total, done, isLastItem, showNote, showReveal } = tsumiki;
+  const { state, language, item, bank, total, done, isLastItem, showNote, showReveal } = tsumiki;
 
   return (
     <section {...stylex.props(shared.screen)}>
-      <PromptBand prompt={item.en} index={state.item} total={total} />
+      <PromptBand prompt={item.en} language={language.name} index={state.item} total={total} />
 
       <AnswerLine
         bank={bank}
         placed={state.placed}
         length={item.ans.length}
-        showRomaji={SHOW_ROMAJI}
+        showReading={SHOW_READING}
         locked={done}
         onRemove={tsumiki.untap}
       />
@@ -36,7 +36,7 @@ export function DrillScreen({ tsumiki }: DrillScreenProps) {
       <TileBank
         bank={bank}
         placed={state.placed}
-        showRomaji={SHOW_ROMAJI}
+        showReading={SHOW_READING}
         locked={done}
         onPlace={tsumiki.tap}
       />

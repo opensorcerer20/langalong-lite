@@ -1,6 +1,6 @@
 /* Set 02 — Train station. Buying tickets, platforms, departure times, gates. */
 
-import type { SentenceItem, Tile } from './types';
+import type { SentenceItem, Tile } from '../types';
 
 export const STATION_ITEMS: readonly SentenceItem[] = [
   {

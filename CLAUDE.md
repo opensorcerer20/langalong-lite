@@ -4,6 +4,7 @@
 
 - `src/` — implementation code
 - `tests/` — one test file per component
+- `prototype/` - holds original prototype for app, no further changes desired here
 
 ## Action scope
 

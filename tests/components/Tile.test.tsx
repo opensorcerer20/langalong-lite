@@ -15,7 +15,7 @@ describe('Tile', () => {
   });
 
   it('hides the romaji when it is turned off', () => {
-    render(<Tile tile={PAN} variant="bank" showRomaji={false} />);
+    render(<Tile tile={PAN} variant="bank" showReading={false} />);
     expect(screen.getByRole('button')).toHaveTextContent('パン');
     expect(screen.getByRole('button')).not.toHaveTextContent('pan');
   });

@@ -5,7 +5,7 @@ import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { NOTE_AFTER_MISSES, REVEAL_AFTER_MISSES } from '../../src/config';
-import { SCENARIOS } from '../../src/data/scenarios';
+import { LANGUAGE } from '../../src/data/languages';
 import { revealIndices } from '../../src/lib/revealPlacement';
 import { useTsumiki } from '../../src/state/useTsumiki';
 
@@ -33,14 +33,14 @@ describe('useTsumiki', () => {
   it('starts on the home screen with every scenario available', () => {
     const { result } = renderHook(() => useTsumiki());
     expect(result.current.state.screen).toBe('home');
-    expect(result.current.scenarios).toEqual(SCENARIOS);
+    expect(result.current.scenarios).toEqual(LANGUAGE.scenarios);
   });
 
   it('resolves the open scenario, its item and its tile bank', () => {
     const { result } = open(1);
     expect(result.current.scenario.name).toBe('Train station');
-    expect(result.current.item).toBe(SCENARIOS[1]?.items[0]);
-    expect(result.current.total).toBe(SCENARIOS[1]?.items.length);
+    expect(result.current.item).toBe(LANGUAGE.scenarios[1]?.items[0]);
+    expect(result.current.total).toBe(LANGUAGE.scenarios[1]?.items.length);
     expect(result.current.bank.length).toBeGreaterThan(0);
   });
 
@@ -62,9 +62,9 @@ describe('useTsumiki', () => {
 
   it('holds every tile the current answer needs', () => {
     const { result } = open();
-    const kana = result.current.bank.map((t) => t[0]);
+    const texts = result.current.bank.map((t) => t[0]);
     for (const tile of result.current.item.ans) {
-      expect(kana).toContain(tile[0]);
+      expect(texts).toContain(tile[0]);
     }
   });
 

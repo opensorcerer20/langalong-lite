@@ -51,9 +51,9 @@ npm run dev
 | **React 19** + **TypeScript 5.7** | The app |
 | **Vite 7** | Dev server and build |
 | **StyleX 0.18** | Styles, colocated per component and compiled away at build time |
-| **Vitest** + **Testing Library** | 271 tests |
+| **Vitest** + **Testing Library** | 287 tests |
 
-The app is organised so each piece can be read on its own: the Japanese content is inert data that imports nothing, the drill rules are pure functions that import no content, and the components are presentational — one file each, styles included. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) has the dependency rule and the StyleX gotchas.
+The app is organised so each piece can be read on its own: the language content is inert data that imports nothing, the drill rules are pure functions that import no content, and the components are presentational — one file each, styles included. The Japanese lives behind a `LanguagePack` in `src/data/ja/`, so a second language is a folder plus a registry entry rather than a rewrite. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) has the dependency rule and the StyleX gotchas.
 
 ## Documentation
 
@@ -62,7 +62,7 @@ The app is organised so each piece can be read on its own: the Japanese content 
 | [DESIGN.md](DESIGN.md) | Why the app works the way it does |
 | [docs/FLOW.md](docs/FLOW.md) | Every screen, field and action traced end to end |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the code is arranged, and the StyleX rules |
-| [docs/AUTHORING.md](docs/AUTHORING.md) | Adding sentences, situations and glyphs |
+| [docs/AUTHORING.md](docs/AUTHORING.md) | Adding sentences, situations, languages and glyphs |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | What isn't built yet |
 | [docs/MAINTENANCE.md](docs/MAINTENANCE.md) | Known debt, the prototype, troubleshooting |
 
@@ -70,7 +70,7 @@ The app is organised so each piece can be read on its own: the Japanese content 
 
 | Path | What it is |
 | --- | --- |
-| `src/data/` | The Japanese. Content and types, no functions |
+| `src/data/` | The language packs. Content and types, no functions. The Japanese is in `src/data/ja/` |
 | `src/lib/` | Bank generation, segmentation, answer checking. Pure, and never imports `data/` |
 | `src/state/` | The reducer holding every drill rule, and the hook that joins it to content |
 | `src/components/` | One component and its StyleX styles per file |
@@ -86,11 +86,11 @@ The app is organised so each piece can be read on its own: the Japanese content 
 npm test
 ```
 
-271 tests, across every component and module. Two are load-bearing: `tests/lib/buildBank.test.ts` checks the deterministic tile bank against all 18 banks as the original prototype generated them, and `tests/components/App.test.tsx` plays real drills through the real content. Detail in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#tests).
+287 tests, across every component and module. Two are load-bearing: `tests/lib/buildBank.test.ts` checks the deterministic tile bank against all 18 banks as the original prototype generated them, and `tests/components/App.test.tsx` plays real drills through the real content. Detail in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#tests).
 
 ## Adding content
 
-A sentence is an object with the English prompt, the canonical answer as `[kana, romaji]` tiles, optional accepted alternates, and a required grammar note:
+A sentence is an object with the English prompt, the canonical answer as `[text, reading]` tiles, optional accepted alternates, and a required grammar note:
 
 ```ts
 {
@@ -101,7 +101,7 @@ A sentence is an object with the English prompt, the canonical answer as `[kana,
 }
 ```
 
-Push it onto the items array in `src/data/bakery.ts` or `src/data/station.ts`; `npm test` verifies the note exists, the tiles are well formed, and every alternate is actually buildable from the bank. A new situation is a file beside `bakery.ts` plus an entry in `SCENARIOS`. Full guide, including the difficulty dials and regenerating the font subset: [docs/AUTHORING.md](docs/AUTHORING.md).
+Push it onto the items array in `src/data/ja/bakery.ts` or `src/data/ja/station.ts`; `npm test` verifies the note exists, the tiles are well formed, and every alternate is actually buildable from the bank. A new situation is a file beside `bakery.ts` plus an entry in `JA_SCENARIOS`; a new language is a folder beside `ja/` plus an entry in `LANGUAGES`. Full guide, including the difficulty dials and regenerating the font subset: [docs/AUTHORING.md](docs/AUTHORING.md).
 
 ## Credits
 

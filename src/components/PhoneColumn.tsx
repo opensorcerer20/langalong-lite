@@ -1,17 +1,39 @@
 /* The app surface: a 460px column with ruled edges on a darker ground, so it
-   reads as a phone even on a desktop screen. */
+   reads as a phone even on a desktop screen.
+
+   It is also where the active language's font stack enters the tree. StyleX
+   values are static — a family cannot be interpolated into a rule at runtime —
+   so the pack sets --font-target here and Tile's rule reads it. The inline
+   style has to be merged onto what stylex.props returns, which already carries
+   a style object of its own. */
 
 import * as stylex from '@stylexjs/stylex';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
 export interface PhoneColumnProps {
   readonly children: ReactNode;
+  /**
+   * Font families for target-language text, from the language pack. Omitted,
+   * the --font-target fallback in global.css stands.
+   */
+  readonly fontStack?: string;
 }
 
-export function PhoneColumn({ children }: PhoneColumnProps) {
+export function PhoneColumn({ children, fontStack }: PhoneColumnProps) {
+  const column = stylex.props(s.column);
+
   return (
     <div {...stylex.props(s.frame)}>
-      <div {...stylex.props(s.column)}>{children}</div>
+      <div
+        {...column}
+        style={
+          fontStack
+            ? ({ ...column.style, '--font-target': fontStack } as CSSProperties)
+            : column.style
+        }
+      >
+        {children}
+      </div>
     </div>
   );
 }

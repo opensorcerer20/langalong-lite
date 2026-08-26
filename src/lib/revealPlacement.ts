@@ -1,6 +1,6 @@
 /* Working out which bank tiles spell out the answer, for "Show me the answer".
 
-   The bank can hold the same kana more than once — 二枚 appears both in the
+   The bank can hold the same text more than once — 二枚 appears both in the
    answer and in the station vocabulary — so each position is claimed as it is
    matched and a claimed position is not reused. Without that, a sentence
    needing the same tile twice would point at one position twice and the answer

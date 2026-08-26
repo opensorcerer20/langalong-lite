@@ -3,7 +3,7 @@
    Tiles follow the project's granularity rule: whole words, particles split
    out, and conjugation endings as their own tile (食べ + たい). */
 
-import type { SentenceItem, Tile } from './types';
+import type { SentenceItem, Tile } from '../types';
 
 export const BAKERY_ITEMS: readonly SentenceItem[] = [
   {

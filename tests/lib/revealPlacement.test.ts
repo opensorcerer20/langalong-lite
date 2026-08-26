@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { TILE_MULTIPLIER } from '../../src/config';
-import { GRAMMAR } from '../../src/data/grammar';
-import { SCENARIOS } from '../../src/data/scenarios';
+import { LANGUAGE } from '../../src/data/languages';
 import type { SentenceItem, Tile } from '../../src/data/types';
 import { buildBank } from '../../src/lib/buildBank';
 import { buildString, isCorrect } from '../../src/lib/checkAnswer';
@@ -25,9 +24,9 @@ describe('revealIndices', () => {
     expect(revealIndices(ITEM, bank)).toEqual([2, 3, 0]);
   });
 
-  /* The claimed-position guard. A bank holding the same kana twice must not
+  /* The claimed-position guard. A bank holding the same text twice must not
      return the same index twice, or the answer line renders short. */
-  it('claims each position once when the bank repeats a kana', () => {
+  it('claims each position once when the bank repeats a tile', () => {
     const doubled: SentenceItem = {
       en: 'Bread bread.',
       ans: [['パン', 'pan'], ['パン', 'pan']],
@@ -42,23 +41,26 @@ describe('revealIndices', () => {
   });
 
   it('returns one index per answer tile', () => {
-    const bank = buildBank(ITEM, 0, { grammar: GRAMMAR, words: [] }, TILE_MULTIPLIER);
+    const pools = { grammar: LANGUAGE.grammar, words: [] };
+    const bank = buildBank(ITEM, 0, pools, TILE_MULTIPLIER, LANGUAGE.joiner);
     expect(revealIndices(ITEM, bank)).toHaveLength(ITEM.ans.length);
   });
 });
 
 /* The property that actually matters: revealing produces a correct answer. */
 describe('revealIndices over the shipped content', () => {
-  it.each(SCENARIOS)('builds an accepted answer for every $name item', (scenario) => {
+  it.each(LANGUAGE.scenarios)('builds an accepted answer for every $name item', (scenario) => {
     scenario.items.forEach((item, index) => {
       const bank = buildBank(
         item,
         index,
-        { grammar: GRAMMAR, words: scenario.words },
+        { grammar: LANGUAGE.grammar, words: scenario.words },
         TILE_MULTIPLIER,
+        LANGUAGE.joiner,
       );
-      const built = buildString(bank, revealIndices(item, bank));
-      expect(isCorrect(item, built), `${scenario.name} item ${index}: "${built}"`).toBe(true);
+      const built = buildString(bank, revealIndices(item, bank), LANGUAGE.joiner);
+      const where = `${scenario.name} item ${index}: "${built}"`;
+      expect(isCorrect(item, built, LANGUAGE.joiner), where).toBe(true);
     });
   });
 });

@@ -38,24 +38,27 @@ export interface BankPools {
  *                   draw and shuffle — two items with the same index and pools
  *                   produce the same bank.
  * @param multiplier Distractor density; see TILE_MULTIPLIER in src/config.ts.
+ * @param joiner     What sits between tiles in this language's script; see
+ *                   LanguagePack.joiner. Used only to segment the alternates.
  */
 export function buildBank(
   item: SentenceItem,
   index: number,
   pools: BankPools,
   multiplier: number,
+  joiner: string,
 ): Tile[] {
   const need = Math.max(MIN_BANK_TILES, Math.ceil(item.ans.length * multiplier));
 
-  /* Keyed by kana: a tile already in the bank is never added again, and is
-     excluded from the distractor pool below. */
+  /* Keyed by the tile's text: a tile already in the bank is never added again,
+     and is excluded from the distractor pool below. */
   const used = new Set<string>(item.ans.map((tile) => tile[0]));
   const bank: Tile[] = [...item.ans];
 
   /* 2. Seed whatever the alternates need and the canonical answer lacks. */
   const vocab = [...item.ans, ...pools.grammar, ...pools.words];
   for (const alt of item.alts ?? []) {
-    for (const tile of segmentLongestFirst(alt, vocab).tiles) {
+    for (const tile of segmentLongestFirst(alt, vocab, joiner).tiles) {
       if (!used.has(tile[0])) {
         used.add(tile[0]);
         bank.push(tile);

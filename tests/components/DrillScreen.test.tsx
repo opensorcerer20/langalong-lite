@@ -7,7 +7,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { DrillScreen } from '../../src/components/DrillScreen';
-import type { SentenceItem, Tile } from '../../src/data/types';
+import type { LanguagePack, SentenceItem, Tile } from '../../src/data/types';
 import { initialState } from '../../src/state/appReducer';
 import type { AppState } from '../../src/state/appReducer';
 import type { Tsumiki } from '../../src/state/useTsumiki';
@@ -33,6 +33,17 @@ const SCENARIO = {
   words: [],
 };
 
+/* A stand-in pack rather than the real one: this screen only reads the name and
+   the joiner, and building them here keeps the test off the shipped content. */
+const LANGUAGE: LanguagePack = {
+  code: 'ja',
+  name: 'Japanese',
+  joiner: '',
+  fontStack: "'Noto Sans JP'",
+  grammar: [],
+  scenarios: [SCENARIO],
+};
+
 /** A stand-in view model, so the screen can be driven directly. */
 function view(state: Partial<AppState> = {}, over: Partial<Tsumiki> = {}): Tsumiki {
   const merged: AppState = { ...initialState, screen: 'drill', ...state };
@@ -40,6 +51,7 @@ function view(state: Partial<AppState> = {}, over: Partial<Tsumiki> = {}): Tsumi
 
   return {
     state: merged,
+    language: LANGUAGE,
     scenarios: [SCENARIO],
     scenario: SCENARIO,
     item: ITEM,
