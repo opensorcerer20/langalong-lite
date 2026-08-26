@@ -7,16 +7,18 @@ import { shared } from '../styles/shared';
 export interface PromptBandProps {
   /** The English prompt. */
   readonly prompt: string;
+  /** The target language's name in English, for the kicker. */
+  readonly language: string;
   /** Zero-based index of the current item. */
   readonly index: number;
   readonly total: number;
 }
 
-export function PromptBand({ prompt, index, total }: PromptBandProps) {
+export function PromptBand({ prompt, language, index, total }: PromptBandProps) {
   return (
     <div {...stylex.props(s.band)}>
       <div {...stylex.props(shared.kicker)}>
-        Say this in Japanese — item {index + 1} of {total}
+        Say this in {language} — item {index + 1} of {total}
       </div>
       <h1 {...stylex.props(s.prompt)}>{prompt}</h1>
     </div>

@@ -14,11 +14,22 @@ components/  ──►  state/useTsumiki  ──►  state/appReducer  ──►
                         └────────────►  data/                              (inert, logic-free)
 ```
 
-- **`src/data/`** is the Japanese. Content and types, no functions. Nothing here imports anything but its own types.
+- **`src/data/`** is the language packs. Content and types, no functions. Nothing here imports anything but its own types.
 - **`src/lib/`** is the processing: bank generation, segmentation, answer checking, reveal placement. Pure functions that take the content they need as arguments and never import `data/`.
-- **`src/state/appReducer.ts`** is every drill rule, as one pure reducer. It does not import content either — the `check` and `reveal` actions carry the item and bank in the action itself.
-- **`src/state/useTsumiki.ts`** is the single seam where content, state and logic meet. It resolves the current scenario, item and tile bank and applies the config dials.
+- **`src/state/appReducer.ts`** is every drill rule, as one pure reducer. It does not import content either — the `check` action carries the item, the bank and the joiner in the action itself.
+- **`src/state/useTsumiki.ts`** is the single seam where content, state and logic meet. It is the only file that reads the active language pack: it resolves the current scenario, item and tile bank and applies the config dials.
 - **`src/components/`** are presentational: props in, callbacks out. Only `App` calls the hook. One file per component, with its styles in it.
+
+## Language packs
+
+The Japanese lives in `src/data/ja/` behind a `LanguagePack`, and `src/data/languages.ts` holds the registry and the one line that says which pack is active. Nothing outside `src/data/ja/` names Japanese.
+
+A pack carries its own content — a grammar pool and a list of scenarios — plus the two things the rest of the app cannot infer about a language:
+
+- **`joiner`** — what sits between tiles when they are joined into a sentence, and what is skipped when one is segmented back. Empty for Japanese, which is written without spaces; `' '` for a space-separated language. This is the only genuinely script-dependent rule in the app, which is why it is declared rather than assumed: `buildString`, `isCorrect`, `segmentLongestFirst` and `buildBank` all take it as a required argument, so no caller can inherit Japanese's assumption by accident.
+- **`fontStack`** — the face target-language text is drawn in. StyleX values are static, so the family cannot be interpolated into a rule: the pack sets `--font-target` on the app root through `PhoneColumn`, and `Tile`'s rule reads the variable. `global.css` carries a fallback for a pack that omits one.
+
+Scenarios belong to the pack, not to the app. Another language's situations may look nothing like Japanese's — see [AUTHORING.md](AUTHORING.md#adding-a-language).
 
 ## Styling
 
@@ -39,7 +50,7 @@ It compiles away entirely: `stylex.create` is replaced at build time with atomic
 Three consequences worth knowing before editing a stylesheet:
 
 - **Longhands only.** `background`, `border` and `padding` shorthands are silently dropped — write `backgroundColor`, `borderWidth`/`borderStyle`/`borderColor`, `paddingTop`/`paddingRight`/… StyleX needs one property per atomic class. This bites quietly: the styles simply do not appear.
-- **No descendant selectors and no attribute selectors.** Every rule sits on the element it applies to. A child that needs to vary picks its own style — see how `Tile` styles the romaji span for each variant rather than reaching down into it.
+- **No descendant selectors and no attribute selectors.** Every rule sits on the element it applies to. A child that needs to vary picks its own style — see how `Tile` styles the reading span for each variant rather than reaching down into it.
 - **Conditions live inside the property, next to its resting value.** `borderColor: { default: …, ':hover:not(:disabled)': … }`. A hover-only style composed on afterwards would *replace* the resting value rather than add to it, because StyleX merges per property and the last style applied wins.
 
 Values still come from the design system: `var(--color-accent)` and friends are ordinary strings to StyleX, so `_ds/…/styles.css` remains the single source of every colour and space, and its `.btn` and `.hr` stay plain global classes.
@@ -48,10 +59,12 @@ Values still come from the design system: `var(--color-accent)` and friends are 
 
 | Path | What it is |
 | --- | --- |
-| `src/data/types.ts` | `Tile`, `SentenceItem`, `Scenario` |
-| `src/data/grammar.ts` | The 25 shared particles, endings and question words distractors draw on |
-| `src/data/bakery.ts`, `src/data/station.ts` | One situation's sentences and vocabulary each |
-| `src/data/scenarios.ts` | The situation list, in home-screen order |
+| `src/data/types.ts` | `Tile`, `SentenceItem`, `Scenario`, `LanguagePack` — the shapes, shared by every pack |
+| `src/data/languages.ts` | The pack registry, and which one the app is drilling |
+| `src/data/ja/index.ts` | The Japanese pack. The only file outside `ja/` that names Japanese |
+| `src/data/ja/grammar.ts` | Japanese's 25 shared particles, endings and question words distractors draw on |
+| `src/data/ja/bakery.ts`, `src/data/ja/station.ts` | One situation's sentences and vocabulary each |
+| `src/data/ja/scenarios.ts` | Japanese's situation list, in home-screen order |
 | `src/config.ts` | The four difficulty and display dials |
 | `src/lib/buildBank.ts` | The deterministic tile bank |
 | `src/lib/segment.ts` | Splitting a written-out sentence back into tiles, longest match first |
@@ -75,7 +88,8 @@ Values still come from the design system: `var(--color-accent)` and friends are 
 npm test
 ```
 
-271 tests. Most are ordinary unit tests, but two are worth knowing about:
+287 tests. Most are ordinary unit tests, but three are worth knowing about:
 
 - **`tests/lib/buildBank.test.ts`** checks the generated tile bank against `tests/fixtures/prototype-banks.json`, which holds all 18 banks exactly as the original `app.js` produced them. The bank is deterministic — no RNG, just arithmetic on the item's index — so any change to the draw stride or the shuffle shows up here as a diff rather than as a silently different app.
 - **`tests/components/App.test.tsx`** plays real drills through the real content: the miss ladder, the reveal forfeiting first-try credit, finishing a set and reading the score.
+- **`tests/data/languages.test.ts`** runs the content-integrity checks over every pack in `LANGUAGES`, so a language added later inherits the whole net without writing it again. What is true of one language only — Japanese's set names, its particles, its empty joiner — lives in `tests/data/ja.test.ts` instead.

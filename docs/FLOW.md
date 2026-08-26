@@ -13,7 +13,7 @@ All of it lives in one object in `src/state/appReducer.ts`, and the whole app is
 | Field | Type | What it means |
 | --- | --- | --- |
 | `screen` | `'home' \| 'drill'` | Which screen. The set-complete screen is not a third value — see `finished` |
-| `scenario` | number | Index into `SCENARIOS`. Bakery is `0` |
+| `scenario` | number | Index into the active pack's `scenarios`. Bakery is `0` |
 | `item` | number | Index of the current sentence within that set, `0`–`9` for Bakery |
 | `placed` | `number[]` | Positions in the tile bank the learner has tapped, in tap order |
 | `misses` | number | Failed checks on the current sentence. Resets per sentence |
@@ -25,7 +25,7 @@ All of it lives in one object in `src/state/appReducer.ts`, and the whole app is
 
 | Derived | How | Used for |
 | --- | --- | --- |
-| `scenario`, `item` | Look up `SCENARIOS[scenario].items[item]` | The content on screen |
+| `scenario`, `item` | Look up `LANGUAGE.scenarios[scenario].items[item]` | The content on screen |
 | `bank` | `buildBank(item, index, pools, TILE_MULTIPLIER)`, memoised per sentence | The tiles to choose from |
 | `done` | `status` is `right` or `shown` | Locks the answer line; flips the primary button's job |
 | `isLastItem` | `item === total - 1` | "Finish set" instead of "Next sentence" |
@@ -37,9 +37,9 @@ All of it lives in one object in `src/state/appReducer.ts`, and the whole app is
 
 Reached at launch, and by "← All" or "Choose another situation" from anywhere.
 
-The header reads `Japanese · beginner` with a `Day 12` streak, and shows no back link — `App.tsx` passes `onBack` only while `screen === 'drill'`. The progress rule is forced to empty here regardless of drill state.
+The header reads `Japanese · beginner` — the name from the active language pack, the level a literal in `App.tsx` — with a `Day 12` streak, and shows no back link — `App.tsx` passes `onBack` only while `screen === 'drill'`. The progress rule is forced to empty here regardless of drill state.
 
-Below that, a band reading "Choose a situation" over "Build sentences you will actually need.", then one full-width row per entry in `SCENARIOS`. The Bakery row is built entirely from that scenario's own fields: `kicker` → `Set 01`, `items.length` → `10 sentences`, `name` → `Bakery`, `blurb` → "Asking for items, counting them, paying at the counter." A foot note explains that only the translate level exists so far.
+Below that, a band reading "Choose a situation" over "Build sentences you will actually need.", then one full-width row per entry in the active pack's `scenarios`. The Bakery row is built entirely from that scenario's own fields: `kicker` → `Set 01`, `items.length` → `10 sentences`, `name` → `Bakery`, `blurb` → "Asking for items, counting them, paying at the counter." A foot note explains that only the translate level exists so far.
 
 **The one action.** Tapping the row dispatches `openScenario(0)`. That is a *full reset*, not a resume: the reducer returns `initialState` with `screen: 'drill'` and `scenario: 0`, so `item`, `misses`, `placed` and `firstTry` all go back to zero. Leaving a set halfway and re-entering it starts it again from sentence 1 with a zero score. There is no saved position anywhere — see [MAINTENANCE.md](MAINTENANCE.md).
 
@@ -47,7 +47,7 @@ Below that, a band reading "Choose a situation" over "Build sentences you will a
 
 The header becomes `Bakery · 01` with a `← All` back link. The progress rule fills to `item / 10`, so it is empty on the first sentence, not one-tenth full.
 
-**The prompt.** `Say this in Japanese — item 1 of 10` over the English sentence — for item 0, "One bread, please." The counter is one-based on screen, zero-based in state.
+**The prompt.** `Say this in Japanese — item 1 of 10`, the language named from the pack, over the English sentence — for item 0, "One bread, please." The counter is one-based on screen, zero-based in state.
 
 **The tile bank.** Generated once per sentence and memoised, so it is stable while the learner works. For Bakery item 0 the answer is 3 tiles, `TILE_MULTIPLIER` is 3, and the floor is 12 — so `max(12, ceil(3 × 3))` gives 12 tiles:
 
@@ -111,13 +111,9 @@ The parts that are Japanese-specific or single-mode, and would need attention be
 
 **There is no mode dimension at all.** No field in `AppState`, no field on `Scenario`, no branch in `App.tsx`. Adding vocabulary recall or verb conjugation means introducing that concept from scratch — most naturally as a property of a scenario or of an item, with `DrillScreen` choosing a body from it. What is reusable regardless: `appReducer`'s miss ladder, scoring and advancing are about *attempts*, not about sentences, so a different drill body could sit on the same rules unchanged.
 
-**There is no language dimension either.** `SCENARIOS` is a flat list of situations, and `Japanese · beginner` is a string literal in `App.tsx`. A second language needs a level above `SCENARIOS`, and every current import of it becomes a lookup.
+**The language dimension exists but has one entry.** The content sits behind a `LanguagePack` in `src/data/ja/`, `useTsumiki` is the only file that reads it, and the joiner and font stack are declared rather than assumed — so a second pack drills without touching `lib/`, `state/` or `components/`. What is still missing is everything around a *choice* of language: `LANGUAGE` is a constant in `src/data/languages.ts` with no picker, and progress and the streak are global rather than per-language.
 
-**A tile is a fixed 2-tuple**, `[kana, romaji]` in `src/data/types.ts`. That hardcodes "script plus transliteration". A language needing no transliteration wastes the field; one wanting gender, article or stress marks has nowhere to put it.
-
-**Answers are joined with no separator.** `buildString` concatenates tiles directly, which is right for Japanese and wrong for any language written with spaces — `パンをください` works, `dos cruasanes por favor` would come out as `doscruasanesporfavor`. The joiner would have to become a property of the language.
-
-**Segmentation assumes no word delimiters.** `segmentLongestFirst` exists because alternates are written as unbroken strings and have to be matched longest-first against the vocabulary. In a spaced language the same job is a split on whitespace, and the longest-first subtlety disappears.
+**A tile is a fixed 2-tuple**, `[text, reading]` in `src/data/types.ts`. The names no longer say "kana", but the shape still hardcodes "written form plus one latin-script reading". A language needing no transliteration wastes the second field; one wanting gender, article or stress marks has nowhere to put it.
 
 **Distractors come from exactly two pools** — the shared grammar list and the scenario's own words. That is the right shape for particle-and-conjugation confusion. A vocabulary drill would more likely want distractors that are semantically near the answer, which is a different selection rule inside `buildBank` rather than a different pool.
 
@@ -127,4 +123,4 @@ The parts that are Japanese-specific or single-mode, and would need attention be
 
 **Progress is linear.** `item` is an index that only moves forward through a fixed array. Jumping around, or a set that adapts its order, both need `item` to stop being a position in a list.
 
-**The Japanese font is hardcoded in a component.** `Tile.tsx` names `'Noto Sans JP'` in its stylesheet, and the vendored subset covers only the 102 glyphs the two current sets use. Both are per-language facts sitting inside a generic component.
+**The font subset is per-language and hand-maintained.** `Tile.tsx` no longer names a family — the pack's `fontStack` reaches it through `--font-target` — but the vendored `noto-sans-jp-subset.woff2` still covers only the 102 glyphs the two current sets use, and is regenerated by hand when vocabulary is added. A second non-latin language means a second subset and the same manual step again.

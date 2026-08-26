@@ -14,14 +14,20 @@ const STREAK = 'Day 12';
 
 export function App() {
   const tsumiki = useTsumiki();
-  const { state, scenario, scenarios, total } = tsumiki;
+  const { state, language, scenario, scenarios, total } = tsumiki;
 
   const inDrill = state.screen === 'drill';
 
   return (
-    <PhoneColumn>
+    <PhoneColumn fontStack={language.fontStack}>
       <Header
-        label={inDrill ? `${scenario.name} · ${scenario.kicker.replace('Set ', '')}` : 'Japanese · beginner'}
+        label={
+          inDrill
+            ? `${scenario.name} · ${scenario.kicker.replace('Set ', '')}`
+            : /* The level is the app's, not the language's — every pack starts
+                 a learner at the beginning. */
+              `${language.name} · beginner`
+        }
         streak={STREAK}
         onBack={inDrill ? tsumiki.goHome : undefined}
       />

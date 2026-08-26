@@ -7,15 +7,20 @@ import { describe, expect, it } from 'vitest';
 
 import { App } from '../../src/components/App';
 import { TILE_MULTIPLIER } from '../../src/config';
-import { GRAMMAR } from '../../src/data/grammar';
-import { SCENARIOS } from '../../src/data/scenarios';
+import { LANGUAGE } from '../../src/data/languages';
 import { buildBank } from '../../src/lib/buildBank';
 import { revealIndices } from '../../src/lib/revealPlacement';
 
-const BAKERY = SCENARIOS[0]!;
+const BAKERY = LANGUAGE.scenarios[0]!;
 
 const bankFor = (index: number) =>
-  buildBank(BAKERY.items[index]!, index, { grammar: GRAMMAR, words: BAKERY.words }, TILE_MULTIPLIER);
+  buildBank(
+    BAKERY.items[index]!,
+    index,
+    { grammar: LANGUAGE.grammar, words: BAKERY.words },
+    TILE_MULTIPLIER,
+    LANGUAGE.joiner,
+  );
 
 /** The tile bank as rendered — the hidden used tiles included. */
 const bankTiles = () => {
@@ -211,7 +216,7 @@ describe('App', () => {
 
     await user.click(screen.getByText('Train station'));
     expect(screen.getByText('Train station · 02')).toBeInTheDocument();
-    expect(screen.getByRole('heading')).toHaveTextContent(SCENARIOS[1]!.items[0]!.en);
+    expect(screen.getByRole('heading')).toHaveTextContent(LANGUAGE.scenarios[1]!.items[0]!.en);
     expect(screen.getByText(/item 1 of 8/)).toBeInTheDocument();
   });
 

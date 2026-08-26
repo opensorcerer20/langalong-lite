@@ -16,7 +16,7 @@ export interface AnswerLineProps {
   readonly placed: readonly number[];
   /** Tiles the answer needs, which is how many slots the line shows. */
   readonly length: number;
-  readonly showRomaji?: boolean;
+  readonly showReading?: boolean;
   /** The answer is settled: tiles stay put and stop responding. */
   readonly locked?: boolean;
   /** Called with the tile's position on the line, not its bank index. */
@@ -27,7 +27,7 @@ export function AnswerLine({
   bank,
   placed,
   length,
-  showRomaji,
+  showReading,
   locked = false,
   onRemove,
 }: AnswerLineProps) {
@@ -46,7 +46,7 @@ export function AnswerLine({
               key={`${position}-${bankIndex}`}
               tile={tile}
               variant="placed"
-              showRomaji={showRomaji ?? true}
+              showReading={showReading ?? true}
               disabled={locked}
               onClick={() => onRemove(position)}
             />

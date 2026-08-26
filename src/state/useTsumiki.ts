@@ -6,21 +6,26 @@
    — it looks the current scenario and item up in the content, builds the tile
    bank for them, and hands the reducer the pieces it needs.
 
+   It is also the only file that reads the active language pack. Everything
+   downstream takes what it needs from this hook, which is what lets the rest of
+   the app stay language-agnostic.
+
    It is also where the config dials are applied, so no component has to know
    what "two misses" means. */
 
 import { useCallback, useMemo, useReducer } from 'react';
 
 import { NOTE_AFTER_MISSES, REVEAL_AFTER_MISSES, TILE_MULTIPLIER } from '../config';
-import { GRAMMAR } from '../data/grammar';
-import { SCENARIOS } from '../data/scenarios';
-import type { Scenario, SentenceItem, Tile } from '../data/types';
+import { LANGUAGE } from '../data/languages';
+import type { LanguagePack, Scenario, SentenceItem, Tile } from '../data/types';
 import { buildBank } from '../lib/buildBank';
 import { appReducer, initialState, isDone } from './appReducer';
 import type { AppState } from './appReducer';
 
 export interface Tsumiki {
   readonly state: AppState;
+  /** The language being drilled. Components read its name and font from here. */
+  readonly language: LanguagePack;
   /** Every situation, for the home screen. */
   readonly scenarios: readonly Scenario[];
   /** The situation currently open. */
@@ -61,12 +66,12 @@ function first<T>(list: readonly T[], what: string): T {
   return head;
 }
 
-const FIRST_SCENARIO = first(SCENARIOS, 'SCENARIOS');
+const FIRST_SCENARIO = first(LANGUAGE.scenarios, `Language "${LANGUAGE.code}"`);
 
 export function useTsumiki(): Tsumiki {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
-  const scenario = SCENARIOS[state.scenario] ?? FIRST_SCENARIO;
+  const scenario = LANGUAGE.scenarios[state.scenario] ?? FIRST_SCENARIO;
   const items = scenario.items;
   const item = items[state.item] ?? first(items, `Scenario "${scenario.name}"`);
 
@@ -74,7 +79,14 @@ export function useTsumiki(): Tsumiki {
      identity: React needs the same array back on a re-render caused by placing
      a tile, or every tile would remount and lose keyboard focus. */
   const bank = useMemo(
-    () => buildBank(item, state.item, { grammar: GRAMMAR, words: scenario.words }, TILE_MULTIPLIER),
+    () =>
+      buildBank(
+        item,
+        state.item,
+        { grammar: LANGUAGE.grammar, words: scenario.words },
+        TILE_MULTIPLIER,
+        LANGUAGE.joiner,
+      ),
     [item, state.item, scenario.words],
   );
 
@@ -88,14 +100,18 @@ export function useTsumiki(): Tsumiki {
   const goHome = useCallback(() => dispatch({ type: 'goHome' }), []);
   const tap = useCallback((bankIndex: number) => dispatch({ type: 'tap', bankIndex }), []);
   const untap = useCallback((position: number) => dispatch({ type: 'untap', position }), []);
-  const check = useCallback(() => dispatch({ type: 'check', item, bank }), [item, bank]);
+  const check = useCallback(
+    () => dispatch({ type: 'check', item, bank, joiner: LANGUAGE.joiner }),
+    [item, bank],
+  );
   const reveal = useCallback(() => dispatch({ type: 'reveal', item, bank }), [item, bank]);
   const next = useCallback(() => dispatch({ type: 'next', itemCount: total }), [total]);
   const restart = useCallback(() => dispatch({ type: 'restart' }), []);
 
   return {
     state,
-    scenarios: SCENARIOS,
+    language: LANGUAGE,
+    scenarios: LANGUAGE.scenarios,
     scenario,
     item,
     bank,

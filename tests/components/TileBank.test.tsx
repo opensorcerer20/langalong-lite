@@ -57,7 +57,7 @@ describe('TileBank', () => {
   });
 
   it('passes the romaji setting through to its tiles', () => {
-    const { container } = bank([], { showRomaji: false });
+    const { container } = bank([], { showReading: false });
     expect(container.textContent).toContain('パン');
     expect(container.textContent).not.toContain('pan');
   });

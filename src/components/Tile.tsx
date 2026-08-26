@@ -1,12 +1,16 @@
-/* One tile — the only place a piece of Japanese is drawn.
+/* One tile — the only place a piece of the target language is drawn.
 
    The same component serves both rows: a `bank` tile is surface with a rule and
    is tapped to place it, a `placed` tile is inverted ink-on-ground and is tapped
    to send it back.
 
    Styles are StyleX, which puts every rule on the element it applies to — there
-   are no descendant selectors, so the romaji span picks its own style rather
-   than inheriting one from the button. */
+   are no descendant selectors, so the reading span picks its own style rather
+   than inheriting one from the button.
+
+   The face is --font-target, set on the app root from the active language pack:
+   StyleX values are static, so the pack reaches this rule through a custom
+   property rather than by naming a family here. */
 
 import * as stylex from '@stylexjs/stylex';
 
@@ -16,8 +20,8 @@ export interface TileProps {
   readonly tile: TileData;
   /** Where the tile is sitting: in the bank, or on the answer line. */
   readonly variant: 'bank' | 'placed';
-  /** Romaji beneath the kana. See SHOW_ROMAJI in src/config.ts. */
-  readonly showRomaji?: boolean;
+  /** The reading beneath the text. See SHOW_READING in src/config.ts. */
+  readonly showReading?: boolean;
   /**
    * Bank tiles only: this tile is currently on the answer line. It keeps its
    * space in the layout but is hidden, so the bank never reflows mid-sentence.
@@ -31,12 +35,12 @@ export interface TileProps {
 export function Tile({
   tile,
   variant,
-  showRomaji = true,
+  showReading = true,
   used = false,
   disabled = false,
   onClick,
 }: TileProps) {
-  const [kana, romaji] = tile;
+  const [text, reading] = tile;
   const isBank = variant === 'bank';
 
   return (
@@ -53,9 +57,9 @@ export function Tile({
       disabled={disabled}
       onClick={onClick}
     >
-      <span {...stylex.props(s.kana)}>{kana}</span>
-      {showRomaji && (
-        <span {...stylex.props(s.romaji, isBank ? s.romajiBank : s.romajiPlaced)}>{romaji}</span>
+      <span {...stylex.props(s.text)}>{text}</span>
+      {showReading && (
+        <span {...stylex.props(s.reading, isBank ? s.readingBank : s.readingPlaced)}>{reading}</span>
       )}
     </button>
   );
@@ -63,7 +67,7 @@ export function Tile({
 
 const s = stylex.create({
   tile: {
-    fontFamily: "'Noto Sans JP', var(--font-body)",
+    fontFamily: 'var(--font-target), var(--font-body)',
     paddingTop: 7,
     paddingRight: 11,
     paddingBottom: 6,
@@ -76,12 +80,12 @@ const s = stylex.create({
     lineHeight: 1.15,
   },
 
-  kana: {
+  text: {
     fontSize: 19,
     fontWeight: 500,
   },
 
-  romaji: {
+  reading: {
     fontSize: 10,
     letterSpacing: '0.06em',
   },
@@ -109,7 +113,7 @@ const s = stylex.create({
     },
   },
 
-  romajiPlaced: {
+  readingPlaced: {
     opacity: 0.7,
   },
 
@@ -128,7 +132,7 @@ const s = stylex.create({
     },
   },
 
-  romajiBank: {
+  readingBank: {
     color: 'var(--color-neutral-600)',
   },
 

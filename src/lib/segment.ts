@@ -1,4 +1,4 @@
-/* Splitting a written-out Japanese sentence back into tiles.
+/* Splitting a written-out sentence back into tiles.
 
    An item's `alts` are written as plain strings ("パンをお願いします") but the bank
    has to be able to build them, so each one is segmented against the vocabulary
@@ -7,7 +7,8 @@
    Matching is longest-first: at each position every tile that prefixes the
    remaining text is considered and the longest wins. That matters because
    shorter tiles are prefixes of longer ones — お願いします would otherwise be
-   consumed as お + 願いします, and 二枚 as 二 + 枚. */
+   consumed as お + 願いします, and 二枚 as 二 + 枚. It stays just as necessary in a
+   space-separated language, where "a" prefixes "an". */
 
 import type { Tile } from '../data/types';
 
@@ -27,8 +28,17 @@ export interface Segmentation {
  * Stops at the first position nothing matches and reports the remainder in
  * `rest` rather than throwing, so callers can decide whether a partial
  * segmentation is a problem.
+ *
+ * @param joiner What sits between tiles in this language's script; see
+ *               LanguagePack.joiner. Empty for Japanese. A required argument
+ *               rather than a default, so no caller can quietly inherit the
+ *               no-separator assumption that only Japanese satisfies.
  */
-export function segmentLongestFirst(text: string, vocab: readonly Tile[]): Segmentation {
+export function segmentLongestFirst(
+  text: string,
+  vocab: readonly Tile[],
+  joiner: string,
+): Segmentation {
   const tiles: Tile[] = [];
   let rest = text;
 
@@ -43,6 +53,10 @@ export function segmentLongestFirst(text: string, vocab: readonly Tile[]): Segme
 
     tiles.push(hit);
     rest = rest.slice(hit[0].length);
+
+    /* Step over the separator so the next tile is matched from its own first
+       character. Nothing to do when the joiner is empty. */
+    if (joiner !== '' && rest.startsWith(joiner)) rest = rest.slice(joiner.length);
   }
 
   return { tiles, rest };

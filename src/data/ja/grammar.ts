@@ -1,11 +1,14 @@
-/* The shared grammar pool. Every situation draws distractors from this list on
-   top of its own vocabulary, so a wrong tile is always grammatically plausible:
-   near-miss particles (を / が / に / で / へ / も) and wrong conjugations
-   (ます / ました / ません / たい) sitting next to the right ones. */
+/* Japanese: the shared grammar pool. Every situation draws distractors from this
+   list on top of its own vocabulary, so a wrong tile is always grammatically
+   plausible: near-miss particles (を / が / に / で / へ / も) and wrong
+   conjugations (ます / ました / ません / たい) sitting next to the right ones.
 
-import type { Tile } from './types';
+   Each language pack has a pool of its own; what belongs in one is whatever
+   that language's near misses are. */
 
-export const GRAMMAR: readonly Tile[] = [
+import type { Tile } from '../types';
+
+export const JA_GRAMMAR: readonly Tile[] = [
   /* particles */
   ['は', 'wa'],
   ['が', 'ga'],

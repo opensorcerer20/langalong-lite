@@ -13,13 +13,13 @@ export interface TileBankProps {
   readonly bank: readonly TileData[];
   /** Bank positions currently on the answer line. */
   readonly placed: readonly number[];
-  readonly showRomaji?: boolean;
+  readonly showReading?: boolean;
   /** The answer is settled: the bank stops responding. */
   readonly locked?: boolean;
   readonly onPlace: (bankIndex: number) => void;
 }
 
-export function TileBank({ bank, placed, showRomaji, locked = false, onPlace }: TileBankProps) {
+export function TileBank({ bank, placed, showReading, locked = false, onPlace }: TileBankProps) {
   const used = new Set(placed);
 
   return (
@@ -32,7 +32,7 @@ export function TileBank({ bank, placed, showRomaji, locked = false, onPlace }: 
           key={bankIndex}
           tile={tile}
           variant="bank"
-          showRomaji={showRomaji ?? true}
+          showReading={showReading ?? true}
           used={used.has(bankIndex)}
           disabled={locked}
           onClick={() => onPlace(bankIndex)}

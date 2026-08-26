@@ -10,6 +10,11 @@
 
 html {
   background: var(--color-neutral-200);
+  /* The face target-language text is drawn in. PhoneColumn overrides this from
+     the active language pack's fontStack; the fallback here is what renders if
+     a pack ever omits one, so a missing font stack degrades to the body face
+     rather than to an invalid font-family declaration. */
+  --font-target: var(--font-body);
 }
 
 body {
