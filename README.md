@@ -107,7 +107,7 @@ Push it onto the items array in `src/data/bakery.ts` or `src/data/station.ts`; `
 
 The idea, the product decisions and the architecture are the author's. Two Claude tools were used to build it:
 
-- **Claude Design** produced the Modernist design system in `_ds/`, the design document in [DESIGN.md](DESIGN.md), and the `Sentence Builder.dc.html` design component the app was ported from — the visual system, the screen structure and the drill rules as specified.
+- **Claude Design** produced the Modernist design system, the original design document in [prototype/DESIGN.md](prototype/DESIGN.md), and the design component the app was ported from — the visual system, the screen structure and the drill rules as specified.
 - **Claude Code** ported that component to the PWA now in `prototype/`, and then converted that prototype to the React and TypeScript app in `src/`.
 
 ### Fonts

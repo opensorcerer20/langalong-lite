@@ -68,7 +68,6 @@ Values still come from the design system: `var(--color-accent)` and friends are 
 | `_ds/modernist-…/` | The Modernist design system. `styles.css` is imported unmodified and is the source of every color, space and radius token |
 | `DESIGN.md` | The design document the app was built from |
 | `prototype/` | The pre-React app, kept for reference — see [MAINTENANCE.md](MAINTENANCE.md) |
-| `Sentence Builder.dc.html`, `support.js` | The original Claude Design handoff the prototype was ported from. Not part of the app |
 
 ## Tests
 
