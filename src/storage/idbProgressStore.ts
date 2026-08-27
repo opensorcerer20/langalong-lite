@@ -3,9 +3,15 @@
    Every method is one transaction. recordAttempt is the only writer, and it
    spans both stores deliberately: appending the attempt and updating the row it
    rolls into must either both happen or neither, or the log and the cache drift
-   apart and the log stops being able to rebuild the cache. */
+   apart and the log stops being able to rebuild the cache.
 
-import type { Attempt, NewAttempt, ScheduleRecord } from '../lib/progress';
+   Human review note: I'm not familiar with how this type of processing works*/
+
+import type {
+  Attempt,
+  NewAttempt,
+  ScheduleRecord,
+} from '../lib/progress';
 import { rollUp } from '../lib/progress';
 import {
   fromRequest,
@@ -13,8 +19,8 @@ import {
   INDEX_ATTEMPTS_BY_KEY,
   INDEX_SCHEDULE_BY_DUE,
   STORE_ATTEMPTS,
-  STORE_SCHEDULE,
   STORE_META,
+  STORE_SCHEDULE,
 } from './db';
 import type { ProgressStore } from './types';
 
