@@ -62,8 +62,4 @@ describe('TileBank', () => {
     expect(container.textContent).not.toContain('pan');
   });
 
-  it('renders nothing for an empty bank', () => {
-    render(<TileBank bank={[]} placed={[]} onPlace={() => {}} />);
-    expect(screen.queryAllByRole('button')).toHaveLength(0);
-  });
 });

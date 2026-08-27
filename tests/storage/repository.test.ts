@@ -51,8 +51,12 @@ describe('openRepository', () => {
       delete globalThis.indexedDB;
     });
 
-    it('still returns a working repository', async () => {
+    /* Working, but honest about it: progress still records, and `durable` says
+       the recording will not outlive the session. */
+    it('still returns a working repository, and says it is not durable', async () => {
       const repository = await openRepository();
+      expect(repository.durable).toBe(false);
+
       await repository.progress.recordAttempt({
         key: 'ja:item:bakery:01',
         languageCode: 'ja',
@@ -63,11 +67,6 @@ describe('openRepository', () => {
         durationMs: 2500,
       });
       expect(await repository.progress.getSchedule('ja:item:bakery:01')).toMatchObject({ correct: 1 });
-    });
-
-    it('says so, rather than pretending progress is being saved', async () => {
-      const repository = await openRepository();
-      expect(repository.durable).toBe(false);
     });
 
     it('still serves content — the drill does not depend on storage', async () => {

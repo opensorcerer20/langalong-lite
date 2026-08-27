@@ -9,8 +9,14 @@ import stylex from 'unplugin-stylex/vite';
 export default defineConfig(({ mode }) => {
   /* An empty prefix loads every key rather than only VITE_ ones, and also picks
      up plain shell variables. DEV_PORT deliberately has no VITE_ prefix, so it
-     stays a build-time setting and never reaches the client bundle. */
-  const env = loadEnv(mode, process.cwd(), '');
+     stays a build-time setting and never reaches the client bundle.
+
+     "." rather than process.cwd(): loadEnv joins this with each .env filename
+     and stats the result, so a relative dir resolves against the cwd exactly as
+     an absolute one does. Saying it this way keeps the sole Node global out of
+     an otherwise browser-only project, which would otherwise need @types/node
+     on the path — and with it, `process` quietly typechecking inside src/. */
+  const env = loadEnv(mode, '.', '');
 
   /* Set DEV_PORT in .env.local (gitignored) to claim a port that does not
      collide with other dev servers on this machine. Unset, Vite picks its own. */
@@ -28,8 +34,12 @@ export default defineConfig(({ mode }) => {
        relative href in index.html. All three get hashed into dist/assets. */
     publicDir: false,
 
+    /* The port is spread in rather than assigned, because exactOptionalPropertyTypes
+       is on: Vite declares `port?: number`, which under that flag means the key may
+       be absent but must never be present and undefined. "Unset, Vite picks its own"
+       therefore has to mean an omitted key, not an undefined one. */
     server: {
-      port: devPort,
+      ...(devPort === undefined ? {} : { port: devPort }),
       /* Fail loudly on a collision rather than silently sliding to the next free
          port, which is how you end up looking at a different app than you think. */
       strictPort: devPort !== undefined,
@@ -37,7 +47,7 @@ export default defineConfig(({ mode }) => {
 
     /* The preview server is configured separately from the dev server. */
     preview: {
-      port: devPort === undefined ? undefined : devPort + 1,
+      ...(devPort === undefined ? {} : { port: devPort + 1 }),
       strictPort: devPort !== undefined,
     },
 

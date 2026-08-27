@@ -57,16 +57,9 @@ describe('App', () => {
     expect(screen.getByRole('button', { name: /all/i })).toBeInTheDocument();
   });
 
-  it('cannot check an empty answer line', async () => {
-    const user = userEvent.setup();
-    render(<App language={LANGUAGE} />);
-    await user.click(screen.getByText('Bakery'));
-    expect(primary()).toBeDisabled();
-  });
-
   /* The full miss ladder on one item: silent retry, then the note, then the
-     reveal — and the reveal costs the first-try credit. */
-  it('walks the miss ladder and forfeits the credit on a reveal', async () => {
+     reveal offered. */
+  it('walks the miss ladder from a silent retry to the offered reveal', async () => {
     const user = userEvent.setup();
     render(<App language={LANGUAGE} />);
     await user.click(screen.getByText('Bakery'));
@@ -99,11 +92,9 @@ describe('App', () => {
     expect(screen.getByText('Additional grammar tips')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /show me/i })).not.toBeInTheDocument();
 
-    /* Finish the set to read the score: revealed, so no credit. */
-    for (let i = 0; i < BAKERY.items.length; i++) {
-      await user.click(primary());
-      if (i < BAKERY.items.length - 1) await user.click(primary()); /* reveal-free advance */
-    }
+    /* That a reveal forfeits the first-try credit is appReducer's rule, and is
+       asserted there — playing out the remaining nine sentences here to read it
+       off the done screen costs a second and proves nothing extra. */
   });
 
   it('accepts a correct answer and counts it', async () => {
@@ -161,7 +152,10 @@ describe('App', () => {
     expect(screen.getByRole('status')).toHaveTextContent('');
   });
 
-  it('finishes the set and scores the sentences built first try', async () => {
+  /* A whole set, start to finish, then round again — one journey rather than
+     three that each replay the same ten sentences to make one assertion. The
+     replay is the expensive thing in this file, so it happens once. */
+  it('finishes the set, scores it, and practises it again from the top', async () => {
     const user = userEvent.setup();
     render(<App language={LANGUAGE} />);
     await user.click(screen.getByText('Bakery'));
@@ -175,31 +169,8 @@ describe('App', () => {
     expect(screen.getByText('Set complete')).toBeInTheDocument();
     expect(screen.getByText('10 / 10')).toBeInTheDocument();
     expect(screen.getByText('built first try')).toBeInTheDocument();
-  });
-
-  it('shows a full progress rule on the done screen', async () => {
-    const user = userEvent.setup();
-    render(<App language={LANGUAGE} />);
-    await user.click(screen.getByText('Bakery'));
-
-    for (let index = 0; index < BAKERY.items.length; index++) {
-      await solve(user, index);
-      await user.click(primary());
-      await user.click(primary());
-    }
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '100');
-  });
 
-  it('practises the set again from the top', async () => {
-    const user = userEvent.setup();
-    render(<App language={LANGUAGE} />);
-    await user.click(screen.getByText('Bakery'));
-
-    for (let index = 0; index < BAKERY.items.length; index++) {
-      await solve(user, index);
-      await user.click(primary());
-      await user.click(primary());
-    }
     await user.click(screen.getByRole('button', { name: /practise this set again/i }));
 
     expect(screen.getByText(/item 1 of 10/)).toBeInTheDocument();

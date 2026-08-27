@@ -26,15 +26,10 @@ beforeEach(() => {
 });
 
 describe('openDatabase', () => {
-  it('creates the database at the current version', async () => {
+  it('creates the database at the current version, with all three stores', async () => {
     const db = await openDatabase();
     expect(db.name).toBe(DB_NAME);
     expect(db.version).toBe(DB_VERSION);
-    db.close();
-  });
-
-  it('creates all three stores', async () => {
-    const db = await openDatabase();
     expect([...db.objectStoreNames].sort()).toEqual(
       [STORE_ATTEMPTS, STORE_SCHEDULE, STORE_META].sort(),
     );
