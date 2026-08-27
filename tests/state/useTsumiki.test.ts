@@ -10,7 +10,7 @@ import { revealIndices } from '../../src/lib/revealPlacement';
 import { useTsumiki } from '../../src/state/useTsumiki';
 
 const open = (scenario = 0) => {
-  const view = renderHook(() => useTsumiki());
+  const view = renderHook(() => useTsumiki(LANGUAGE));
   act(() => view.result.current.openScenario(scenario));
   return view;
 };
@@ -31,7 +31,7 @@ const guessWrong = (view: ReturnType<typeof open>) => {
 
 describe('useTsumiki', () => {
   it('starts on the home screen with every scenario available', () => {
-    const { result } = renderHook(() => useTsumiki());
+    const { result } = renderHook(() => useTsumiki(LANGUAGE));
     expect(result.current.state.screen).toBe('home');
     expect(result.current.scenarios).toEqual(LANGUAGE.scenarios);
   });

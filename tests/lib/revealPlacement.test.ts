@@ -8,6 +8,7 @@ import { buildString, isCorrect } from '../../src/lib/checkAnswer';
 import { revealIndices } from '../../src/lib/revealPlacement';
 
 const ITEM: SentenceItem = {
+  id: '01',
   en: 'One bread, please.',
   ans: [['パン', 'pan'], ['を', 'o'], ['ください', 'kudasai']],
   note: 'を marks the direct object.',
@@ -28,6 +29,7 @@ describe('revealIndices', () => {
      return the same index twice, or the answer line renders short. */
   it('claims each position once when the bank repeats a tile', () => {
     const doubled: SentenceItem = {
+      id: 'doubled',
       en: 'Bread bread.',
       ans: [['パン', 'pan'], ['パン', 'pan']],
       note: 'Contrived.',

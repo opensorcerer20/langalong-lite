@@ -7,53 +7,63 @@ import type { SentenceItem, Tile } from '../types';
 
 export const BAKERY_ITEMS: readonly SentenceItem[] = [
   {
+    id: '01',
     en: 'One bread, please.',
     ans: [['パン', 'pan'], ['を', 'o'], ['ください', 'kudasai']],
     alts: ['パンをお願いします'],
     note: 'を marks the direct object — the thing you are asking for. は would make it the topic, which sounds like you are commenting on bread, not requesting it.',
   },
   {
+    id: '02',
     en: "I'd like two croissants.",
     ans: [['クロワッサン', 'kurowassan'], ['を', 'o'], ['二つ', 'futatsu'], ['ください', 'kudasai']],
     note: 'The counter comes after を, not attached to the noun: ＸをNください. 二つ is the generic counter for small objects.',
   },
   {
+    id: '03',
     en: 'Do you have melon bread?',
     ans: [['メロンパン', 'meronpan'], ['は', 'wa'], ['あります', 'arimasu'], ['か', 'ka']],
     note: 'For existence questions the item is the topic, so は. か turns the sentence into a question — no rising intonation needed.',
   },
   {
+    id: '04',
     en: 'How much is this?',
     ans: [['これ', 'kore'], ['は', 'wa'], ['いくら', 'ikura'], ['です', 'desu'], ['か', 'ka']],
     note: "これ is 'this thing' on its own; この needs a noun after it (この パン).",
   },
   {
+    id: '05',
     en: 'Is this bread sweet?',
     ans: [['この', 'kono'], ['パン', 'pan'], ['は', 'wa'], ['甘い', 'amai'], ['です', 'desu'], ['か', 'ka']],
     note: '甘い is already an adjective — です only adds politeness, it never becomes 甘いだです or takes が here.',
   },
   {
+    id: '06',
     en: 'I want to eat something warm.',
     ans: [['温かい', 'atatakai'], ['もの', 'mono'], ['が', 'ga'], ['食べ', 'tabe'], ['たい', 'tai'], ['です', 'desu']],
     note: '〜たい takes が for its object, not を. Attach たい to the verb stem: 食べ + たい.',
   },
   {
+    id: '07',
     en: "I'll take this one.",
     ans: [['これ', 'kore'], ['を', 'o'], ['お願いします', 'onegaishimasu']],
     alts: ['これをください', 'これをもらいます'],
     note: 'お願いします is softer than ください at the point of paying. Both are fine; the particle stays を.',
   },
   {
+    id: '08',
     en: 'Can I pay by card?',
     ans: [['カード', 'kaado'], ['で', 'de'], ['払え', 'harae'], ['ます', 'masu'], ['か', 'ka']],
     note: "で marks the means or instrument — by card, by train, in Japanese. 払え+ます is the potential form: 'can pay'.",
   },
   {
+    id: '09',
     en: 'Please give me a bag.',
     ans: [['袋', 'fukuro'], ['を', 'o'], ['ください', 'kudasai']],
     note: 'Same frame as the first sentence. Once ＸをＹください is automatic, only the noun changes.',
   },
   {
+    id: '10',
     en: 'What do you recommend?',
     ans: [['おすすめ', 'osusume'], ['は', 'wa'], ['何', 'nani'], ['です', 'desu'], ['か', 'ka']],
     note: '何 stays where the answer would go — Japanese does not move question words to the front.',

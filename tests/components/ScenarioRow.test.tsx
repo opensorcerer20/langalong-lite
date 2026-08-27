@@ -5,17 +5,19 @@ import { describe, expect, it, vi } from 'vitest';
 import { ScenarioRow } from '../../src/components/ScenarioRow';
 import type { Scenario, SentenceItem } from '../../src/data/types';
 
-const item = (en: string): SentenceItem => ({
+const item = (id: string, en: string): SentenceItem => ({
+  id,
   en,
   ans: [['パン', 'pan']],
   note: 'A note.',
 });
 
 const BAKERY: Scenario = {
+  id: 'bakery',
   name: 'Bakery',
   kicker: 'Set 01',
   blurb: 'Asking for items, counting them, paying at the counter.',
-  items: [item('One bread, please.'), item('How much is this?')],
+  items: [item('01', 'One bread, please.'), item('02', 'How much is this?')],
   words: [['パン', 'pan']],
 };
 
@@ -33,7 +35,7 @@ describe('ScenarioRow', () => {
   });
 
   it('does not say "1 sentences"', () => {
-    const single: Scenario = { ...BAKERY, items: [item('One bread, please.')] };
+    const single: Scenario = { ...BAKERY, items: [item('01', 'One bread, please.')] };
     render(<ScenarioRow scenario={single} onOpen={() => {}} />);
     expect(screen.getByText('1 sentence')).toBeInTheDocument();
   });

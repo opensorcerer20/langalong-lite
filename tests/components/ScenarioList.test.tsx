@@ -6,10 +6,11 @@ import { ScenarioList } from '../../src/components/ScenarioList';
 import type { Scenario } from '../../src/data/types';
 
 const scenario = (name: string, kicker: string): Scenario => ({
+  id: name.toLowerCase().replace(/\W+/g, '-'),
   name,
   kicker,
   blurb: `About ${name}.`,
-  items: [{ en: 'One bread, please.', ans: [['パン', 'pan']], note: 'A note.' }],
+  items: [{ id: '01', en: 'One bread, please.', ans: [['パン', 'pan']], note: 'A note.' }],
   words: [['パン', 'pan']],
 });
 

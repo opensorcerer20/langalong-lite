@@ -11,14 +11,19 @@ How the code is arranged, why the layers point the way they do, and the StyleX r
 ```
 components/  ──►  state/useTsumiki  ──►  state/appReducer  ──►  lib/       (pure, data-free)
                         │
-                        └────────────►  data/                              (inert, logic-free)
+                        ├────────────►  data/                              (inert, logic-free)
+                        │
+                        └────────────►  storage/                           (async, side effects)
 ```
 
 - **`src/data/`** is the language packs. Content and types, no functions. Nothing here imports anything but its own types.
-- **`src/lib/`** is the processing: bank generation, segmentation, answer checking, reveal placement. Pure functions that take the content they need as arguments and never import `data/`.
+- **`src/lib/`** is the processing: bank generation, segmentation, answer checking, reveal placement, key composition, and the roll-up arithmetic that turns an attempt into a progress row. Pure functions that take the content they need as arguments and never import `data/`.
 - **`src/state/appReducer.ts`** is every drill rule, as one pure reducer. It does not import content either — the `check` action carries the item, the bank and the joiner in the action itself.
-- **`src/state/useTsumiki.ts`** is the single seam where content, state and logic meet. It is the only file that reads the active language pack: it resolves the current scenario, item and tile bank and applies the config dials.
+- **`src/storage/`** is persistence: IndexedDB, and the interfaces that hide it. It is the only layer with side effects, and like `data/` it is reached only through the seam.
+- **`src/state/useTsumiki.ts`** is the single seam where content, state, logic and storage meet. It resolves the current scenario, item and tile bank, applies the config dials, and writes down what the reducer decides.
 - **`src/components/`** are presentational: props in, callbacks out. Only `App` calls the hook. One file per component, with its styles in it.
+
+`appReducer`, `lib/` and `data/` never import `storage/`. That is what keeps every drill rule synchronously testable without opening a database — and if `tests/state/appReducer.test.ts` ever needs a change to accommodate storage, the seam has leaked.
 
 ## Language packs
 
@@ -30,6 +35,37 @@ A pack carries its own content — a grammar pool and a list of scenarios — pl
 - **`fontStack`** — the face target-language text is drawn in. StyleX values are static, so the family cannot be interpolated into a rule: the pack sets `--font-target` on the app root through `PhoneColumn`, and `Tile`'s rule reads the variable. `global.css` carries a fallback for a pack that omits one.
 
 Scenarios belong to the pack, not to the app. Another language's situations may look nothing like Japanese's — see [AUTHORING.md](AUTHORING.md#adding-a-language).
+
+## Where progress lives
+
+Progress is kept in **IndexedDB**, in a database called `tsumiki`. Nothing schedules reviews yet; what exists is the record a scheduler will need, collected from the first session because observations cannot be recreated after the fact.
+
+### Why IndexedDB and not localStorage
+
+The shortcut is tempting and wrong, for four reasons in descending order of how much they settle it:
+
+- **A service worker cannot read `localStorage`.** It can read IndexedDB. PWA support and the daily reminder are both on [ROADMAP.md](ROADMAP.md), and both need progress readable with no page open. This alone decides it.
+- **`localStorage` is synchronous** and blocks rendering on every read. Per-item history grows without bound, and a tile tap is not a good moment to block.
+- **It is string-only and roughly 5 MB**, so storing history means serialising and reparsing the whole blob on every write.
+- **No indexes.** "Which items are due" is a range query over an index, not a full scan of a parsed blob.
+
+### The schema
+
+Two stores that matter, keyed by strings composed in `src/lib/keys.ts` — `ja:item:bakery:01` for a sentence, `ja:tile:パン` for vocabulary. Ids are local to their parent and qualified here, so nothing inside `src/data/ja/` has to name Japanese.
+
+- **`attempts`** is an **append-only log**: one row per check or reveal, never updated. This is the load-bearing decision. SM-2, Anki's variants and FSRS are all either parameterised or trained on review logs, so keeping only rolled-up state would make changing scheduler mean starting every learner from zero. Keeping the log means any future scheduler can be fitted against real history.
+- **`schedule`** is one row per reviewable thing, rolled up from that log by `rollUp()` in `src/lib/progress.ts`. It is a cache, not a source of truth — every row can be rebuilt by replaying its attempts.
+
+`schedule` rows carry the scheduling fields already (`dueAt`, `intervalDays`, `ease`, `stability`, `difficulty`) but nothing writes them, and **`schedulerVersion` is `0` on every row**. That sentinel is the mechanism: a scheduler shipping as version 1 finds every row still at 0 and initialises it from the log, rather than starting a learner from nothing.
+
+### Two limits worth knowing
+
+- A **tile row is indirect evidence**, marked by `viaItem`. Building a sentence correctly does not establish that each tile in it was known, and a scheduler should be able to weight these differently from a direct vocabulary review.
+- There is **no per-token attribution**. `checkAnswer` compares whole joined strings, so on a wrong answer nothing knows *which* tile was wrong — which is also why a wrong answer records nothing against tiles at all.
+
+### When it is not there
+
+IndexedDB can genuinely be unavailable: some private-browsing modes, site data blocked, quota exhausted, or an upgrade blocked by another tab. `openRepository` falls back to the in-memory store and reports `durable: false`, so the drill keeps working and the app knows it is not saving. The migration ladder in `storage/db.ts` is written as an array from version 1 on purpose — adding a rung later is a line; retrofitting the ladder once databases exist in the wild is not.
 
 ## Styling
 
@@ -70,6 +106,12 @@ Values still come from the design system: `var(--color-accent)` and friends are 
 | `src/lib/segment.ts` | Splitting a written-out sentence back into tiles, longest match first |
 | `src/lib/checkAnswer.ts` | Building the answer string and judging it |
 | `src/lib/revealPlacement.ts` | Which bank positions spell the answer |
+| `src/lib/keys.ts` | Composing and parsing the keys progress is stored against |
+| `src/lib/progress.ts` | What is recorded about a learner, and how one attempt folds into it |
+| `src/storage/db.ts` | Opening IndexedDB, the migration ladder, promise wrappers |
+| `src/storage/idbProgressStore.ts`, `memoryProgressStore.ts` | The two `ProgressStore`s, held to one contract by the same test suite |
+| `src/storage/moduleContentSource.ts` | Content from the compiled packs — the only file in `storage/` reading `data/` |
+| `src/storage/index.ts` | Assembles the repository and owns the fallback |
 | `src/state/` | The reducer and the hook |
 | `src/components/<Name>.tsx` | One component and its StyleX styles, in one file |
 | `src/styles/shared.ts` | The two styles used by more than one component: `screen` and `kicker` |
@@ -88,7 +130,10 @@ Values still come from the design system: `var(--color-accent)` and friends are 
 npm test
 ```
 
-287 tests. Most are ordinary unit tests, but three are worth knowing about:
+374 tests. Most are ordinary unit tests, but five are worth knowing about:
+
+- **`tests/storage/progressStore.test.ts`** is one contract suite run over both `ProgressStore` implementations. The in-memory store is not only a test double — it is what a learner actually gets when IndexedDB will not open — so the two behaving differently would be a real bug. IndexedDB itself is polyfilled with `fake-indexeddb` rather than mocked, because upgrade paths, transaction lifetimes and key ranges are exactly where its bugs live.
+- **`tests/storage/drillIntegration.test.tsx`** plays a real drill through the real components into a real database and reads the rows back, which is the only test that would catch the two halves being wired together wrongly.
 
 - **`tests/lib/buildBank.test.ts`** checks the generated tile bank against `tests/fixtures/prototype-banks.json`, which holds all 18 banks exactly as the original `app.js` produced them. The bank is deterministic — no RNG, just arithmetic on the item's index — so any change to the draw stride or the shuffle shows up here as a diff rather than as a silently different app.
 - **`tests/components/App.test.tsx`** plays real drills through the real content: the miss ladder, the reveal forfeiting first-try credit, finishing a set and reading the score.

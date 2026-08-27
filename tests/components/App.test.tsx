@@ -40,7 +40,7 @@ const primary = () => screen.getByRole('button', { name: /check|next sentence|fi
 
 describe('App', () => {
   it('opens on the home screen', () => {
-    render(<App />);
+    render(<App language={LANGUAGE} />);
     expect(screen.getByText('Choose a situation')).toBeInTheDocument();
     expect(screen.getByText('TSUMIKI')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /all/i })).not.toBeInTheDocument();
@@ -48,7 +48,7 @@ describe('App', () => {
 
   it('opens a situation at its first sentence', async () => {
     const user = userEvent.setup();
-    render(<App />);
+    render(<App language={LANGUAGE} />);
     await user.click(screen.getByText('Bakery'));
 
     expect(screen.getByRole('heading')).toHaveTextContent(BAKERY.items[0]!.en);
@@ -59,7 +59,7 @@ describe('App', () => {
 
   it('cannot check an empty answer line', async () => {
     const user = userEvent.setup();
-    render(<App />);
+    render(<App language={LANGUAGE} />);
     await user.click(screen.getByText('Bakery'));
     expect(primary()).toBeDisabled();
   });
@@ -68,7 +68,7 @@ describe('App', () => {
      reveal — and the reveal costs the first-try credit. */
   it('walks the miss ladder and forfeits the credit on a reveal', async () => {
     const user = userEvent.setup();
-    render(<App />);
+    render(<App language={LANGUAGE} />);
     await user.click(screen.getByText('Bakery'));
 
     const note = BAKERY.items[0]!.note;
@@ -108,7 +108,7 @@ describe('App', () => {
 
   it('accepts a correct answer and counts it', async () => {
     const user = userEvent.setup();
-    render(<App />);
+    render(<App language={LANGUAGE} />);
     await user.click(screen.getByText('Bakery'));
 
     await solve(user, 0);
@@ -121,7 +121,7 @@ describe('App', () => {
 
   it('clears the answer line on a wrong answer', async () => {
     const user = userEvent.setup();
-    const { container } = render(<App />);
+    const { container } = render(<App language={LANGUAGE} />);
     await user.click(screen.getByText('Bakery'));
 
     await user.click(bankTiles()[0]!);
@@ -134,7 +134,7 @@ describe('App', () => {
 
   it('sends a placed tile back to the bank when tapped', async () => {
     const user = userEvent.setup();
-    const { container } = render(<App />);
+    const { container } = render(<App language={LANGUAGE} />);
     await user.click(screen.getByText('Bakery'));
 
     await user.click(bankTiles()[0]!);
@@ -148,7 +148,7 @@ describe('App', () => {
 
   it('advances to the next sentence with a clean line', async () => {
     const user = userEvent.setup();
-    const { container } = render(<App />);
+    const { container } = render(<App language={LANGUAGE} />);
     await user.click(screen.getByText('Bakery'));
 
     await solve(user, 0);
@@ -163,7 +163,7 @@ describe('App', () => {
 
   it('finishes the set and scores the sentences built first try', async () => {
     const user = userEvent.setup();
-    render(<App />);
+    render(<App language={LANGUAGE} />);
     await user.click(screen.getByText('Bakery'));
 
     for (let index = 0; index < BAKERY.items.length; index++) {
@@ -179,7 +179,7 @@ describe('App', () => {
 
   it('shows a full progress rule on the done screen', async () => {
     const user = userEvent.setup();
-    render(<App />);
+    render(<App language={LANGUAGE} />);
     await user.click(screen.getByText('Bakery'));
 
     for (let index = 0; index < BAKERY.items.length; index++) {
@@ -192,7 +192,7 @@ describe('App', () => {
 
   it('practises the set again from the top', async () => {
     const user = userEvent.setup();
-    render(<App />);
+    render(<App language={LANGUAGE} />);
     await user.click(screen.getByText('Bakery'));
 
     for (let index = 0; index < BAKERY.items.length; index++) {
@@ -208,7 +208,7 @@ describe('App', () => {
 
   it('goes back to the situations and into the other set', async () => {
     const user = userEvent.setup();
-    render(<App />);
+    render(<App language={LANGUAGE} />);
     await user.click(screen.getByText('Bakery'));
     await user.click(screen.getByRole('button', { name: /all/i }));
 
@@ -222,7 +222,7 @@ describe('App', () => {
 
   it('restarts a set that is reopened rather than resuming it', async () => {
     const user = userEvent.setup();
-    render(<App />);
+    render(<App language={LANGUAGE} />);
     await user.click(screen.getByText('Bakery'));
 
     await solve(user, 0);
@@ -237,7 +237,7 @@ describe('App', () => {
 
   it('oversupplies the bank, so the answer cannot be found by elimination', async () => {
     const user = userEvent.setup();
-    render(<App />);
+    render(<App language={LANGUAGE} />);
     await user.click(screen.getByText('Bakery'));
 
     const needed = BAKERY.items[0]!.ans.length;
@@ -246,7 +246,7 @@ describe('App', () => {
 
   it('renders the romaji under the kana', async () => {
     const user = userEvent.setup();
-    render(<App />);
+    render(<App language={LANGUAGE} />);
     await user.click(screen.getByText('Bakery'));
 
     const tile = bankTiles()[0]!;

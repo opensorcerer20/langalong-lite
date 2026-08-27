@@ -119,7 +119,9 @@ The parts that are Japanese-specific or single-mode, and would need attention be
 
 **A note is one prose string**, shown at a fixed point in the ladder. A conjugation drill probably wants structured data — stem, ending, rule — rather than a paragraph.
 
-**Scoring is binary and per-set.** `firstTry` counts clean answers; nothing records which particle a learner keeps getting wrong, so nothing can adapt. The starred-progress and review ideas in [ROADMAP.md](ROADMAP.md) all need per-item history, which does not exist yet.
+**Scoring in the drill is binary and per-set.** `firstTry` counts clean answers, and it is all `AppState` knows — the reducer still has no memory beyond the current set.
+
+Per-item history does now exist, but beside the drill rather than inside them: `useTsumiki` writes every check and reveal to IndexedDB, keyed by sentence and by tile, and `appReducer` is deliberately unaware of it — see [ARCHITECTURE.md](ARCHITECTURE.md#where-progress-lives). Two things still do not follow from it. Nothing **adapts**: the order of a set is a fixed walk through an array, and no scheduler reads the rows. And nothing knows **which particle** a learner keeps getting wrong — `checkAnswer` judges whole joined strings, so a miss is recorded against the sentence, never against the tile that caused it.
 
 **Progress is linear.** `item` is an index that only moves forward through a fixed array. Jumping around, or a set that adapts its order, both need `item` to stop being a position in a list.
 

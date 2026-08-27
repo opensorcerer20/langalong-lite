@@ -20,12 +20,14 @@ const BANK: readonly Tile[] = [
 ];
 
 const ITEM: SentenceItem = {
+  id: '01',
   en: 'One bread, please.',
   ans: [['パン', 'pan'], ['を', 'o'], ['ください', 'kudasai']],
   note: 'を marks the direct object.',
 };
 
 const SCENARIO = {
+  id: 'bakery',
   name: 'Bakery',
   kicker: 'Set 01',
   blurb: 'At the counter.',

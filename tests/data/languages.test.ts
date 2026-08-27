@@ -40,10 +40,48 @@ describe.each(LANGUAGES)('$name', (language) => {
     expect(new Set(texts).size).toBe(texts.length);
   });
 
+  it('gives every situation an id, unique within the pack', () => {
+    const ids = language.scenarios.map((s) => s.id);
+    for (const id of ids) expect(id.trim()).not.toBe('');
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  /* Progress is stored against a composed key, and parseKey splits it on the
+     separator. An id containing one would read back as a different scenario. */
+  it('uses no ":" in a situation id — it is the storage key separator', () => {
+    for (const scenario of language.scenarios) expect(scenario.id).not.toContain(':');
+  });
+
+  /* The invariant the tile-level history depends on. Two tiles sharing text but
+     spelling the reading differently would collapse into one row, and the
+     learner's record for パン would silently be a record of two things. */
+  it('reads a given tile text exactly one way, everywhere it appears', () => {
+    const readings = new Map<string, string>();
+    const everyTile = [
+      ...language.grammar,
+      ...language.scenarios.flatMap((s) => [...s.words, ...s.items.flatMap((i) => i.ans)]),
+    ];
+
+    for (const [text, reading] of everyTile) {
+      const seen = readings.get(text);
+      if (seen === undefined) readings.set(text, reading);
+      else expect(reading, `"${text}" is read both "${seen}" and "${reading}"`).toBe(seen);
+    }
+  });
+
   describe.each(language.scenarios)('$name', (scenario) => {
     it('has a non-empty blurb and its own vocabulary', () => {
       expect(scenario.blurb).not.toBe('');
       expect(scenario.words.length).toBeGreaterThan(0);
+    });
+
+    it('gives every sentence an id, unique within the situation', () => {
+      const ids = scenario.items.map((item) => item.id);
+      for (const id of ids) {
+        expect(id.trim()).not.toBe('');
+        expect(id).not.toContain(':');
+      }
+      expect(new Set(ids).size).toBe(ids.length);
     });
 
     describe.each(scenario.items)('$en', (item) => {
