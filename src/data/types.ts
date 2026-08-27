@@ -7,11 +7,28 @@
 /**
  * One tile: the target-language text as it appears on the tile, and its reading
  * in latin script — romaji for Japanese, pinyin for Mandarin, and so on.
+ *
+ * The text is the tile's identity, and has been all along: buildBank dedups on
+ * it, checkAnswer joins it, revealPlacement matches on it. Storage keys on it
+ * too, which makes one invariant load-bearing — within a pack, a given text
+ * carries exactly one reading, across the grammar pool, every scenario's words
+ * and every answer. Two spellings of the same text would collapse into a single
+ * history row. tests/data/languages.test.ts enforces it.
  */
 export type Tile = readonly [text: string, reading: string];
 
 /** One drill sentence. */
 export interface SentenceItem {
+  /**
+   * Durable identity, unique within its scenario. Kept short because the full
+   * storage key is composed from the pack code and the scenario id rather than
+   * written out here — see src/lib/keys.ts.
+   *
+   * Once shipped this must never change: progress history is stored against it,
+   * and editing one orphans everything recorded about that sentence. Rewording
+   * `en`, fixing `ans` or adding an `alt` are all safe; changing `id` is not.
+   */
+  readonly id: string;
   /** The English prompt shown to the learner. */
   readonly en: string;
   /** The canonical answer, split into the tiles that build it. */
@@ -28,6 +45,12 @@ export interface SentenceItem {
 
 /** One situation: its sentences plus the vocabulary its distractors draw on. */
 export interface Scenario {
+  /**
+   * Durable identity, unique within the pack. The same rule as SentenceItem.id
+   * applies: history keys on it, so it is fixed once shipped. Reordering the
+   * scenario list is then free, which it is not while position is identity.
+   */
+  readonly id: string;
   readonly name: string;
   readonly kicker: string;
   readonly blurb: string;

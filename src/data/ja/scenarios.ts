@@ -13,6 +13,7 @@ import { STATION_ITEMS, STATION_WORDS } from './station';
 
 export const JA_SCENARIOS: readonly Scenario[] = [
   {
+    id: 'bakery',
     name: 'Bakery',
     kicker: 'Set 01',
     blurb: 'Asking for items, counting them, paying at the counter.',
@@ -20,6 +21,7 @@ export const JA_SCENARIOS: readonly Scenario[] = [
     words: BAKERY_WORDS,
   },
   {
+    id: 'station',
     name: 'Train station',
     kicker: 'Set 02',
     blurb: 'Buying tickets, platforms, departure times, gates.',

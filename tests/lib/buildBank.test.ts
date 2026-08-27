@@ -60,6 +60,7 @@ describe('buildBank', () => {
 
   it('never drops below the minimum size, however short the sentence', () => {
     const short: SentenceItem = {
+      id: 'short',
       en: 'Bread, please.',
       ans: [['パン', 'pan'], ['を', 'o']],
       note: 'Two tiles only.',

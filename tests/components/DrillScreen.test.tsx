@@ -20,12 +20,14 @@ const BANK: readonly Tile[] = [
 ];
 
 const ITEM: SentenceItem = {
+  id: '01',
   en: 'One bread, please.',
   ans: [['パン', 'pan'], ['を', 'o'], ['ください', 'kudasai']],
   note: 'を marks the direct object.',
 };
 
 const SCENARIO = {
+  id: 'bakery',
   name: 'Bakery',
   kicker: 'Set 01',
   blurb: 'At the counter.',
@@ -44,23 +46,28 @@ const LANGUAGE: LanguagePack = {
   scenarios: [SCENARIO],
 };
 
-/** A stand-in view model, so the screen can be driven directly. */
-function view(state: Partial<AppState> = {}, over: Partial<Tsumiki> = {}): Tsumiki {
-  const merged: AppState = { ...initialState, screen: 'drill', ...state };
-  const done = merged.status === 'right' || merged.status === 'shown';
+/** A stand-in view model, so the screen can be driven directly.
 
+    Nothing here is derived. An earlier version computed `done`, `showNote` and
+    `showReveal` from the state the test passed in, which meant a test setting
+    `misses: 2` and asserting the note appeared was really asserting that this
+    function could compare two numbers — the screen would have passed it however
+    it was wired. The flags are plain defaults now, and a test that cares about
+    one sets it explicitly. Where those flags come from is useTsumiki's business
+    and is tested there. */
+function view(state: Partial<AppState> = {}, over: Partial<Tsumiki> = {}): Tsumiki {
   return {
-    state: merged,
+    state: { ...initialState, screen: 'drill', ...state },
     language: LANGUAGE,
     scenarios: [SCENARIO],
     scenario: SCENARIO,
     item: ITEM,
     bank: BANK,
     total: 10,
-    done,
+    done: false,
     isLastItem: false,
-    showNote: merged.misses >= 2 || done,
-    showReveal: merged.misses >= 3 && !done,
+    showNote: false,
+    showReveal: false,
     progress: 0,
     openScenario: vi.fn(),
     goHome: vi.fn(),
@@ -98,47 +105,33 @@ describe('DrillScreen', () => {
     expect(tsumiki.untap).toHaveBeenCalledWith(1);
   });
 
-  it('checks the answer', async () => {
-    const tsumiki = view({ placed: [2] });
-    render(<DrillScreen tsumiki={tsumiki} />);
-    await userEvent.click(screen.getByRole('button', { name: 'Check' }));
-    expect(tsumiki.check).toHaveBeenCalledOnce();
+  /* The screen's own derivation, rather than a flag handed to it: there is
+     something to check exactly when something is on the line. */
+  it('can only check once a tile is placed', () => {
+    const { unmount } = render(<DrillScreen tsumiki={view()} />);
+    expect(screen.getByRole('button', { name: 'Check' })).toBeDisabled();
+    unmount();
+
+    render(<DrillScreen tsumiki={view({ placed: [2] })} />);
+    expect(screen.getByRole('button', { name: 'Check' })).toBeEnabled();
   });
 
-  it('holds the note back until it is due', () => {
-    render(<DrillScreen tsumiki={view({ misses: 1, status: 'wrong' })} />);
+  it('shows the note only when the view model says it is due', () => {
+    const { unmount } = render(<DrillScreen tsumiki={view({ misses: 1 })} />);
     expect(screen.queryByText(ITEM.note)).not.toBeInTheDocument();
-  });
+    unmount();
 
-  it('shows the note once it is due', () => {
-    render(<DrillScreen tsumiki={view({ misses: 2, status: 'wrong' })} />);
+    render(<DrillScreen tsumiki={view({ misses: 2 }, { showNote: true })} />);
     expect(screen.getByText(ITEM.note)).toBeInTheDocument();
-    expect(screen.getByText('Grammar')).toBeInTheDocument();
   });
 
-  it('relabels the note once the answer is settled', () => {
-    render(<DrillScreen tsumiki={view({ status: 'right', placed: [2, 3, 0] })} />);
-    expect(screen.getByText('Additional grammar tips')).toBeInTheDocument();
-  });
-
-  it('locks the bank once the answer is settled', async () => {
-    const tsumiki = view({ status: 'right', placed: [2, 3, 0] });
+  it('locks the answer line and the bank once the answer is settled', async () => {
+    const tsumiki = view({ placed: [2, 3, 0] }, { done: true });
     render(<DrillScreen tsumiki={tsumiki} />);
-    await userEvent.click(screen.getAllByText('は')[0]!);
+
+    await userEvent.click(screen.getAllByText('は')[0]!); /* in the bank */
+    await userEvent.click(screen.getAllByText('パン')[0]!); /* on the line */
     expect(tsumiki.tap).not.toHaveBeenCalled();
-  });
-
-  it('offers the reveal only once enough misses have happened', async () => {
-    const tsumiki = view({ misses: 3, status: 'wrong' });
-    render(<DrillScreen tsumiki={tsumiki} />);
-    await userEvent.click(screen.getByRole('button', { name: /show me the answer/i }));
-    expect(tsumiki.reveal).toHaveBeenCalledOnce();
-  });
-
-  it('advances once the answer is settled', async () => {
-    const tsumiki = view({ status: 'shown', placed: [2, 3, 0] });
-    render(<DrillScreen tsumiki={tsumiki} />);
-    await userEvent.click(screen.getByRole('button', { name: /next sentence/i }));
-    expect(tsumiki.next).toHaveBeenCalledOnce();
+    expect(tsumiki.untap).not.toHaveBeenCalled();
   });
 });

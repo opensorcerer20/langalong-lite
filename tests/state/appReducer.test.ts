@@ -16,6 +16,7 @@ const BANK: readonly Tile[] = [
 ];
 
 const ITEM: SentenceItem = {
+  id: '01',
   en: 'One bread, please.',
   ans: [['パン', 'pan'], ['を', 'o'], ['ください', 'kudasai']],
   alts: ['パンをお願いします'],

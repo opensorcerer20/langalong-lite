@@ -11,6 +11,7 @@ const BANK: readonly Tile[] = [
 ];
 
 const ITEM: SentenceItem = {
+  id: '01',
   en: 'One bread, please.',
   ans: [['パン', 'pan'], ['を', 'o'], ['ください', 'kudasai']],
   alts: ['パンをお願いします'],
@@ -45,7 +46,7 @@ describe('acceptedAnswers', () => {
   });
 
   it('is just the canonical answer when there are no alternates', () => {
-    const noAlts: SentenceItem = { en: ITEM.en, ans: ITEM.ans, note: ITEM.note };
+    const noAlts: SentenceItem = { id: ITEM.id, en: ITEM.en, ans: ITEM.ans, note: ITEM.note };
     expect(acceptedAnswers(noAlts, JOINER)).toEqual(['パンをください']);
   });
 });
@@ -88,6 +89,7 @@ describe('a space-separated language', () => {
   ];
 
   const SPACED_ITEM: SentenceItem = {
+    id: '01',
     en: 'One bread, please.',
     ans: [['un', 'un'], ['pan', 'pan'], ['por favor', 'por favor']],
     alts: ['un pan'],

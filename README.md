@@ -71,8 +71,9 @@ The app is organised so each piece can be read on its own: the language content 
 | Path | What it is |
 | --- | --- |
 | `src/data/` | The language packs. Content and types, no functions. The Japanese is in `src/data/ja/` |
-| `src/lib/` | Bank generation, segmentation, answer checking. Pure, and never imports `data/` |
-| `src/state/` | The reducer holding every drill rule, and the hook that joins it to content |
+| `src/lib/` | Bank generation, segmentation, answer checking, storage keys, progress roll-up. Pure, and never imports `data/` |
+| `src/storage/` | Progress in IndexedDB, behind interfaces. The only layer with side effects |
+| `src/state/` | The reducer holding every drill rule, and the hook that joins it to content and storage |
 | `src/components/` | One component and its StyleX styles per file |
 | `src/config.ts` | The four difficulty and display dials |
 | `tests/` | One file per component and per module, mirroring `src/` |

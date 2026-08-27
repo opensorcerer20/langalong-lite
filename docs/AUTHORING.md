@@ -21,6 +21,7 @@ Push an object onto the items array in `src/data/ja/bakery.ts` or `src/data/ja/s
 
 ```ts
 {
+  id: '09',
   en: 'Please give me a bag.',
   ans: [['袋', 'fukuro'], ['を', 'o'], ['ください', 'kudasai']],
   alts: ['袋をお願いします'],
@@ -28,13 +29,19 @@ Push an object onto the items array in `src/data/ja/bakery.ts` or `src/data/ja/s
 }
 ```
 
+`id` only has to be unique within its situation — take the next number. **Once it has shipped, never change it.** A learner's history is stored against it, so editing one orphans everything recorded about that sentence. Rewording `en`, correcting `ans`, adding an `alt` are all free; renumbering is not. Ids may be non-contiguous, and a deleted sentence's id should be retired rather than reused.
+
 `ans` is the canonical answer as `[text, reading]` tiles — particles split out, conjugation endings as their own tiles (食べ + たい). `alts` is optional and holds other accepted answers as plain strings; the bank generator segments each one and seeds any tile the canonical answer doesn't already supply, so every accepted answer is always buildable. `note` is required — it is what the learner sees after a second miss.
 
-`npm test` checks all of this: that every item has a note, that every tile is a well-formed pair, and that every alternate is actually segmentable from the vocabulary in play. An alternate the tiles cannot spell is the failure mode worth guarding against — it would be accepted by the checker but impossible to build.
+One thing to watch when adding vocabulary: **a given tile text must read the same way everywhere it appears** in the pack. Tiles are keyed on their text, so 二つ spelled `futatsu` in one file and `hutatsu` in another would be one word to the drill and two to the learner's history.
+
+`npm test` checks all of this: that every item has a note and a unique id, that every tile is a well-formed pair, that a text is never read two ways, and that every alternate is actually segmentable from the vocabulary in play. An alternate the tiles cannot spell is the failure mode worth guarding against — it would be accepted by the checker but impossible to build.
 
 ## Adding a situation
 
 Write its items and words in a file beside `bakery.ts`, then add an entry to `JA_SCENARIOS` in `src/data/ja/scenarios.ts`. Nothing else changes. Distractors are drawn from the pack's `grammar` plus that situation's own `words`, so a wrong tile is always plausible within the scene.
+
+Give it an `id` — lowercase, no colon, unique in the pack, and permanent for the same reason a sentence's is. It is only ever seen in a storage key, so it is free to differ from `name`; `kicker` and `blurb` stay display copy.
 
 ## Adding a language
 
@@ -45,6 +52,8 @@ A language is a folder beside `ja/` and one line in the registry. Nothing in `li
 
 ```ts
 export const ES: LanguagePack = {
+  /* Also the first segment of every storage key this pack's progress is kept
+     under, so it is fixed once shipped. */
   code: 'es',
   name: 'Spanish',
   joiner: ' ',

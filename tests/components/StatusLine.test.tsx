@@ -29,18 +29,16 @@ describe('StatusLine', () => {
     expect(line()).toHaveTextContent('Not quite. Try again.');
   });
 
-  it('confirms a correct answer', () => {
+  /* Announced, but politely — the learner is mid-sentence and must not be
+     interrupted by a status change. */
+  it('confirms a correct answer without stealing focus', () => {
     render(<StatusLine status="right" misses={0} noteAfterMisses={2} />);
     expect(line()).toHaveTextContent('Correct');
+    expect(line()).toHaveAttribute('aria-live', 'polite');
   });
 
   it('says so when the answer was revealed rather than built', () => {
     render(<StatusLine status="shown" misses={3} noteAfterMisses={2} />);
     expect(line()).toHaveTextContent('Answer shown');
-  });
-
-  it('announces changes without stealing focus', () => {
-    render(<StatusLine status="right" misses={0} noteAfterMisses={2} />);
-    expect(line()).toHaveAttribute('aria-live', 'polite');
   });
 });
