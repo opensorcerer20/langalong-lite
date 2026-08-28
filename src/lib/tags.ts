@@ -13,17 +13,20 @@
 
    Pure, and free of content imports like everything else in lib/. */
 
-import type { SentenceItem, Tile } from '../data/types';
+import type {
+  SentenceItem,
+  Tile,
+} from '../data/types';
 
 /**
  * The vocabulary tiles in `item`'s canonical answer, in order and without
- * repeats.
+ * repeats, with shared grammar (provided by parameter) filtered out.
  *
- * @param grammar The pack's shared grammar pool — see LanguagePack.grammar.
- *                Everything in it is filtered out.
+ * @param sharedGrammar The pack's shared grammar pool — see LanguagePack.grammar.
+ *                Used to filter out shared grammar from return value.
  */
-export function vocabIn(item: SentenceItem, grammar: readonly Tile[]): readonly Tile[] {
-  const isGrammar = new Set(grammar.map((tile) => tile[0]));
+export function getVocabIn(item: SentenceItem, sharedGrammar: readonly Tile[]): readonly Tile[] {
+  const isGrammar = new Set(sharedGrammar.map((tile) => tile[0]));
   const seen = new Set<string>();
   const vocab: Tile[] = [];
 
