@@ -1,4 +1,4 @@
-/* The three dials that change how the drill feels. Everything else about the
+/* The dials that change how the exercises feel. Everything else about the
    difficulty is a property of the content itself. */
 
 /**
@@ -19,3 +19,16 @@ export const REVEAL_AFTER_MISSES = 3;
  * Mandarin, whatever latin-script reading the language pack supplies.
  */
 export const SHOW_READING = true;
+
+/**
+ * Questions in one vocabulary set. A situation with fewer usable sentences
+ * gives a shorter set rather than a padded one.
+ */
+export const VOCAB_SET_SIZE = 6;
+
+/**
+ * Tiles offered per vocabulary question, the right one included. Four makes a
+ * blind guess worth 25%, which is low enough that guessing is not a strategy
+ * and high enough that the options stay readable at a glance.
+ */
+export const VOCAB_CHOICES = 4;

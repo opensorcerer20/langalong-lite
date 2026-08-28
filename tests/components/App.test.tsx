@@ -6,9 +6,10 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
 import { App } from '../../src/components/App';
-import { TILE_MULTIPLIER } from '../../src/config';
+import { TILE_MULTIPLIER, VOCAB_CHOICES, VOCAB_SET_SIZE } from '../../src/config';
 import { LANGUAGE } from '../../src/data/languages';
 import { buildBank } from '../../src/lib/buildBank';
+import { vocabQuestions } from '../../src/lib/questions/vocab';
 import { revealIndices } from '../../src/lib/revealPlacement';
 
 const BAKERY = LANGUAGE.scenarios[0]!;
@@ -31,7 +32,7 @@ const bankTiles = () => {
 /** Tap the tiles that spell item `index`'s canonical answer, in order. */
 async function solve(user: ReturnType<typeof userEvent.setup>, index: number) {
   const item = BAKERY.items[index]!;
-  for (const position of revealIndices(item, bankFor(index))) {
+  for (const position of revealIndices(item.ans, bankFor(index))) {
     await user.click(bankTiles()[position]!);
   }
 }
@@ -224,5 +225,93 @@ describe('App', () => {
     const [kana] = bankFor(0)[0]!;
     expect(within(tile).getByText(kana)).toBeInTheDocument();
     expect(tile.textContent).not.toBe(kana);
+  });
+});
+
+/* The vocabulary exercise, played through the real app.
+
+   The sentence drill above is unchanged by Phase 1 and its tests prove it. This
+   is the other half: that the same reducer, the same miss ladder and the same
+   done screen drive an exercise that is not a sentence. */
+describe('App — the vocabulary exercise', () => {
+  const VOCAB = vocabQuestions(LANGUAGE, BAKERY, VOCAB_SET_SIZE, VOCAB_CHOICES);
+
+  /** Open Bakery's vocabulary set from the home screen, as a learner would. */
+  async function openVocab(user: ReturnType<typeof userEvent.setup>) {
+    render(<App language={LANGUAGE} />);
+    await user.click(screen.getByRole('button', { name: 'Vocabulary — Bakery' }));
+  }
+
+  /** Tap the right option for question `index`, then check. */
+  async function answer(user: ReturnType<typeof userEvent.setup>, index: number) {
+    const question = VOCAB[index]!;
+    const wanted = question.answer[0]![0];
+    const position = question.choices.findIndex((tile) => tile[0] === wanted);
+    await user.click(bankTiles()[position]!);
+    await user.click(primary());
+  }
+
+  it('is reachable from the home screen without touching the sentence drill', async () => {
+    const user = userEvent.setup();
+    await openVocab(user);
+
+    expect(screen.getByText('Bakery · Vocabulary')).toBeInTheDocument();
+    expect(screen.getByText(/Choose the missing word — item 1 of 6/)).toBeInTheDocument();
+  });
+
+  it('shows the sentence with a gap where the word belongs', async () => {
+    const user = userEvent.setup();
+    await openVocab(user);
+
+    expect(screen.getByRole('heading')).toHaveTextContent('One bread, please.');
+    expect(document.querySelectorAll('[data-blank]')).toHaveLength(1);
+    expect(bankTiles()).toHaveLength(VOCAB_CHOICES);
+  });
+
+  it('accepts the right word and moves on', async () => {
+    const user = userEvent.setup();
+    await openVocab(user);
+    await answer(user, 0);
+
+    expect(screen.getByText('Correct')).toBeInTheDocument();
+    await user.click(primary());
+    expect(screen.getByText(/item 2 of 6/)).toBeInTheDocument();
+  });
+
+  it('walks the same miss ladder as the sentence drill, minus the note', async () => {
+    const user = userEvent.setup();
+    await openVocab(user);
+
+    const wrong = VOCAB[0]!.choices.findIndex((tile) => tile[0] !== VOCAB[0]!.answer[0]![0]);
+    await user.click(bankTiles()[wrong]!);
+    await user.click(primary());
+
+    expect(screen.getByText('Not quite. Try again.')).toBeInTheDocument();
+    /* Vocabulary carries no note, so the ladder never points at one. */
+    expect(screen.queryByText('Grammar')).not.toBeInTheDocument();
+  });
+
+  it('finishes the set and scores it', async () => {
+    const user = userEvent.setup();
+    await openVocab(user);
+
+    for (let index = 0; index < VOCAB.length; index++) {
+      await answer(user, index);
+      await user.click(primary());
+    }
+
+    expect(screen.getByText('Vocabulary complete')).toBeInTheDocument();
+    expect(screen.getByText(`${VOCAB.length} / ${VOCAB.length}`)).toBeInTheDocument();
+    expect(screen.getByText('recalled first try')).toBeInTheDocument();
+  });
+
+  it('goes back to the situations, which still open their sentence drill', async () => {
+    const user = userEvent.setup();
+    await openVocab(user);
+    await user.click(screen.getByRole('button', { name: /all/i }));
+
+    await user.click(screen.getByRole('button', { name: 'Bakery — build sentences' }));
+    expect(screen.getByText('Bakery · 01')).toBeInTheDocument();
+    expect(screen.getByText(/Say this in Japanese/)).toBeInTheDocument();
   });
 });

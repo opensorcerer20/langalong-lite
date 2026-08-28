@@ -9,20 +9,21 @@ How the code is arranged, why the layers point the way they do, and the StyleX r
 **Dependencies point one way, and language data is never imported by logic.**
 
 ```
-components/  ──►  state/useTsumiki  ──►  state/appReducer            (pure, imports nothing)
+components/  ──►  state/useTsumiki  ──►  state/appReducer      (pure, no value imports)
+                  state/useExercise ──►┘
                         │
-                        ├────────────►  lib/                         (pure, data-free)
+                        ├────────────►  lib/                   (pure, data-free)
                         │
-                        ├────────────►  data/                        (inert, logic-free)
+                        ├────────────►  data/                  (inert, logic-free)
                         │
-                        └────────────►  storage/                     (async, side effects)
+                        └────────────►  storage/               (async, side effects)
 ```
 
 - **`src/data/`** is the language packs. Content and types, no functions. Nothing here imports anything but its own types.
-- **`src/lib/`** is the processing: bank generation, segmentation, answer checking, reveal placement, key composition, and the roll-up arithmetic that turns an attempt into a progress row. Pure functions that take the content they need as arguments and never import `data/`.
+- **`src/lib/`** is the processing: bank generation, option generation, segmentation, answer checking, reveal placement, key composition, compiling content into questions, and the roll-up arithmetic that turns an attempt into a progress row. Pure functions that take the content they need as arguments and never import `data/`.
 - **`src/state/appReducer.ts`** is every drill rule, as one pure reducer. It imports nothing at all — `check` carries a boolean verdict and `reveal` carries the bank positions to fill, so judging an answer happens at the seam where the content already is. That is what makes the rules exercise-agnostic: nothing in them knows what a sentence is.
 - **`src/storage/`** is persistence: IndexedDB, and the interfaces that hide it. It is the only layer with side effects, and like `data/` it is reached only through the seam.
-- **`src/state/useTsumiki.ts`** is the single seam where content, state, logic and storage meet. It resolves the current scenario, item and tile bank, applies the config dials, judges what the learner built, and writes down the result. It judges rather than the reducer because a store write cannot wait for a re-render: it has to know the verdict before it dispatches, so it decides once and passes it on.
+- **`src/state/`** holds the seams where content, state, logic and storage meet. `useTsumiki.ts` drives the sentence drill and owns the app's single `useReducer`; `useExercise.ts` drives anything compiled to a `Question` and is handed that reducer's `state` and `dispatch`, so the two share one score and one position in a set. Each resolves what is being asked, applies the config dials, judges what the learner built, and writes down the result. They judge rather than the reducer because a store write cannot wait for a re-render: the verdict has to be known before dispatching, so it is decided once and passed on.
 - **`src/components/`** are presentational: props in, callbacks out. Only `App` calls the hook. One file per component, with its styles in it.
 
 `appReducer`, `lib/` and `data/` never import `storage/`. That is what keeps every drill rule synchronously testable without opening a database — and if `tests/state/appReducer.test.ts` ever needs a change to accommodate storage, the seam has leaked.
@@ -117,13 +118,16 @@ Values still come from the design system: `var(--color-accent)` and friends are 
 | `src/lib/checkAnswer.ts` | Building the answer string and judging it |
 | `src/lib/revealPlacement.ts` | Which bank positions spell the answer |
 | `src/lib/keys.ts` | Composing and parsing the keys progress is stored against |
+| `src/lib/question.ts` | The shape every exercise but the sentence drill compiles to |
+| `src/lib/buildChoices.ts` | The options for one single-answer question. Separate from `buildBank` on purpose |
+| `src/lib/questions/<mode>.ts` | One compiler per exercise: content in, `Question[]` out |
 | `src/lib/tags.ts` | The one derived tag: which words a sentence uses, as opposed to which grammar it teaches |
 | `src/lib/progress.ts` | What is recorded about a learner, and how one attempt folds into it |
 | `src/storage/db.ts` | Opening IndexedDB, the migration ladder, promise wrappers |
 | `src/storage/idbProgressStore.ts`, `memoryProgressStore.ts` | The two `ProgressStore`s, held to one contract by the same test suite |
 | `src/storage/moduleContentSource.ts` | Content from the compiled packs — the only file in `storage/` reading `data/` |
 | `src/storage/index.ts` | Assembles the repository and owns the fallback |
-| `src/state/` | The reducer and the hook |
+| `src/state/` | The reducer and the two hooks that drive it |
 | `src/components/<Name>.tsx` | One component and its StyleX styles, in one file |
 | `src/styles/shared.ts` | The two styles used by more than one component: `screen` and `kicker` |
 | `src/styles/global.css` | The page ground — `html`, `body`, `button`. No element owns these, so they stay CSS |
@@ -141,10 +145,10 @@ Values still come from the design system: `var(--color-accent)` and friends are 
 npm test
 ```
 
-297 tests. Most are ordinary unit tests, but five are worth knowing about:
+374 tests. Most are ordinary unit tests, but five are worth knowing about:
 
 - **`tests/storage/progressStore.test.ts`** is one contract suite run over both `ProgressStore` implementations. The in-memory store is not only a test double — it is what a learner actually gets when IndexedDB will not open — so the two behaving differently would be a real bug. IndexedDB itself is polyfilled with `fake-indexeddb` rather than mocked, because upgrade paths, transaction lifetimes and key ranges are exactly where its bugs live.
-- **`tests/storage/drillIntegration.test.tsx`** plays a real drill through the real components into a real database and reads the rows back, which is the only test that would catch the two halves being wired together wrongly.
+- **`tests/storage/drillIntegration.test.tsx`** plays a real drill — and a real vocabulary set — through the real components into a real database and reads the rows back, which is the only test that would catch the two halves being wired together wrongly. It is also where the two exercises are shown writing to the *same* tile row and staying tellable apart afterwards.
 
 - **`tests/lib/buildBank.test.ts`** checks the generated tile bank against `tests/fixtures/prototype-banks.json`, which holds all 18 banks exactly as the original `app.js` produced them. The bank is deterministic — no RNG, just arithmetic on the item's index — so any change to the draw stride or the shuffle shows up here as a diff rather than as a silently different app.
 - **`tests/components/App.test.tsx`** plays real drills through the real content: the miss ladder, the reveal forfeiting first-try credit, finishing a set and reading the score.

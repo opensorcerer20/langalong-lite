@@ -1,16 +1,20 @@
 /* The whole of the app's behaviour, as one pure function.
 
-   This file imports nothing at all, which is the strongest form of the rule it
-   was already following. Where a transition needs to know what the answer is —
-   `check` and `reveal` — the caller puts the *verdict* in the action rather
-   than the material to reach one: `check` carries whether the answer was right,
-   `reveal` carries the positions to fill. Judging is useTsumiki's job, where
-   the content and the language's joiner already are.
+   This file imports no values at all — only the `ExerciseMode` type, which is
+   erased at compile time and so costs nothing at runtime. Where a transition
+   needs to know what the answer is — `check` and `reveal` — the caller puts the
+   *verdict* in the action rather than the material to reach one: `check`
+   carries whether the answer was right, `reveal` carries the positions to fill.
+   Judging belongs to whichever hook is driving, where the content and the
+   language's joiner already are.
 
-   That split is what makes these rules exercise-agnostic. Nothing below knows
-   what a sentence is, so the miss ladder, the first-try score and advancing
-   through a set work identically for a vocabulary cloze or a conjugation drill
-   — the pieces that differ are the ones that were never in here. */
+   That split is what makes these rules exercise-agnostic, and `mode` is now the
+   proof: the miss ladder, the first-try score and advancing through a set are
+   written once and drive a vocabulary cloze exactly as they drive a sentence.
+   The pieces that differ between exercises are the ones that were never in
+   here. */
+
+import type { ExerciseMode } from '../lib/progress';
 
 /** Which screen is showing. */
 export type Screen = 'home' | 'drill';
@@ -25,6 +29,15 @@ export type DrillStatus = 'idle' | 'wrong' | 'right' | 'shown';
 
 export interface AppState {
   readonly screen: Screen;
+  /**
+   * Which exercise is running.
+   *
+   * Not part of `screen`: every mode uses the same screen, the same miss
+   * ladder and the same done screen, and differs only in what is being asked.
+   * Folding it into `screen` would make each new exercise a new screen value
+   * and every rule below branch on it.
+   */
+  readonly mode: ExerciseMode;
   /** Index into SCENARIOS. */
   readonly scenario: number;
   /** Index of the current item within that scenario's set. */
@@ -42,6 +55,7 @@ export interface AppState {
 
 export const initialState: AppState = {
   screen: 'home',
+  mode: 'sentence',
   scenario: 0,
   item: 0,
   placed: [],
@@ -52,7 +66,9 @@ export const initialState: AppState = {
 };
 
 export type AppAction =
-  | { type: 'openScenario'; scenario: number }
+  /* Was `openScenario`. A situation is no longer one thing to open — it is
+     four, and which one is being opened is the argument that was missing. */
+  | { type: 'openExercise'; scenario: number; mode: ExerciseMode }
   | { type: 'goHome' }
   | { type: 'tap'; bankIndex: number }
   | { type: 'untap'; position: number }
@@ -78,16 +94,17 @@ const FRESH_ITEM = { placed: [], misses: 0, status: 'idle' } as const;
 
 export function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
-    case 'openScenario':
+    case 'openExercise':
       /* Entering a set always restarts it, including the score. */
       return {
         ...initialState,
         screen: 'drill',
+        mode: action.mode,
         scenario: action.scenario,
       };
 
     case 'goHome':
-      /* Leaves the drill where it was; openScenario is what resets it. */
+      /* Leaves the exercise where it was; openExercise is what resets it. */
       return { ...state, screen: 'home' };
 
     case 'tap':

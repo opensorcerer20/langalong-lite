@@ -34,13 +34,13 @@ const REVEAL: AppAction = { type: 'reveal', placed: RIGHT };
 
 describe('navigation', () => {
   it('opens a scenario on the drill screen at its first item', () => {
-    const state = appReducer(initialState, { type: 'openScenario', scenario: 1 });
+    const state = appReducer(initialState, { type: 'openExercise', scenario: 1, mode: 'sentence' });
     expect(state).toMatchObject({ screen: 'drill', scenario: 1, item: 0, finished: false });
   });
 
   it('restarts a set from scratch when it is reopened, score included', () => {
     const midway = drilling({ scenario: 1, item: 4, firstTry: 3, misses: 2, placed: [1] });
-    expect(appReducer(midway, { type: 'openScenario', scenario: 1 })).toMatchObject({
+    expect(appReducer(midway, { type: 'openExercise', scenario: 1, mode: 'sentence' })).toMatchObject({
       item: 0,
       firstTry: 0,
       misses: 0,

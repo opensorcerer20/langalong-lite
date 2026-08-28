@@ -41,17 +41,45 @@ describe('ScenarioRow', () => {
     expect(screen.getByText('1 sentence')).toBeInTheDocument();
   });
 
-  it('opens the set when tapped', async () => {
+  /* The row did what it always did before the exercises were added: tapping
+     the heading block builds the situation's sentences. */
+  it('opens the sentence drill when the row is tapped', async () => {
     const onOpen = vi.fn();
     render(<ScenarioRow scenario={BAKERY} onOpen={onOpen} />);
-    await userEvent.click(screen.getByRole('button'));
-    expect(onOpen).toHaveBeenCalledOnce();
+    await userEvent.click(screen.getByRole('button', { name: 'Bakery — build sentences' }));
+    expect(onOpen).toHaveBeenCalledWith('sentence');
   });
 
-  it('is one button, so the whole row is the target', () => {
+  it('keeps the whole heading block as that one target', () => {
     render(<ScenarioRow scenario={BAKERY} onOpen={() => {}} />);
-    const button = screen.getByRole('button');
-    expect(button).toHaveTextContent('Bakery');
-    expect(button).toHaveTextContent(BAKERY.blurb);
+    const row = screen.getByRole('button', { name: 'Bakery — build sentences' });
+    expect(row).toHaveTextContent('Bakery');
+    expect(row).toHaveTextContent(BAKERY.blurb);
+    expect(row).toHaveTextContent('Set 01');
+  });
+
+  describe('the exercises under it', () => {
+    it('offers the situation’s other exercises', async () => {
+      const onOpen = vi.fn();
+      render(<ScenarioRow scenario={BAKERY} onOpen={onOpen} />);
+      await userEvent.click(screen.getByRole('button', { name: 'Vocabulary — Bakery' }));
+      expect(onOpen).toHaveBeenCalledWith('vocab');
+    });
+
+    /* Every situation offers the same exercises, so "Vocabulary" alone names
+       several buttons on the home screen. The situation is what tells them
+       apart for anyone navigating by name. */
+    it('names each one with the situation it belongs to', () => {
+      render(<ScenarioRow scenario={BAKERY} onOpen={() => {}} />);
+      expect(screen.getByRole('button', { name: /Bakery$/ })).toHaveTextContent('Vocabulary');
+    });
+
+    /* A button cannot contain another button, which is why the row stopped
+       being one. Nesting them would render, and then behave unpredictably. */
+    it('sits beside the row button rather than inside it', () => {
+      render(<ScenarioRow scenario={BAKERY} onOpen={() => {}} />);
+      const row = screen.getByRole('button', { name: 'Bakery — build sentences' });
+      expect(row.querySelector('button')).toBeNull();
+    });
   });
 });

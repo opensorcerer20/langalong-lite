@@ -23,7 +23,7 @@ describe('revealIndices', () => {
       ['パン', 'pan'],
       ['を', 'o'],
     ];
-    expect(revealIndices(ITEM, bank)).toEqual([2, 3, 0]);
+    expect(revealIndices(ITEM.ans, bank)).toEqual([2, 3, 0]);
   });
 
   /* The claimed-position guard. A bank holding the same text twice must not
@@ -37,17 +37,17 @@ describe('revealIndices', () => {
       tags: { particles: [], conjugations: [] },
     };
     const bank: readonly Tile[] = [['パン', 'pan'], ['を', 'o'], ['パン', 'pan']];
-    expect(revealIndices(doubled, bank)).toEqual([0, 2]);
+    expect(revealIndices(doubled.ans, bank)).toEqual([0, 2]);
   });
 
   it('falls back to 0 for a tile missing from the bank', () => {
-    expect(revealIndices(ITEM, [['パン', 'pan']])).toEqual([0, 0, 0]);
+    expect(revealIndices(ITEM.ans, [['パン', 'pan']])).toEqual([0, 0, 0]);
   });
 
   it('returns one index per answer tile', () => {
     const pools = { grammar: LANGUAGE.grammar, words: [] };
     const bank = buildBank(ITEM, 0, pools, TILE_MULTIPLIER, LANGUAGE.joiner);
-    expect(revealIndices(ITEM, bank)).toHaveLength(ITEM.ans.length);
+    expect(revealIndices(ITEM.ans, bank)).toHaveLength(ITEM.ans.length);
   });
 });
 
@@ -62,7 +62,7 @@ describe('revealIndices over the shipped content', () => {
         TILE_MULTIPLIER,
         LANGUAGE.joiner,
       );
-      const built = buildString(bank, revealIndices(item, bank), LANGUAGE.joiner);
+      const built = buildString(bank, revealIndices(item.ans, bank), LANGUAGE.joiner);
       const where = `${scenario.name} item ${index}: "${built}"`;
       expect(isCorrect(item, built, LANGUAGE.joiner), where).toBe(true);
     });

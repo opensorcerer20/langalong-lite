@@ -30,14 +30,26 @@ import type { LanguagePack, Scenario, SentenceItem, Tile } from '../data/types';
 import { buildBank } from '../lib/buildBank';
 import { buildString, isCorrect } from '../lib/checkAnswer';
 import { conjugationKey, itemKey, particleKey, tileKey } from '../lib/keys';
-import type { Outcome } from '../lib/progress';
+import type { ExerciseMode, Outcome } from '../lib/progress';
 import { revealIndices } from '../lib/revealPlacement';
 import type { ProgressStore } from '../storage/types';
 import { appReducer, initialState, isDone } from './appReducer';
-import type { AppState } from './appReducer';
+import type { AppAction, AppState } from './appReducer';
+import { fireAndForget } from './fireAndForget';
 
 export interface Tsumiki {
   readonly state: AppState;
+  /**
+   * The reducer's dispatch, so a second exercise can share this state rather
+   * than starting one of its own.
+   *
+   * There is exactly one `useReducer` in the app and this hook owns it. A
+   * vocabulary set and a sentence set are the same set from the reducer's point
+   * of view — the same miss ladder, the same score, the same position in a run
+   * of questions — so giving each its own store would mean two of everything
+   * and a bug the first time they disagreed. See useExercise.
+   */
+  readonly dispatch: (action: AppAction) => void;
   /** The language being drilled. Components read its name and font from here. */
   readonly language: LanguagePack;
   /** Every situation, for the home screen. */
@@ -61,7 +73,7 @@ export interface Tsumiki {
   /** How far through the set, 0–1, for the progress rule. */
   readonly progress: number;
 
-  readonly openScenario: (scenario: number) => void;
+  readonly openExercise: (scenario: number, mode: ExerciseMode) => void;
   readonly goHome: () => void;
   readonly tap: (bankIndex: number) => void;
   readonly untap: (position: number) => void;
@@ -78,15 +90,6 @@ function first<T>(list: readonly T[], what: string): T {
   const head = list[0];
   if (!head) throw new Error(`${what} is empty — the app has no content to drill`);
   return head;
-}
-
-/* A write must never be on the path between a tap and the screen updating, so
-   nothing here is awaited. A failed write costs a row of history; a write the
-   drill waited on would cost the drill. */
-function fireAndForget(write: Promise<void>): void {
-  void write.catch((error: unknown) => {
-    console.warn('Tsumiki: an attempt was not recorded.', error);
-  });
 }
 
 /**
@@ -197,10 +200,10 @@ export function useTsumiki(language: LanguagePack, progress?: ProgressStore): Ts
     presentedAt.current = Date.now();
   }, []);
 
-  const openScenario = useCallback(
-    (index: number) => {
+  const openExercise = useCallback(
+    (index: number, mode: ExerciseMode) => {
       present();
-      dispatch({ type: 'openScenario', scenario: index });
+      dispatch({ type: 'openExercise', scenario: index, mode });
     },
     [present],
   );
@@ -222,7 +225,7 @@ export function useTsumiki(language: LanguagePack, progress?: ProgressStore): Ts
   const reveal = useCallback(() => {
     if (isDone(state)) return;
     record('shown', true);
-    dispatch({ type: 'reveal', placed: revealIndices(item, bank) });
+    dispatch({ type: 'reveal', placed: revealIndices(item.ans, bank) });
   }, [state, item, bank, record]);
 
   const next = useCallback(() => {
@@ -249,7 +252,8 @@ export function useTsumiki(language: LanguagePack, progress?: ProgressStore): Ts
     showReveal: state.misses >= REVEAL_AFTER_MISSES && !done,
     /* A finished set reads 100%, not "last item". */
     progress: (state.finished ? total : state.item) / total,
-    openScenario,
+    dispatch,
+    openExercise,
     goHome,
     tap,
     untap,

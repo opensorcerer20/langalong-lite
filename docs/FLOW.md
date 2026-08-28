@@ -2,9 +2,9 @@
 
 [← README](../README.md)
 
-A full walkthrough of Set 01 — Bakery, naming the state field and the action behind everything on screen, so the flow can be traced without reading the code. Written to support deciding what a second language or a second drill mode would have to change; the last part collects the assumptions that are currently baked in.
+A full walkthrough of Set 01 — Bakery, naming the state field and the action behind everything on screen, so the flow can be traced without reading the code. Written to support deciding what a second language or a further exercise would have to change; the last part collects the assumptions that are currently baked in.
 
-Everything below is one scenario, one mode. Nowhere in the app is there a concept of "which mode am I in" — the translate drill is not a mode, it is the only thing the app does.
+Two exercises exist. The sentence drill is the one traced in full below; the vocabulary exercise gets a shorter section of its own, because almost everything about it is the same and the differences are the interesting part. `state.mode` is what says which is running.
 
 ## The state behind every screen
 
@@ -13,6 +13,7 @@ All of it lives in one object in `src/state/appReducer.ts`, and the whole app is
 | Field | Type | What it means |
 | --- | --- | --- |
 | `screen` | `'home' \| 'drill'` | Which screen. The set-complete screen is not a third value — see `finished` |
+| `mode` | `'sentence' \| 'vocab' \| 'particle' \| 'conjugation'` | Which exercise is running. Not part of `screen`: every mode uses the same screen, ladder and score |
 | `scenario` | number | Index into the active pack's `scenarios`. Bakery is `0` |
 | `item` | number | Index of the current sentence within that set, `0`–`9` for Bakery |
 | `placed` | `number[]` | Positions in the tile bank the learner has tapped, in tap order |
@@ -39,9 +40,13 @@ Reached at launch, and by "← All" or "Choose another situation" from anywhere.
 
 The header reads `Japanese · beginner` — the name from the active language pack, the level a literal in `App.tsx` — with a `Day 12` streak, and shows no back link — `App.tsx` passes `onBack` only while `screen === 'drill'`. The progress rule is forced to empty here regardless of drill state.
 
-Below that, a band reading "Choose a situation" over "Build sentences you will actually need.", then one full-width row per entry in the active pack's `scenarios`. The Bakery row is built entirely from that scenario's own fields: `kicker` → `Set 01`, `items.length` → `10 sentences`, `name` → `Bakery`, `blurb` → "Asking for items, counting them, paying at the counter." A foot note explains that only the translate level exists so far.
+Below that, a band reading "Choose a situation" over "Build sentences you will actually need.", then one full-width row per entry in the active pack's `scenarios`. The Bakery row is built entirely from that scenario's own fields: `kicker` → `Set 01`, `items.length` → `10 sentences`, `name` → `Bakery`, `blurb` → "Asking for items, counting them, paying at the counter."
 
-**The one action.** Tapping the row dispatches `openScenario(0)`. That is a *full reset*, not a resume: the reducer returns `initialState` with `screen: 'drill'` and `scenario: 0`, so `item`, `misses`, `placed` and `firstTry` all go back to zero. Leaving a set halfway and re-entering it starts it again from sentence 1 with a zero score. There is no saved position anywhere — see [MAINTENANCE.md](MAINTENANCE.md).
+Under each row sits a strip of chips, one per exercise other than the sentence drill — just **Vocabulary** so far. A foot note explains the difference between tapping the row and tapping a chip.
+
+**The two actions, and they are the same one.** Tapping the heading block dispatches `openExercise(0, 'sentence')`; tapping a chip dispatches `openExercise(0, 'vocab')`. Either way it is a *full reset*, not a resume: the reducer returns `initialState` with `screen: 'drill'`, the chosen `mode` and `scenario: 0`, so `item`, `misses`, `placed` and `firstTry` all go back to zero. Leaving a set halfway and re-entering it starts it again from the first question with a zero score. There is no saved position anywhere — see [MAINTENANCE.md](MAINTENANCE.md).
+
+The row is a container rather than a button now, because a button cannot contain another button. The heading block is the button; the chips are its siblings.
 
 ## Screen 2 — Drill
 
@@ -84,19 +89,39 @@ Every wrong check clears `placed` entirely. The learner rebuilds rather than edi
 
 **Advancing.** Once `done`, the same primary button changes job — it now reads `Next sentence` and dispatches `next` instead of `check`. `next` clears `placed`, `misses` and `status` and increments `item`. On the last sentence the label is `Finish set` instead, and `next` sets `finished: true` while leaving `item` where it is.
 
+## Screen 2b — Vocabulary
+
+Reached from a chip under a scenario row rather than from the row itself. Everything structural is shared with the drill above: the same `AppState`, the same miss ladder, the same primary button doing two jobs, the same done screen. What differs is worth stating exactly, because the list is short.
+
+**The header** reads `Bakery · Vocabulary` rather than `Bakery · 01` — the set number is a sentence-drill idea.
+
+**The prompt band** says `Choose the missing word — item 1 of 6` over the English sentence. The instruction is a prop on `PromptBand`, defaulting to the drill's "Say this in Japanese".
+
+**The set is compiled, not authored.** `vocabQuestions` walks the situation's sentences, lifts the first content word out of each — content meaning "not in the shared grammar pool", per `getVocabIn` — and builds a `Question` from it. Six of them, per `VOCAB_SET_SIZE`. Nothing in `src/data/` describes a vocabulary exercise; adding a sentence to Bakery adds a candidate question to it for free.
+
+**The answer line is a cloze.** `ClozeLine` draws the sentence the word came from with a gap where it belongs: `___をください`. The surrounding words are plain text, not tiles — they are context, and drawing them as tiles would invite tapping words that do nothing.
+
+**Four options, not a bank.** `buildChoices` offers the answer plus three distractors from the situation's own vocabulary, excluding anything already visible in the sentence. Deterministic, like `buildBank`, so the same question always presents the same options in the same order.
+
+**There is no grammar note.** A sentence's note explains its grammar — を marking the direct object — which is not what a blanked-out word is testing. `Question.note` is absent, `GrammarNote` never renders, and the status line keeps saying "Not quite. Try again." rather than pointing at a note that is not there. "Show me the answer" still appears after the third miss.
+
+**The score reads `6 / 6` over "recalled first try"** on the done screen, which is `DoneScreen` with different copy through the props Phase 0 added.
+
+**What it records** is one row per attempt against `ja:tile:パン` — the same row the sentence drill writes to when a sentence containing パン is built. The difference is `viaItem`: the drill's tile rows carry it and mean "inferred from a sentence", and these do not.
+
 ## Screen 3 — Set complete
 
 Not a third `screen` value: it is `screen === 'drill'` with `finished === true`, which is why the header still reads `Bakery · 01` and the back link still works. The progress rule reads 100%, because `progress` substitutes `total` for `item` once `finished`.
 
 The screen shows `7 / 10` in large accent type over "built first try" — `firstTry` out of `items.length`. The wording matters: it is not sentences answered. A sentence missed once and then solved, or revealed, counts for nothing here.
 
-Two actions. **Practise this set again** dispatches `restart`, which returns to `item: 0` and zeroes `firstTry` and `finished` while staying in the same scenario. **Choose another situation** dispatches `goHome`, which only changes `screen` — the drill state is left intact, though it never matters, because `openScenario` resets everything on the way back in.
+Two actions. **Practise this set again** dispatches `restart`, which returns to `item: 0` and zeroes `firstTry` and `finished` while staying in the same scenario. **Choose another situation** dispatches `goHome`, which only changes `screen` — the drill state is left intact, though it never matters, because `openExercise` resets everything on the way back in.
 
 ## Every action in one table
 
 | Action | Dispatched from | Effect | Ignored when |
 | --- | --- | --- | --- |
-| `openScenario(n)` | Home — scenario row | Full reset into scenario `n`, sentence 1, score 0 | never |
+| `openExercise(n, mode)` | Home — scenario row, or one of its chips | Full reset into scenario `n` running `mode`, first question, score 0 | never |
 | `goHome()` | Header "← All"; done screen | `screen: 'home'`. Drill state untouched | never |
 | `tap(bankIndex)` | Drill — bank tile | Appends to `placed`; clears `wrong` status | `done`, or already placed |
 | `untap(position)` | Drill — placed tile | Removes that position from `placed` | `done` |
@@ -109,9 +134,13 @@ Two actions. **Practise this set again** dispatches `restart`, which returns to 
 
 The parts that are Japanese-specific or single-mode, and would need attention before adding a language or a drill type. Roughly in order of how much would have to move.
 
-**There is still only one exercise, but the rules no longer assume it.** `appReducer` imports nothing at all now: `check` carries a boolean verdict and `reveal` carries the positions to fill, so the miss ladder, the first-try score and advancing through a set are stated in terms of *attempts* and would drive a vocabulary or conjugation exercise unchanged. What is still missing is the exercise itself and any way to choose one — no field in `AppState` says which mode is running, and `App.tsx` has no branch for it, because nothing yet needs one.
+**There are two exercises now, and two paths through the app.** `appReducer` imports no values: `check` carries a boolean verdict and `reveal` carries the positions to fill, so the miss ladder, the first-try score and advancing through a set are stated in terms of *attempts* and drive the vocabulary exercise unchanged. `state.mode` says which exercise is running, and `App.tsx` branches on it.
 
-Recording is already ahead of the UI here. Every attempt carries `mode` (always `'sentence'` so far) and `scenarioId`, and every sentence is tagged with the particles and conjugation patterns it teaches, so a second exercise slots into the existing history rather than starting one of its own.
+What it branches between is two of everything else: `useTsumiki` with `DrillScreen` for sentences, `useExercise` with `ExerciseScreen` for anything compiled to a `Question`. They share the one reducer — useTsumiki owns it and hands `state` and `dispatch` across — but they have their own judging, their own recording and their own copies of `tap`, `untap`, `next` and `restart`.
+
+**Whether those two paths should be one is an open question.** The sentence drill is a question too, on the face of it: a prompt, tiles to choose from, an answer, a note. What it has that a `Question` does not is accepted alternates and a generated bank rather than a short list of options. Folding it in was deliberately not attempted while building the first new exercise, because the drill was working; the decision is deferred until all four modes exist and the shape of the overlap is visible rather than guessed at.
+
+Recording stayed ahead of the UI and is now being caught up with. Every attempt carries `mode` and `scenarioId`, and the vocabulary exercise writes to the same `ja:tile:*` rows the sentence drill was already writing to — the difference being that a sentence's tile rows are marked `viaItem`, meaning inferred, and a vocabulary answer is not.
 
 **The language dimension exists but has one entry.** The content sits behind a `LanguagePack` in `src/data/ja/`, `useTsumiki` is the only file that reads it, and the joiner and font stack are declared rather than assumed — so a second pack drills without touching `lib/`, `state/` or `components/`. What is still missing is everything around a *choice* of language: `LANGUAGE` is a constant in `src/data/languages.ts` with no picker, and progress and the streak are global rather than per-language.
 

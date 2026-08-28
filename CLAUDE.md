@@ -20,6 +20,8 @@ Please don't stage or commit anything yourself — I'll do that after reviewing.
 
 If a request is ambiguous, or implementing it would require acting in conflict with CLAUDE.md or touching a file outside the stated scope, ask me first rather than guessing.
 
+If you plan to act against a user request, state your reason and get confirmation before proceeding.
+
 ## Markdown formatting
 
 - No forced line breaks

@@ -24,12 +24,20 @@ describe('HomeScreen', () => {
     const onOpen = vi.fn();
     render(<HomeScreen scenarios={LANGUAGE.scenarios} onOpen={onOpen} />);
     await userEvent.click(screen.getByText('Bakery'));
-    expect(onOpen).toHaveBeenCalledWith(0);
+    expect(onOpen).toHaveBeenCalledWith(0, 'sentence');
   });
 
-  /* Sets expectations: the second level exists but is not built yet. */
-  it('explains that only the translate level is available', () => {
+  /* The row and the chips under it do different things, and the difference is
+     not obvious from the chips alone. */
+  it('explains that a situation can be drilled whole or one exercise at a time', () => {
     render(<HomeScreen scenarios={LANGUAGE.scenarios} onOpen={() => {}} />);
-    expect(screen.getByText(/translate level only for now/i)).toBeInTheDocument();
+    expect(screen.getByText(/pick an exercise underneath/i)).toBeInTheDocument();
+  });
+
+  it('offers each situation’s exercises as well as its sentences', async () => {
+    const onOpen = vi.fn();
+    render(<HomeScreen scenarios={LANGUAGE.scenarios} onOpen={onOpen} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Vocabulary — Bakery' }));
+    expect(onOpen).toHaveBeenCalledWith(0, 'vocab');
   });
 });

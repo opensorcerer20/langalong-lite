@@ -26,14 +26,14 @@ beforeEach(() => {
 
 const open = () => {
   const view = renderHook(() => useTsumiki(LANGUAGE, progress));
-  act(() => view.result.current.openScenario(0));
+  act(() => view.result.current.openExercise(0, 'sentence'));
   return view;
 };
 
 /** Place the tiles spelling the current item's answer, then check. */
 const solve = (view: ReturnType<typeof open>) => {
   const { item, bank } = view.result.current;
-  for (const index of revealIndices(item, bank)) act(() => view.result.current.tap(index));
+  for (const index of revealIndices(item.ans, bank)) act(() => view.result.current.tap(index));
   act(() => view.result.current.check());
 };
 
@@ -249,9 +249,9 @@ describe('useTsumiki recording', () => {
 
   it('drills normally with no store at all', () => {
     const view = renderHook(() => useTsumiki(LANGUAGE));
-    act(() => view.result.current.openScenario(0));
+    act(() => view.result.current.openExercise(0, 'sentence'));
     const { item, bank } = view.result.current;
-    for (const index of revealIndices(item, bank)) act(() => view.result.current.tap(index));
+    for (const index of revealIndices(item.ans, bank)) act(() => view.result.current.tap(index));
     act(() => view.result.current.check());
 
     expect(view.result.current.state.status).toBe('right');

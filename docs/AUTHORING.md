@@ -13,7 +13,11 @@ export const TILE_MULTIPLIER = 3;      /* distractor density, 1.5–4.5 */
 export const NOTE_AFTER_MISSES = 2;    /* misses before the grammar note appears */
 export const REVEAL_AFTER_MISSES = 3;  /* misses before "Show me the answer" appears */
 export const SHOW_READING = true;      /* the reading beneath the text on every tile */
+export const VOCAB_SET_SIZE = 6;       /* questions in one vocabulary set */
+export const VOCAB_CHOICES = 4;        /* options per vocabulary question, one right */
 ```
+
+Every number an exercise is sized by lives here rather than in the code that uses it. That is deliberate and worth keeping to as more exercises arrive: it is the one place a per-situation difficulty setting would eventually hook into.
 
 ## Adding a sentence
 
@@ -47,6 +51,10 @@ One thing to watch when adding vocabulary: **a given tile text must read the sam
 Write its items and words in a file beside `bakery.ts`, then add an entry to `JA_SCENARIOS` in `src/data/ja/scenarios.ts`. Nothing else changes. Distractors are drawn from the pack's `grammar` plus that situation's own `words`, so a wrong tile is always plausible within the scene.
 
 Give it an `id` — lowercase, no colon, unique in the pack, and permanent for the same reason a sentence's is. It is only ever seen in a storage key, so it is free to differ from `name`; `kicker` and `blurb` stay display copy.
+
+A situation gets its **vocabulary exercise for free**. Nothing describes one in `src/data/` — `vocabQuestions` compiles it from the sentences you already wrote, lifting the first content word out of each. Adding a sentence adds a candidate question; the only thing that would leave a situation without an exercise is having fewer sentences than `VOCAB_SET_SIZE`, which gives a shorter set rather than an error.
+
+The one thing worth watching is the situation's `words`, since that is where the wrong options come from. A situation whose vocabulary is thin, or whose words are wildly unlike each other, makes questions that can be answered without knowing anything — the right answer being the only plausible one. Words in the same part of speech as the answers make the exercise work.
 
 ## Adding a particle or a conjugation pattern
 

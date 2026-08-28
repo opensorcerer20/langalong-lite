@@ -3,12 +3,13 @@
 import * as stylex from '@stylexjs/stylex';
 
 import type { Scenario } from '../data/types';
+import type { ExerciseMode } from '../lib/progress';
 import { shared } from '../styles/shared';
 import { ScenarioList } from './ScenarioList';
 
 export interface HomeScreenProps {
   readonly scenarios: readonly Scenario[];
-  readonly onOpen: (index: number) => void;
+  readonly onOpen: (index: number, mode: ExerciseMode) => void;
 }
 
 export function HomeScreen({ scenarios, onOpen }: HomeScreenProps) {
@@ -22,8 +23,8 @@ export function HomeScreen({ scenarios, onOpen }: HomeScreenProps) {
       <ScenarioList scenarios={scenarios} onOpen={onOpen} />
 
       <p {...stylex.props(s.foot)}>
-        Translate level only for now. The response level &mdash; where the shopkeeper or clerk
-        speaks first &mdash; unlocks per situation.
+        Tap a situation to build its sentences, or pick an exercise underneath to drill one part
+        of it on its own.
       </p>
     </section>
   );

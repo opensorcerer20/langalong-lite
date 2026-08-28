@@ -11,10 +11,11 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { IDBFactory } from 'fake-indexeddb';
 
 import { App } from '../../src/components/App';
-import { TILE_MULTIPLIER } from '../../src/config';
+import { TILE_MULTIPLIER, VOCAB_CHOICES, VOCAB_SET_SIZE } from '../../src/config';
 import { LANGUAGE } from '../../src/data/languages';
 import { buildBank } from '../../src/lib/buildBank';
 import { itemKey, particleKey, tileKey } from '../../src/lib/keys';
+import { vocabQuestions } from '../../src/lib/questions/vocab';
 import { revealIndices } from '../../src/lib/revealPlacement';
 import { openRepository } from '../../src/storage';
 import type { Repository } from '../../src/storage';
@@ -42,13 +43,13 @@ beforeEach(async () => {
 /** Open the bakery set, as a learner would. */
 async function openBakery(user: ReturnType<typeof userEvent.setup>) {
   render(<App language={LANGUAGE} progress={repository.progress} />);
-  await user.click(screen.getByRole('button', { name: /Bakery/ }));
+  await user.click(screen.getByRole('button', { name: /Bakery — build sentences/ }));
 }
 
 /** Click the bank tiles that spell the first item's answer, then Check. */
 async function solveFirst(user: ReturnType<typeof userEvent.setup>) {
   const tiles = document.querySelectorAll('[data-variant="bank"]');
-  for (const index of revealIndices(FIRST_ITEM, bankFor(0))) {
+  for (const index of revealIndices(FIRST_ITEM.ans, bankFor(0))) {
     await user.click(tiles[index] as HTMLElement);
   }
   await user.click(screen.getByRole('button', { name: 'Check' }));
@@ -137,5 +138,80 @@ describe('a drill played into IndexedDB', () => {
     const log = await repository.progress.attemptsFor(FIRST_KEY);
     expect(log.map((a) => a.outcome)).toEqual(['wrong', 'right']);
     expect(log.map((a) => a.misses)).toEqual([0, 1]);
+  });
+});
+
+/* The vocabulary exercise, played through the real components into a real
+   database.
+
+   The point being proved is the one that cannot be seen from either side
+   alone: the sentence drill and the vocabulary exercise write to the *same*
+   tile row, and the row says which of them it came from. That distinction is
+   what a scheduler will weight, so it is worth an end-to-end test rather than
+   trusting two unit tests to agree. */
+describe('a vocabulary set played into IndexedDB', () => {
+  const VOCAB = vocabQuestions(LANGUAGE, BAKERY, VOCAB_SET_SIZE, VOCAB_CHOICES);
+  const FIRST = VOCAB[0]!;
+
+  async function openVocab(user: ReturnType<typeof userEvent.setup>) {
+    render(<App language={LANGUAGE} progress={repository.progress} />);
+    await user.click(screen.getByRole('button', { name: 'Vocabulary — Bakery' }));
+  }
+
+  async function answerFirst(user: ReturnType<typeof userEvent.setup>) {
+    const wanted = FIRST.answer[0]![0];
+    const position = FIRST.choices.findIndex((tile) => tile[0] === wanted);
+    await user.click(document.querySelectorAll('[data-variant="bank"]')[position] as HTMLElement);
+    await user.click(screen.getByRole('button', { name: 'Check' }));
+  }
+
+  it('writes the word to the same row the sentence drill uses', async () => {
+    const user = userEvent.setup();
+    await openVocab(user);
+    await answerFirst(user);
+
+    expect(FIRST.key).toBe(tileKey(LANGUAGE.code, FIRST_ITEM.ans[0]!));
+    expect(await repository.progress.getSchedule(FIRST.key)).toMatchObject({
+      unit: 'tile',
+      attempts: 1,
+      correct: 1,
+    });
+  });
+
+  it('records it as direct evidence, which a sentence never is', async () => {
+    const user = userEvent.setup();
+    await openVocab(user);
+    await answerFirst(user);
+
+    const [attempt] = await repository.progress.attemptsFor(FIRST.key);
+    expect(attempt).toMatchObject({ mode: 'vocab', scenarioId: 'bakery' });
+    expect(attempt?.viaItem).toBeUndefined();
+  });
+
+  /* Both exercises touching one row is the design, not an accident — so the
+     row has to accumulate rather than one overwriting the other, and the log
+     has to keep them tellable apart afterwards. */
+  it('accumulates with what the sentence drill already recorded', async () => {
+    const user = userEvent.setup();
+    await openBakery(user);
+    await solveFirst(user);
+
+    await user.click(screen.getByRole('button', { name: /all/i }));
+    await user.click(screen.getByRole('button', { name: 'Vocabulary — Bakery' }));
+    await answerFirst(user);
+
+    expect(await repository.progress.getSchedule(FIRST.key)).toMatchObject({ attempts: 2 });
+
+    const log = await repository.progress.attemptsFor(FIRST.key);
+    expect(log.map((a) => a.mode)).toEqual(['sentence', 'vocab']);
+    expect(log.map((a) => a.viaItem !== undefined)).toEqual([true, false]);
+  });
+
+  it('leaves no sentence row behind, because no sentence was answered', async () => {
+    const user = userEvent.setup();
+    await openVocab(user);
+    await answerFirst(user);
+
+    expect(await repository.progress.getSchedule(FIRST_KEY)).toBeUndefined();
   });
 });

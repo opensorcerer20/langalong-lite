@@ -20,18 +20,25 @@ describe('ScenarioList', () => {
   it('is a navigation landmark listing every scenario in order', () => {
     render(<ScenarioList scenarios={SCENARIOS} onOpen={() => {}} />);
     expect(screen.getByRole('navigation', { name: /situations/i })).toBeInTheDocument();
-    const rows = screen.getAllByRole('button');
+    const rows = screen.getAllByRole('button', { name: /build sentences/ });
     expect(rows).toHaveLength(2);
     expect(rows[0]).toHaveTextContent('Bakery');
     expect(rows[1]).toHaveTextContent('Train station');
   });
 
-  /* State identifies a scenario by its index, so that is what comes back. */
+  /* State identifies a scenario by its index, so that is what comes back —
+     together with which of its exercises to open. */
   it('opens a scenario by its index', async () => {
     const onOpen = vi.fn();
     render(<ScenarioList scenarios={SCENARIOS} onOpen={onOpen} />);
     await userEvent.click(screen.getByText('Train station'));
-    expect(onOpen).toHaveBeenCalledWith(1);
+    expect(onOpen).toHaveBeenCalledWith(1, 'sentence');
   });
 
+  it('carries the exercise through alongside the index', async () => {
+    const onOpen = vi.fn();
+    render(<ScenarioList scenarios={SCENARIOS} onOpen={onOpen} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Vocabulary — Train station' }));
+    expect(onOpen).toHaveBeenCalledWith(1, 'vocab');
+  });
 });

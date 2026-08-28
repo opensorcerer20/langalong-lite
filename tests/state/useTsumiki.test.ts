@@ -11,14 +11,14 @@ import { useTsumiki } from '../../src/state/useTsumiki';
 
 const open = (scenario = 0) => {
   const view = renderHook(() => useTsumiki(LANGUAGE));
-  act(() => view.result.current.openScenario(scenario));
+  act(() => view.result.current.openExercise(scenario, 'sentence'));
   return view;
 };
 
 /** Place the tiles that spell the current item's canonical answer. */
 const solve = (view: ReturnType<typeof open>) => {
   const { item, bank } = view.result.current;
-  for (const index of revealIndices(item, bank)) {
+  for (const index of revealIndices(item.ans, bank)) {
     act(() => view.result.current.tap(index));
   }
 };
@@ -158,7 +158,7 @@ describe('useTsumiki', () => {
     act(() => view.result.current.goHome());
     expect(view.result.current.state.screen).toBe('home');
 
-    act(() => view.result.current.openScenario(0));
+    act(() => view.result.current.openExercise(0, 'sentence'));
     expect(view.result.current.state).toMatchObject({ item: 0, misses: 0, placed: [] });
   });
 });
