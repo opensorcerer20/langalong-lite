@@ -14,7 +14,7 @@ import { App } from '../../src/components/App';
 import { TILE_MULTIPLIER } from '../../src/config';
 import { LANGUAGE } from '../../src/data/languages';
 import { buildBank } from '../../src/lib/buildBank';
-import { itemKey, tileKey } from '../../src/lib/keys';
+import { itemKey, particleKey, tileKey } from '../../src/lib/keys';
 import { revealIndices } from '../../src/lib/revealPlacement';
 import { openRepository } from '../../src/storage';
 import type { Repository } from '../../src/storage';
@@ -78,6 +78,32 @@ describe('a drill played into IndexedDB', () => {
         `no row for ${tile[0]}`,
       ).toMatchObject({ unit: 'tile', correct: 1 });
     }
+  });
+
+  /* The whole reason Phase 0's tagging exists, proven end to end rather than
+     at the seam: clicking real tiles in the real app produces a row against the
+     grammar point the sentence teaches, not only against the sentence. */
+  it('writes the grammar points the sentence is tagged with', async () => {
+    const user = userEvent.setup();
+    await openBakery(user);
+    await solveFirst(user);
+
+    expect(FIRST_ITEM.tags.particles.length).toBeGreaterThan(0);
+    for (const id of FIRST_ITEM.tags.particles) {
+      expect(
+        await repository.progress.getSchedule(particleKey(LANGUAGE.code, id)),
+        `no row for particle "${id}"`,
+      ).toMatchObject({ unit: 'particle', correct: 1 });
+    }
+  });
+
+  it('stamps the stored rows with the exercise and the situation', async () => {
+    const user = userEvent.setup();
+    await openBakery(user);
+    await solveFirst(user);
+
+    const [logged] = await repository.progress.attemptsFor(FIRST_KEY);
+    expect(logged).toMatchObject({ mode: 'sentence', scenarioId: BAKERY.id });
   });
 
   it('survives the app being torn down and reopened', async () => {

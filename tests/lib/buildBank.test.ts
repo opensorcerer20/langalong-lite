@@ -64,6 +64,7 @@ describe('buildBank', () => {
       en: 'Bread, please.',
       ans: [['パン', 'pan'], ['を', 'o']],
       note: 'Two tiles only.',
+      tags: { particles: [], conjugations: [] },
     };
     expect(bankFor(short).length).toBeGreaterThanOrEqual(MIN_BANK_TILES);
   });

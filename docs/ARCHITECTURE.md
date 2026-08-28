@@ -9,18 +9,20 @@ How the code is arranged, why the layers point the way they do, and the StyleX r
 **Dependencies point one way, and language data is never imported by logic.**
 
 ```
-components/  ──►  state/useTsumiki  ──►  state/appReducer  ──►  lib/       (pure, data-free)
+components/  ──►  state/useTsumiki  ──►  state/appReducer            (pure, imports nothing)
                         │
-                        ├────────────►  data/                              (inert, logic-free)
+                        ├────────────►  lib/                         (pure, data-free)
                         │
-                        └────────────►  storage/                           (async, side effects)
+                        ├────────────►  data/                        (inert, logic-free)
+                        │
+                        └────────────►  storage/                     (async, side effects)
 ```
 
 - **`src/data/`** is the language packs. Content and types, no functions. Nothing here imports anything but its own types.
 - **`src/lib/`** is the processing: bank generation, segmentation, answer checking, reveal placement, key composition, and the roll-up arithmetic that turns an attempt into a progress row. Pure functions that take the content they need as arguments and never import `data/`.
-- **`src/state/appReducer.ts`** is every drill rule, as one pure reducer. It does not import content either — the `check` action carries the item, the bank and the joiner in the action itself.
+- **`src/state/appReducer.ts`** is every drill rule, as one pure reducer. It imports nothing at all — `check` carries a boolean verdict and `reveal` carries the bank positions to fill, so judging an answer happens at the seam where the content already is. That is what makes the rules exercise-agnostic: nothing in them knows what a sentence is.
 - **`src/storage/`** is persistence: IndexedDB, and the interfaces that hide it. It is the only layer with side effects, and like `data/` it is reached only through the seam.
-- **`src/state/useTsumiki.ts`** is the single seam where content, state, logic and storage meet. It resolves the current scenario, item and tile bank, applies the config dials, and writes down what the reducer decides.
+- **`src/state/useTsumiki.ts`** is the single seam where content, state, logic and storage meet. It resolves the current scenario, item and tile bank, applies the config dials, judges what the learner built, and writes down the result. It judges rather than the reducer because a store write cannot wait for a re-render: it has to know the verdict before it dispatches, so it decides once and passes it on.
 - **`src/components/`** are presentational: props in, callbacks out. Only `App` calls the hook. One file per component, with its styles in it.
 
 `appReducer`, `lib/` and `data/` never import `storage/`. That is what keeps every drill rule synchronously testable without opening a database — and if `tests/state/appReducer.test.ts` ever needs a change to accommodate storage, the seam has leaked.
@@ -29,7 +31,7 @@ components/  ──►  state/useTsumiki  ──►  state/appReducer  ──►
 
 The Japanese lives in `src/data/ja/` behind a `LanguagePack`, and `src/data/languages.ts` holds the registry and the one line that says which pack is active. Nothing outside `src/data/ja/` names Japanese.
 
-A pack carries its own content — a grammar pool and a list of scenarios — plus the two things the rest of the app cannot infer about a language:
+A pack carries its own content — a grammar pool, its particles and conjugation patterns, and a list of scenarios — plus the two things the rest of the app cannot infer about a language:
 
 - **`joiner`** — what sits between tiles when they are joined into a sentence, and what is skipped when one is segmented back. Empty for Japanese, which is written without spaces; `' '` for a space-separated language. This is the only genuinely script-dependent rule in the app, which is why it is declared rather than assumed: `buildString`, `isCorrect`, `segmentLongestFirst` and `buildBank` all take it as a required argument, so no caller can inherit Japanese's assumption by accident.
 - **`fontStack`** — the face target-language text is drawn in. StyleX values are static, so the family cannot be interpolated into a rule: the pack sets `--font-target` on the app root through `PhoneColumn`, and `Tile`'s rule reads the variable. `global.css` carries a fallback for a pack that omits one.
@@ -51,17 +53,23 @@ The shortcut is tempting and wrong, for four reasons in descending order of how 
 
 ### The schema
 
-Two stores that matter, keyed by strings composed in `src/lib/keys.ts` — `ja:item:bakery:01` for a sentence, `ja:tile:パン` for vocabulary. Ids are local to their parent and qualified here, so nothing inside `src/data/ja/` has to name Japanese.
+Two stores that matter, keyed by strings composed in `src/lib/keys.ts` — `ja:item:bakery:01` for a sentence, `ja:tile:パン` for vocabulary, `ja:particle:o` and `ja:conjugation:tai` for the grammar points a sentence teaches. Ids are local to their parent and qualified here, so nothing inside `src/data/ja/` has to name Japanese.
+
+A particle deliberately does **not** reuse its tile key. Knowing the word を and knowing when を is the right particle are different things, and a drill built to teach the second would be scored against the first if they shared a row. Vocabulary goes the other way on purpose: a future vocabulary exercise writes to the same `ja:tile:*` row the sentence drill already writes to, because those are evidence about the same thing differing only in directness — which `viaItem` already records.
 
 - **`attempts`** is an **append-only log**: one row per check or reveal, never updated. This is the load-bearing decision. SM-2, Anki's variants and FSRS are all either parameterised or trained on review logs, so keeping only rolled-up state would make changing scheduler mean starting every learner from zero. Keeping the log means any future scheduler can be fitted against real history.
 - **`schedule`** is one row per reviewable thing, rolled up from that log by `rollUp()` in `src/lib/progress.ts`. It is a cache, not a source of truth — every row can be rebuilt by replaying its attempts.
 
 `schedule` rows carry the scheduling fields already (`dueAt`, `intervalDays`, `ease`, `stability`, `difficulty`) but nothing writes them, and **`schedulerVersion` is `0` on every row**. That sentinel is the mechanism: a scheduler shipping as version 1 finds every row still at 0 and initialises it from the log, rather than starting a learner from nothing.
 
+Every attempt also carries **`mode`** — which exercise produced it — and **`scenarioId`**. Both are a separate axis from the key's unit and neither is recoverable afterwards, which is why they are taken now: a `ja:tile:パン` row can legitimately come from the sentence drill or from a vocabulary exercise, and a tile key does not say what situation it was answered in.
+
+Rows written before those fields existed simply lack them, because IndexedDB stores values rather than rows against a schema. `hydrateAttempt` in `src/lib/progress.ts` repairs them on the way out of the store: a row with no `mode` is `'sentence'`, which is provably right because nothing else could have written it. That is why adding these fields needed no `DB_VERSION` bump.
+
 ### Two limits worth knowing
 
-- A **tile row is indirect evidence**, marked by `viaItem`. Building a sentence correctly does not establish that each tile in it was known, and a scheduler should be able to weight these differently from a direct vocabulary review.
-- There is **no per-token attribution**. `checkAnswer` compares whole joined strings, so on a wrong answer nothing knows *which* tile was wrong — which is also why a wrong answer records nothing against tiles at all.
+- A **tile or tag row is indirect evidence**, marked by `viaItem`. Building a sentence correctly does not establish that each tile in it was known, nor that the learner picked は for the reason the sentence is about, and a scheduler should be able to weight these differently from a direct review.
+- There is **no per-token attribution**. `checkAnswer` compares whole joined strings, so on a wrong answer nothing knows *which* part was wrong — which is why a wrong answer records nothing against tiles or tags at all, and why a settled sentence gives everything below it the same outcome.
 
 ### When it is not there
 
@@ -95,10 +103,12 @@ Values still come from the design system: `var(--color-accent)` and friends are 
 
 | Path | What it is |
 | --- | --- |
-| `src/data/types.ts` | `Tile`, `SentenceItem`, `Scenario`, `LanguagePack` — the shapes, shared by every pack |
+| `src/data/types.ts` | `Tile`, `SentenceItem`, `Scenario`, `Particle`, `ConjugationPattern`, `LanguagePack` — the shapes, shared by every pack |
 | `src/data/languages.ts` | The pack registry, and which one the app is drilling |
 | `src/data/ja/index.ts` | The Japanese pack. The only file outside `ja/` that names Japanese |
-| `src/data/ja/grammar.ts` | Japanese's 25 shared particles, endings and question words distractors draw on |
+| `src/data/ja/grammar.ts` | Japanese's 25 shared particles, endings and question words distractors draw on. **Contents and order are pinned by the bank fixtures** |
+| `src/data/ja/particles.ts` | The same particles as declared things: an id to store progress against, and which particles are worth confusing with which |
+| `src/data/ja/conjugations.ts` | The inflected forms a sentence can be tagged as teaching |
 | `src/data/ja/bakery.ts`, `src/data/ja/station.ts` | One situation's sentences and vocabulary each |
 | `src/data/ja/scenarios.ts` | Japanese's situation list, in home-screen order |
 | `src/config.ts` | The four difficulty and display dials |
@@ -107,6 +117,7 @@ Values still come from the design system: `var(--color-accent)` and friends are 
 | `src/lib/checkAnswer.ts` | Building the answer string and judging it |
 | `src/lib/revealPlacement.ts` | Which bank positions spell the answer |
 | `src/lib/keys.ts` | Composing and parsing the keys progress is stored against |
+| `src/lib/tags.ts` | The one derived tag: which words a sentence uses, as opposed to which grammar it teaches |
 | `src/lib/progress.ts` | What is recorded about a learner, and how one attempt folds into it |
 | `src/storage/db.ts` | Opening IndexedDB, the migration ladder, promise wrappers |
 | `src/storage/idbProgressStore.ts`, `memoryProgressStore.ts` | The two `ProgressStore`s, held to one contract by the same test suite |
@@ -130,11 +141,11 @@ Values still come from the design system: `var(--color-accent)` and friends are 
 npm test
 ```
 
-374 tests. Most are ordinary unit tests, but five are worth knowing about:
+297 tests. Most are ordinary unit tests, but five are worth knowing about:
 
 - **`tests/storage/progressStore.test.ts`** is one contract suite run over both `ProgressStore` implementations. The in-memory store is not only a test double — it is what a learner actually gets when IndexedDB will not open — so the two behaving differently would be a real bug. IndexedDB itself is polyfilled with `fake-indexeddb` rather than mocked, because upgrade paths, transaction lifetimes and key ranges are exactly where its bugs live.
 - **`tests/storage/drillIntegration.test.tsx`** plays a real drill through the real components into a real database and reads the rows back, which is the only test that would catch the two halves being wired together wrongly.
 
 - **`tests/lib/buildBank.test.ts`** checks the generated tile bank against `tests/fixtures/prototype-banks.json`, which holds all 18 banks exactly as the original `app.js` produced them. The bank is deterministic — no RNG, just arithmetic on the item's index — so any change to the draw stride or the shuffle shows up here as a diff rather than as a silently different app.
 - **`tests/components/App.test.tsx`** plays real drills through the real content: the miss ladder, the reveal forfeiting first-try credit, finishing a set and reading the score.
-- **`tests/data/languages.test.ts`** runs the content-integrity checks over every pack in `LANGUAGES`, so a language added later inherits the whole net without writing it again. What is true of one language only — Japanese's set names, its particles, its empty joiner — lives in `tests/data/ja.test.ts` instead.
+- **`tests/data/languages.test.ts`** runs the content-integrity checks over every pack in `LANGUAGES`, so a language added later inherits the whole net without writing it again. What is true of one language only — Japanese's set names, its particles, its empty joiner — lives in `tests/data/ja.test.ts` instead. Two of these checks guard arrangements that would otherwise drift silently: that every declared particle carries the same tile the grammar pool holds, and that `confusedWith` is symmetrical.

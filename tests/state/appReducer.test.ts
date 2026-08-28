@@ -1,29 +1,16 @@
-/* The drill rules. No content is loaded here — the item and bank a transition
-   needs come in on the action, which is the point of keeping the reducer free
-   of data imports. */
+/* The drill rules.
+
+   Not a sentence in sight, and no import from data/ at all. The reducer decides
+   what a right answer, a wrong one and a reveal *do* — the miss ladder, the
+   score, advancing — and nothing about what makes an answer right, which is
+   why these rules carry over unchanged to an exercise that is not a sentence. */
 
 import { describe, expect, it } from 'vitest';
 
-import type { SentenceItem, Tile } from '../../src/data/types';
 import { appReducer, initialState, isDone } from '../../src/state/appReducer';
 import type { AppAction, AppState } from '../../src/state/appReducer';
 
-const BANK: readonly Tile[] = [
-  ['ください', 'kudasai'],
-  ['は', 'wa'],
-  ['パン', 'pan'],
-  ['を', 'o'],
-];
-
-const ITEM: SentenceItem = {
-  id: '01',
-  en: 'One bread, please.',
-  ans: [['パン', 'pan'], ['を', 'o'], ['ください', 'kudasai']],
-  alts: ['パンをお願いします'],
-  note: 'を marks the direct object.',
-};
-
-/** パン + を + ください, in bank positions. */
+/** Two runs of bank positions. Which tiles they are is not this file's business. */
 const RIGHT = [2, 3, 0];
 const WRONG = [2, 1, 0];
 
@@ -38,11 +25,12 @@ const run = (state: AppState, ...actions: AppAction[]) => actions.reduce(appRedu
 const place = (state: AppState, positions: number[]) =>
   run(state, ...positions.map((bankIndex): AppAction => ({ type: 'tap', bankIndex })));
 
-/* The fixture is Japanese, which joins its tiles with nothing between them. The
-   reducer never looks at this — it hands it straight to checkAnswer — but it
-   has to carry it, which is what keeps the reducer free of language content. */
-const CHECK: AppAction = { type: 'check', item: ITEM, bank: BANK, joiner: '' };
-const REVEAL: AppAction = { type: 'reveal', item: ITEM, bank: BANK };
+/* The verdict, not the answer. The reducer no longer judges anything — that is
+   useTsumiki's job and is tested there — so a "check" here is simply told how
+   it went, and a "reveal" is told which positions to fill. */
+const CHECK: AppAction = { type: 'check', correct: true };
+const CHECK_WRONG: AppAction = { type: 'check', correct: false };
+const REVEAL: AppAction = { type: 'reveal', placed: RIGHT };
 
 describe('navigation', () => {
   it('opens a scenario on the drill screen at its first item', () => {
@@ -86,7 +74,7 @@ describe('placing tiles', () => {
   });
 
   it('clears a "not quite" status as soon as a tile is placed', () => {
-    const missed = run(drilling(), ...[2, 1, 0].map((b): AppAction => ({ type: 'tap', bankIndex: b })), CHECK);
+    const missed = run(drilling(), ...[2, 1, 0].map((b): AppAction => ({ type: 'tap', bankIndex: b })), CHECK_WRONG);
     expect(missed.status).toBe('wrong');
     expect(appReducer(missed, { type: 'tap', bankIndex: 2 }).status).toBe('idle');
   });
@@ -101,17 +89,17 @@ describe('placing tiles', () => {
 });
 
 describe('checking', () => {
-  it('accepts the canonical answer', () => {
+  it('settles the item when the answer was right', () => {
     expect(run(place(drilling(), RIGHT), CHECK).status).toBe('right');
   });
 
   it('clears the answer line and counts a miss when wrong', () => {
-    const state = run(place(drilling(), WRONG), CHECK);
+    const state = run(place(drilling(), WRONG), CHECK_WRONG);
     expect(state).toMatchObject({ status: 'wrong', misses: 1, placed: [] });
   });
 
   it('accumulates misses across attempts', () => {
-    const twice = run(place(run(place(drilling(), WRONG), CHECK), WRONG), CHECK);
+    const twice = run(place(run(place(drilling(), WRONG), CHECK_WRONG), WRONG), CHECK_WRONG);
     expect(twice.misses).toBe(2);
   });
 
@@ -132,12 +120,12 @@ describe('the first-try score', () => {
   });
 
   it('withholds credit after a miss', () => {
-    const afterMiss = run(place(drilling(), WRONG), CHECK);
+    const afterMiss = run(place(drilling(), WRONG), CHECK_WRONG);
     expect(run(place(afterMiss, RIGHT), CHECK).firstTry).toBe(0);
   });
 
   it('withholds credit when the answer was revealed', () => {
-    expect(run(place(drilling(), WRONG), CHECK, REVEAL).firstTry).toBe(0);
+    expect(run(place(drilling(), WRONG), CHECK_WRONG, REVEAL).firstTry).toBe(0);
   });
 
   it('accumulates across items', () => {

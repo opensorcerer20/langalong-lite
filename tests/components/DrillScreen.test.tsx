@@ -24,6 +24,7 @@ const ITEM: SentenceItem = {
   en: 'One bread, please.',
   ans: [['パン', 'pan'], ['を', 'o'], ['ください', 'kudasai']],
   note: 'を marks the direct object.',
+  tags: { particles: [], conjugations: [] },
 };
 
 const SCENARIO = {
@@ -43,6 +44,8 @@ const LANGUAGE: LanguagePack = {
   joiner: '',
   fontStack: "'Noto Sans JP'",
   grammar: [],
+  particles: [],
+  conjugations: [],
   scenarios: [SCENARIO],
 };
 

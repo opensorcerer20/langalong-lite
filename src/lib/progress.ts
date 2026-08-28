@@ -11,6 +11,7 @@
    cannot be recreated after the fact, so they are collected from the first
    session even though nothing reads them yet. */
 
+import { parseKey } from './keys';
 import type { ReviewUnit } from './keys';
 
 /**
@@ -23,12 +24,32 @@ import type { ReviewUnit } from './keys';
  */
 export type Outcome = 'right' | 'wrong' | 'shown';
 
+/**
+ * Which exercise produced an attempt.
+ *
+ * A separate axis from `ReviewUnit`, and the two must not be collapsed: a
+ * `tile` row can come from the sentence drill (indirectly, via `viaItem`) or
+ * from a vocabulary exercise (directly), and telling those apart is the whole
+ * reason for recording this.
+ */
+export type ExerciseMode = 'sentence' | 'vocab' | 'particle' | 'conjugation';
+
 /** An attempt as the caller reports it. The store assigns `id`. */
 export interface NewAttempt {
   /** Composed by src/lib/keys.ts. */
   readonly key: string;
   readonly languageCode: string;
   readonly unit: ReviewUnit;
+  /** Which exercise the learner was doing. See ExerciseMode. */
+  readonly mode: ExerciseMode;
+  /**
+   * The situation the exercise was drawn from.
+   *
+   * Optional only because rows written before this field existed cannot have
+   * it, and for a tile row it is not recoverable from the key. Every attempt
+   * the app writes now carries one — see `hydrateAttempt`.
+   */
+  readonly scenarioId?: string;
   /** Epoch ms. */
   readonly at: number;
   readonly outcome: Outcome;
@@ -52,6 +73,47 @@ export interface NewAttempt {
 /** An attempt as stored. Append-only: never updated, never deleted piecemeal. */
 export interface Attempt extends NewAttempt {
   readonly id: number;
+}
+
+/**
+ * An attempt as it may actually be sitting in the database.
+ *
+ * IndexedDB stores values, not rows against a schema, so adding a field to
+ * `NewAttempt` does not rewrite what is already there. Anything written before
+ * `mode` and `scenarioId` existed is missing both, and the store is the wrong
+ * place to discover that — this is the shape a read actually returns, and
+ * `hydrateAttempt` is what turns it back into the declared one.
+ */
+export type StoredAttempt = Omit<NewAttempt, 'mode' | 'scenarioId'> &
+  Partial<Pick<NewAttempt, 'mode' | 'scenarioId'>>;
+
+/**
+ * Fill in what an older version of the app did not record.
+ *
+ * `mode` defaults to `'sentence'` rather than to anything vaguer because it is
+ * provably right: the sentence drill was the only thing that ever wrote a row
+ * before the field existed. `scenarioId` is recovered from the key when the key
+ * carries one, and otherwise left absent — a tile key genuinely does not say
+ * which situation it was answered in, and guessing would be worse than a gap a
+ * caller can see.
+ *
+ * Pure, so the migration is testable without opening a database — which is the
+ * only way to test it at all once real databases exist in the wild.
+ */
+export function hydrateAttempt(row: StoredAttempt): NewAttempt {
+  if (row.mode !== undefined && row.scenarioId !== undefined) return row as NewAttempt;
+
+  const parsed = parseKey(row.key);
+  const scenarioId = row.scenarioId ?? (parsed?.unit === 'item' ? parsed.scenarioId : undefined);
+
+  return {
+    ...row,
+    mode: row.mode ?? 'sentence',
+    /* Spread rather than assigned: exactOptionalPropertyTypes makes an absent
+       key and a present undefined different things, and this field must be the
+       former when there is nothing to recover. */
+    ...(scenarioId === undefined ? {} : { scenarioId }),
+  };
 }
 
 /**

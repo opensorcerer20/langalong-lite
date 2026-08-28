@@ -11,8 +11,20 @@
 
 import type { Tile } from '../data/types';
 
-/** What a stored row is about. */
-export type ReviewUnit = 'item' | 'tile';
+/**
+ * What a stored row is about.
+ *
+ * `particle` is deliberately not folded into `tile`, even though every particle
+ * is also a tile in the grammar pool. Knowing the word を and knowing *when* を
+ * is the right particle are different things, and a drill built to teach the
+ * second would be scored against the first if the two shared a row.
+ *
+ * Vocabulary goes the other way and reuses `tile` on purpose: a vocabulary
+ * exercise and a sentence that happens to contain the word are evidence about
+ * the same thing, differing in directness rather than in kind — which is what
+ * `viaItem` already records.
+ */
+export type ReviewUnit = 'item' | 'tile' | 'particle' | 'conjugation';
 
 /* Segments never appear inside an id. The content tests reject a scenario or
    sentence id containing one, which is what lets parseKey split reliably. */
@@ -41,10 +53,29 @@ export function tileKey(languageCode: string, tile: Tile): string {
   return [languageCode, 'tile', tile[0]].join(SEPARATOR);
 }
 
+/**
+ * The key one particle is stored under: `ja:particle:wo`.
+ *
+ * Keyed on the particle's id rather than its text, unlike a tile. The id is
+ * latin and the text is not, and a particle — unlike a piece of vocabulary —
+ * is a thing the content declares rather than a string that turns up in an
+ * answer, so it has an id to key on.
+ */
+export function particleKey(languageCode: string, particleId: string): string {
+  return [languageCode, 'particle', particleId].join(SEPARATOR);
+}
+
+/** The key one conjugation pattern is stored under: `ja:conjugation:te-form`. */
+export function conjugationKey(languageCode: string, patternId: string): string {
+  return [languageCode, 'conjugation', patternId].join(SEPARATOR);
+}
+
 /** A key read back apart. */
 export type ParsedKey =
   | { readonly unit: 'item'; readonly languageCode: string; readonly scenarioId: string; readonly itemId: string }
-  | { readonly unit: 'tile'; readonly languageCode: string; readonly text: string };
+  | { readonly unit: 'tile'; readonly languageCode: string; readonly text: string }
+  | { readonly unit: 'particle'; readonly languageCode: string; readonly particleId: string }
+  | { readonly unit: 'conjugation'; readonly languageCode: string; readonly patternId: string };
 
 /**
  * Read a key back into its parts, or `undefined` if it is not one.
@@ -71,6 +102,20 @@ export function parseKey(key: string): ParsedKey | undefined {
     const text = parts.slice(2).join(SEPARATOR);
     if (text === '') return undefined;
     return { unit: 'tile', languageCode, text };
+  }
+
+  /* Both of these take exactly one further segment, unlike a tile: their ids are
+     authored, and the content tests reject one containing a separator. */
+  if (unit === 'particle') {
+    const [, , particleId, ...extra] = parts;
+    if (!particleId || extra.length > 0) return undefined;
+    return { unit: 'particle', languageCode, particleId };
+  }
+
+  if (unit === 'conjugation') {
+    const [, , patternId, ...extra] = parts;
+    if (!patternId || extra.length > 0) return undefined;
+    return { unit: 'conjugation', languageCode, patternId };
   }
 
   return undefined;

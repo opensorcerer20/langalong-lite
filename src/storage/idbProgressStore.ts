@@ -8,11 +8,11 @@
    Human review note: I'm not familiar with how this type of processing works*/
 
 import type {
-  Attempt,
   NewAttempt,
   ScheduleRecord,
+  StoredAttempt,
 } from '../lib/progress';
-import { rollUp } from '../lib/progress';
+import { hydrateAttempt, rollUp } from '../lib/progress';
 import {
   fromRequest,
   fromTransaction,
@@ -90,11 +90,15 @@ export function createIdbProgressStore(db: IDBDatabase): ProgressStore {
     async attemptsFor(key: string): Promise<readonly NewAttempt[]> {
       const tx = db.transaction(STORE_ATTEMPTS, 'readonly');
       const index = tx.objectStore(STORE_ATTEMPTS).index(INDEX_ATTEMPTS_BY_KEY);
-      const rows = await fromRequest<Attempt[]>(index.getAll(IDBKeyRange.only(key)));
+      const rows = await fromRequest<StoredAttempt[]>(index.getAll(IDBKeyRange.only(key)));
       /* getAll on an index returns primary-key order within the matched range,
          and the primary key is the autoincrementing id — so this is already
-         insertion order, which for an append-only log is chronological. */
-      return rows;
+         insertion order, which for an append-only log is chronological.
+
+         Hydrated on the way out, because this is the boundary where a row
+         written by an older version of the app becomes one this version has
+         promised its callers. */
+      return rows.map(hydrateAttempt);
     },
 
     async clear(): Promise<void> {

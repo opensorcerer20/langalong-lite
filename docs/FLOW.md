@@ -65,7 +65,7 @@ The order is deterministic, not random — arithmetic on the sentence's index �
 
 **The answer line** shows the placed tiles followed by one short rule per tile still missing, so `ans.length` is visible as a shape before anything is typed. With nothing placed, item 0 shows three empty rules.
 
-**Checking.** The primary button reads `Check` and is disabled while `placed` is empty. Tapping it dispatches `check`, which joins the placed tiles into one string and compares it against the canonical answer plus every alternate. Comparison is on the joined string, not on tiles — which is exactly what lets `パンをお願いします` be accepted even though it is built from a different set of tiles than `パンをください`.
+**Checking.** The primary button reads `Check` and is disabled while `placed` is empty. Tapping it dispatches `check` — carrying the *verdict*, not the answer. The joining and comparing happen in `useTsumiki` a line earlier: it has to judge the answer anyway to decide what to write to storage, so it judges once and tells the reducer how it went. Comparison is on the joined string, not on tiles — which is exactly what lets `パンをお願いします` be accepted even though it is built from a different set of tiles than `パンをください`.
 
 **The miss ladder**, walked concretely on item 0:
 
@@ -78,7 +78,7 @@ The order is deterministic, not random — arithmetic on the sentence's index �
 
 Every wrong check clears `placed` entirely. The learner rebuilds rather than edits — a deliberate choice, not a side effect.
 
-**Revealing.** `reveal` fills the answer line with the bank positions that spell the canonical answer — `[1, 8, 6]` for item 0 — and sets `status: 'shown'`. The line locks, the reveal button disappears, the note relabels to **Additional grammar tips**, and the status reads "Answer shown". It does not count as a miss, and it earns no score: `firstTry` is only ever incremented inside `check`, and only when `misses === 0`.
+**Revealing.** `useTsumiki` works out the bank positions that spell the canonical answer — `[1, 8, 6]` for item 0 — and `reveal` fills the answer line with them and sets `status: 'shown'`. The line locks, the reveal button disappears, the note relabels to **Additional grammar tips**, and the status reads "Answer shown". It does not count as a miss, and it earns no score: `firstTry` is only ever incremented inside `check`, and only when `misses === 0`.
 
 **Answering correctly.** `status: 'right'`, the status line reads "Correct", the note appears (or stays) labelled **Additional grammar tips**, and the answer line locks. `firstTry` increments only if this was a clean first attempt.
 
@@ -100,8 +100,8 @@ Two actions. **Practise this set again** dispatches `restart`, which returns to 
 | `goHome()` | Header "← All"; done screen | `screen: 'home'`. Drill state untouched | never |
 | `tap(bankIndex)` | Drill — bank tile | Appends to `placed`; clears `wrong` status | `done`, or already placed |
 | `untap(position)` | Drill — placed tile | Removes that position from `placed` | `done` |
-| `check()` | Drill — primary button | Right: `status: 'right'`, `firstTry++` if `misses === 0`. Wrong: `misses++`, `placed` cleared | `done`, or `placed` empty |
-| `reveal()` | Drill — "Show me the answer" | Fills and locks the line, `status: 'shown'`. No score, no miss | `done` |
+| `check(correct)` | Drill — primary button | Right: `status: 'right'`, `firstTry++` if `misses === 0`. Wrong: `misses++`, `placed` cleared | `done`, or `placed` empty |
+| `reveal(placed)` | Drill — "Show me the answer" | Fills and locks the line with the positions given, `status: 'shown'`. No score, no miss | `done` |
 | `next()` | Drill — primary button once `done` | Clears the per-sentence fields; `item++`, or `finished: true` on the last | never |
 | `restart()` | Done — "Practise this set again" | Back to sentence 1, score 0, same scenario | never |
 
@@ -109,7 +109,9 @@ Two actions. **Practise this set again** dispatches `restart`, which returns to 
 
 The parts that are Japanese-specific or single-mode, and would need attention before adding a language or a drill type. Roughly in order of how much would have to move.
 
-**There is no mode dimension at all.** No field in `AppState`, no field on `Scenario`, no branch in `App.tsx`. Adding vocabulary recall or verb conjugation means introducing that concept from scratch — most naturally as a property of a scenario or of an item, with `DrillScreen` choosing a body from it. What is reusable regardless: `appReducer`'s miss ladder, scoring and advancing are about *attempts*, not about sentences, so a different drill body could sit on the same rules unchanged.
+**There is still only one exercise, but the rules no longer assume it.** `appReducer` imports nothing at all now: `check` carries a boolean verdict and `reveal` carries the positions to fill, so the miss ladder, the first-try score and advancing through a set are stated in terms of *attempts* and would drive a vocabulary or conjugation exercise unchanged. What is still missing is the exercise itself and any way to choose one — no field in `AppState` says which mode is running, and `App.tsx` has no branch for it, because nothing yet needs one.
+
+Recording is already ahead of the UI here. Every attempt carries `mode` (always `'sentence'` so far) and `scenarioId`, and every sentence is tagged with the particles and conjugation patterns it teaches, so a second exercise slots into the existing history rather than starting one of its own.
 
 **The language dimension exists but has one entry.** The content sits behind a `LanguagePack` in `src/data/ja/`, `useTsumiki` is the only file that reads it, and the joiner and font stack are declared rather than assumed — so a second pack drills without touching `lib/`, `state/` or `components/`. What is still missing is everything around a *choice* of language: `LANGUAGE` is a constant in `src/data/languages.ts` with no picker, and progress and the streak are global rather than per-language.
 
@@ -121,7 +123,9 @@ The parts that are Japanese-specific or single-mode, and would need attention be
 
 **Scoring in the drill is binary and per-set.** `firstTry` counts clean answers, and it is all `AppState` knows — the reducer still has no memory beyond the current set.
 
-Per-item history does now exist, but beside the drill rather than inside them: `useTsumiki` writes every check and reveal to IndexedDB, keyed by sentence and by tile, and `appReducer` is deliberately unaware of it — see [ARCHITECTURE.md](ARCHITECTURE.md#where-progress-lives). Two things still do not follow from it. Nothing **adapts**: the order of a set is a fixed walk through an array, and no scheduler reads the rows. And nothing knows **which particle** a learner keeps getting wrong — `checkAnswer` judges whole joined strings, so a miss is recorded against the sentence, never against the tile that caused it.
+Per-item history does now exist, but beside the drill rather than inside them: `useTsumiki` writes every check and reveal to IndexedDB, keyed by sentence, by tile, and by the grammar points the sentence is tagged with, and `appReducer` is deliberately unaware of it — see [ARCHITECTURE.md](ARCHITECTURE.md#where-progress-lives). Nothing **adapts** from it: the order of a set is a fixed walk through an array, and no scheduler reads the rows.
+
+The **which particle** question is now half-answered. A settled sentence writes a row against `ja:particle:o` as well as against the sentence, so "keeps getting を wrong" is a query rather than an impossibility. What is still missing is per-token attribution *within* a miss: `checkAnswer` judges whole joined strings, so a wrong answer cannot say which part was wrong and therefore records nothing against tiles or tags at all. Only successes and reveals propagate down, and they propagate to everything the sentence touched.
 
 **Progress is linear.** `item` is an index that only moves forward through a fixed array. Jumping around, or a set that adapts its order, both need `item` to stop being a position in a list.
 

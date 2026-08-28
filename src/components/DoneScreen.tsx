@@ -1,32 +1,49 @@
-/* Set complete. The score is sentences built on the first try — not sentences
-   answered — so revealing an answer or missing once does not count. */
+/* A set is over. The score is answers given on the first try — not answers
+   given — so revealing an answer or missing once does not count.
+
+   The copy is props with the sentence drill's wording as defaults, because
+   every exercise mode ends here and they do not all finish "sentences". The
+   score itself never varies: a first-try count out of a total is what the
+   reducer keeps for any exercise, so it stays the fixed part of the layout. */
 
 import * as stylex from '@stylexjs/stylex';
 
 import { shared } from '../styles/shared';
 
 export interface DoneScreenProps {
-  /** Sentences built with no prior miss. */
+  /** Answers given with no prior miss. */
   readonly firstTry: number;
   readonly total: number;
+  /** The label above the score. */
+  readonly title?: string;
+  /** The line beneath the score, naming what was counted. */
+  readonly scoreLabel?: string;
+  /** The paragraph below the rule. */
+  readonly body?: string;
   readonly onRestart: () => void;
   readonly onHome: () => void;
 }
 
-export function DoneScreen({ firstTry, total, onRestart, onHome }: DoneScreenProps) {
+export function DoneScreen({
+  firstTry,
+  total,
+  title = 'Set complete',
+  scoreLabel = 'built first try',
+  body = 'Next set unlocks the response level: a shopkeeper speaks first and you build the reply.',
+  onRestart,
+  onHome,
+}: DoneScreenProps) {
   return (
     <section {...stylex.props(shared.screen, s.done)}>
-      <div {...stylex.props(shared.kicker, shared.kickerTight)}>Set complete</div>
+      <div {...stylex.props(shared.kicker, shared.kickerTight)}>{title}</div>
       <div {...stylex.props(s.score)}>
         {firstTry} / {total}
       </div>
-      <div {...stylex.props(s.sub)}>built first try</div>
+      <div {...stylex.props(s.sub)}>{scoreLabel}</div>
 
       <hr className="hr" />
 
-      <p {...stylex.props(s.body)}>
-        Next set unlocks the response level: a shopkeeper speaks first and you build the reply.
-      </p>
+      <p {...stylex.props(s.body)}>{body}</p>
 
       <div {...stylex.props(s.actions)}>
         <button type="button" className="btn btn-primary btn-block" onClick={onRestart}>

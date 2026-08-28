@@ -10,7 +10,7 @@ const scenario = (name: string, kicker: string): Scenario => ({
   name,
   kicker,
   blurb: `About ${name}.`,
-  items: [{ id: '01', en: 'One bread, please.', ans: [['パン', 'pan']], note: 'A note.' }],
+  items: [{ id: '01', en: 'One bread, please.', ans: [['パン', 'pan']], note: 'A note.', tags: { particles: [], conjugations: [] } }],
   words: [['パン', 'pan']],
 });
 

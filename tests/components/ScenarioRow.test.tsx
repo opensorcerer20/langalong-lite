@@ -10,6 +10,7 @@ const item = (id: string, en: string): SentenceItem => ({
   en,
   ans: [['パン', 'pan']],
   note: 'A note.',
+  tags: { particles: [], conjugations: [] },
 });
 
 const BAKERY: Scenario = {

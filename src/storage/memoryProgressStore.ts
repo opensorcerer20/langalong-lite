@@ -49,6 +49,10 @@ export function createMemoryProgressStore(): ProgressStore {
     },
 
     async attemptsFor(key: string): Promise<readonly NewAttempt[]> {
+      /* No hydrateAttempt here, unlike the IndexedDB store, and the two still
+         agree: this array only ever holds what recordAttempt was handed this
+         session, so there are no rows from an older version of the app to
+         repair. It is emptied when the tab closes — that is the whole point. */
       return attempts.filter((attempt) => attempt.key === key);
     },
 

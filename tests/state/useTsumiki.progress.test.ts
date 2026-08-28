@@ -8,7 +8,7 @@ import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { LANGUAGE } from '../../src/data/languages';
-import { itemKey, tileKey } from '../../src/lib/keys';
+import { conjugationKey, itemKey, particleKey, tileKey } from '../../src/lib/keys';
 import { revealIndices } from '../../src/lib/revealPlacement';
 import { createMemoryProgressStore } from '../../src/storage/memoryProgressStore';
 import type { ProgressStore } from '../../src/storage/types';
@@ -51,6 +51,21 @@ describe('useTsumiki recording', () => {
     const log = await progress.attemptsFor(FIRST_KEY);
     expect(log).toHaveLength(1);
     expect(log[0]).toMatchObject({ outcome: 'right', misses: 0, unit: 'item', languageCode: 'ja' });
+  });
+
+  /* Which exercise a row came from, and which situation it was answered in.
+     Neither is recoverable afterwards — a tile key does not say what scenario
+     it was drilled in, and nothing in a row says what kind of exercise wrote
+     it — so both are taken at the point they are still known. */
+  it('stamps every row with the exercise and the situation', async () => {
+    const view = open();
+    solve(view);
+
+    const log = await progress.attemptsFor(FIRST_KEY);
+    expect(log[0]).toMatchObject({ mode: 'sentence', scenarioId: BAKERY.id });
+
+    const onTile = await progress.attemptsFor(tileKey(LANGUAGE.code, FIRST_ITEM.ans[0]!));
+    expect(onTile[0]).toMatchObject({ mode: 'sentence', scenarioId: BAKERY.id });
   });
 
   it('records every check, not only the one that settles the item', async () => {
@@ -121,6 +136,69 @@ describe('useTsumiki recording', () => {
 
       const first = FIRST_ITEM.ans[0]!;
       const log = await progress.attemptsFor(tileKey(LANGUAGE.code, first));
+      expect(log[0]).toMatchObject({ outcome: 'shown', viaItem: FIRST_KEY });
+    });
+  });
+
+  /* The rows that make per-grammar-point history possible at all. A row against
+     the sentence can only ever say "missed sentence 1"; a row against
+     ja:particle:o is what can eventually say "keeps missing を". */
+  describe('grammar tags', () => {
+    /* Bakery 01 is tagged with を and nothing else. Read from the content
+       rather than written out, so retagging the sentence moves the test with
+       it instead of breaking it. */
+    const TAGS = FIRST_ITEM.tags;
+
+    it('records one indirect attempt per tagged particle when the item settles', async () => {
+      const view = open();
+      solve(view);
+
+      expect(TAGS.particles.length, 'the fixture sentence has no particle tags').toBeGreaterThan(0);
+      for (const id of TAGS.particles) {
+        const log = await progress.attemptsFor(particleKey(LANGUAGE.code, id));
+        expect(log, `no row for particle "${id}"`).toHaveLength(1);
+        expect(log[0]).toMatchObject({ unit: 'particle', outcome: 'right', viaItem: FIRST_KEY });
+      }
+    });
+
+    it('records the conjugation patterns a sentence is tagged with', async () => {
+      /* Bakery 08 — 払え + ます — is tagged potential and masu. */
+      const view = open();
+      const tagged = BAKERY.items.findIndex((item) => item.tags.conjugations.length > 0);
+      expect(tagged, 'no bakery sentence teaches a conjugation').toBeGreaterThan(-1);
+
+      for (let i = 0; i < tagged; i++) {
+        solve(view);
+        act(() => view.result.current.next());
+      }
+      solve(view);
+
+      const item = BAKERY.items[tagged]!;
+      for (const id of item.tags.conjugations) {
+        const log = await progress.attemptsFor(conjugationKey(LANGUAGE.code, id));
+        expect(log, `no row for pattern "${id}"`).toHaveLength(1);
+        expect(log[0]).toMatchObject({ unit: 'conjugation', outcome: 'right' });
+      }
+    });
+
+    /* Same rule as tiles, and for the same reason: checkAnswer judges whole
+       joined strings, so a miss cannot be attributed to the particle. Writing
+       one anyway would blame を for a word-order mistake. */
+    it('records nothing against tags on a wrong answer', async () => {
+      const view = open();
+      missOnce(view);
+
+      for (const id of TAGS.particles) {
+        expect(await progress.attemptsFor(particleKey(LANGUAGE.code, id))).toEqual([]);
+      }
+    });
+
+    it('marks tag rows as indirect, like tile rows', async () => {
+      const view = open();
+      act(() => view.result.current.reveal());
+
+      const [id] = TAGS.particles;
+      const log = await progress.attemptsFor(particleKey(LANGUAGE.code, id!));
       expect(log[0]).toMatchObject({ outcome: 'shown', viaItem: FIRST_KEY });
     });
   });
