@@ -10,6 +10,8 @@
 
 Do not assume any scope outside the scope from the user prompt; if action may be needed outside the scope given, confirm with the user first.
 
+If user asks for an answer to a question, do not assume that is a call to action; answer the question and then offer to make changes, but do not make those changes automatically.
+
 ## Commit style
 
 Please don't stage or commit anything yourself — I'll do that after reviewing.
