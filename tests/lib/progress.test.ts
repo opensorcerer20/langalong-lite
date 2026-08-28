@@ -6,8 +6,8 @@
 
 import { describe, expect, it } from 'vitest';
 
-import type { NewAttempt, Outcome, ScheduleRecord } from '../../src/lib/progress';
-import { rollUp, SCHEDULER_VERSION } from '../../src/lib/progress';
+import type { NewAttempt, Outcome, ScheduleRecord, StoredAttempt } from '../../src/lib/progress';
+import { hydrateAttempt, rollUp, SCHEDULER_VERSION } from '../../src/lib/progress';
 
 const T0 = 1_700_000_000_000;
 
@@ -16,6 +16,7 @@ function attempt(outcome: Outcome, at = T0, over: Partial<NewAttempt> = {}): New
     key: 'ja:item:bakery:01',
     languageCode: 'ja',
     unit: 'item',
+    mode: 'sentence',
     at,
     outcome,
     misses: outcome === 'right' ? 0 : 1,
@@ -133,5 +134,63 @@ describe('rollUp', () => {
     const snapshot = { ...first };
     rollUp(first, attempt('wrong', T0 + 1000));
     expect(first).toEqual(snapshot);
+  });
+});
+
+/* Reading back what an older version of the app wrote.
+
+   IndexedDB stores values rather than rows against a schema, so adding a field
+   to NewAttempt does not touch what is already in the database. These are the
+   only tests of that repair that can ever be written from scratch: once real
+   databases exist in the wild, the rows they hold are whatever they are, and a
+   mistake here is permanent. */
+describe('hydrateAttempt', () => {
+  /* Written out as a loose object rather than built from `attempt()`, because
+     the whole point is that it is missing fields the current type requires. */
+  const legacy: StoredAttempt = {
+    key: 'ja:item:bakery:01',
+    languageCode: 'ja',
+    unit: 'item',
+    at: T0,
+    outcome: 'right',
+    misses: 0,
+    durationMs: 3000,
+  };
+
+  it('calls a row with no mode a sentence, because nothing else could have written it', () => {
+    expect(hydrateAttempt(legacy).mode).toBe('sentence');
+  });
+
+  it('recovers the scenario from an item key, which carries one', () => {
+    expect(hydrateAttempt(legacy).scenarioId).toBe('bakery');
+  });
+
+  /* A tile key genuinely does not record which situation it was answered in.
+     Leaving the field absent is the honest answer; inventing one would put a
+     wrong scenario into a learner's history rather than a visible gap. */
+  it('leaves the scenario absent on a key that cannot say', () => {
+    const onTile = hydrateAttempt({ ...legacy, key: 'ja:tile:パン', unit: 'tile' });
+    expect(onTile.mode).toBe('sentence');
+    expect('scenarioId' in onTile).toBe(false);
+  });
+
+  it('leaves an unparseable key alone rather than throwing', () => {
+    const bad = hydrateAttempt({ ...legacy, key: 'nonsense' });
+    expect(bad.mode).toBe('sentence');
+    expect('scenarioId' in bad).toBe(false);
+  });
+
+  it('does not overwrite what a current row already says', () => {
+    const current = { ...legacy, mode: 'vocab', scenarioId: 'station' } as const;
+    expect(hydrateAttempt(current)).toMatchObject({ mode: 'vocab', scenarioId: 'station' });
+  });
+
+  it('rolls up into a row indistinguishable from one written today', () => {
+    expect(rollUp(undefined, hydrateAttempt(legacy))).toMatchObject({
+      key: 'ja:item:bakery:01',
+      unit: 'item',
+      attempts: 1,
+      correct: 1,
+    });
   });
 });

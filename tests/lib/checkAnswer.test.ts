@@ -16,6 +16,7 @@ const ITEM: SentenceItem = {
   ans: [['パン', 'pan'], ['を', 'o'], ['ください', 'kudasai']],
   alts: ['パンをお願いします'],
   note: 'を marks the direct object.',
+  tags: { particles: [], conjugations: [] },
 };
 
 /* The fixture is Japanese, which is written without spaces. A space-separated
@@ -46,7 +47,7 @@ describe('acceptedAnswers', () => {
   });
 
   it('is just the canonical answer when there are no alternates', () => {
-    const noAlts: SentenceItem = { id: ITEM.id, en: ITEM.en, ans: ITEM.ans, note: ITEM.note };
+    const noAlts: SentenceItem = { id: ITEM.id, en: ITEM.en, ans: ITEM.ans, note: ITEM.note, tags: ITEM.tags };
     expect(acceptedAnswers(noAlts, JOINER)).toEqual(['パンをください']);
   });
 });
@@ -94,6 +95,7 @@ describe('a space-separated language', () => {
     ans: [['un', 'un'], ['pan', 'pan'], ['por favor', 'por favor']],
     alts: ['un pan'],
     note: 'Placeholder.',
+    tags: { particles: [], conjugations: [] },
   };
 
   it('joins the placed tiles with the separator', () => {

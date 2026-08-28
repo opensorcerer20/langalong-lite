@@ -1,10 +1,18 @@
 /* The seam.
 
    Everything else in src/ sits on one side or the other: data/ is inert
-   content, lib/ and appReducer are pure logic that never import content, and
-   components/ are presentational. This hook is the single place they meet — it
-   looks the current scenario and item up in the content, builds the tile bank
-   for them, and hands the reducer the pieces it needs.
+   content, lib/ is pure logic that never imports content, appReducer imports
+   nothing whatever, and components/ are presentational. This hook is the single
+   place they meet — it looks the current scenario and item up in the content,
+   builds the tile bank for them, judges what the learner built, and hands the
+   reducer the verdict.
+
+   Judging here rather than in the reducer is not an arrangement of
+   convenience. A store write cannot wait for a re-render, so this hook has to
+   know whether the answer was right *before* it dispatches, in order to record
+   it. Having decided, telling the reducer is cheaper than having it work the
+   same thing out again — and it leaves the reducer with no reason to know what
+   a sentence is.
 
    Storage meets them here too, and only here. appReducer stays pure and knows
    nothing about a database; the hook watches what it decides and writes that
@@ -21,8 +29,9 @@ import { NOTE_AFTER_MISSES, REVEAL_AFTER_MISSES, TILE_MULTIPLIER } from '../conf
 import type { LanguagePack, Scenario, SentenceItem, Tile } from '../data/types';
 import { buildBank } from '../lib/buildBank';
 import { buildString, isCorrect } from '../lib/checkAnswer';
-import { itemKey, tileKey } from '../lib/keys';
+import { conjugationKey, itemKey, particleKey, tileKey } from '../lib/keys';
 import type { Outcome } from '../lib/progress';
+import { revealIndices } from '../lib/revealPlacement';
 import type { ProgressStore } from '../storage/types';
 import { appReducer, initialState, isDone } from './appReducer';
 import type { AppState } from './appReducer';
@@ -120,7 +129,7 @@ export function useTsumiki(language: LanguagePack, progress?: ProgressStore): Ts
 
   /**
    * Write down one attempt, and — when the item is settled — one indirect
-   * attempt per tile in its answer.
+   * attempt per tile in its answer and per grammar point it was tagged with.
    *
    * Every check is recorded, not only the one that settles the item, so the log
    * holds each retrieval the learner actually made. A presentation can be
@@ -136,7 +145,15 @@ export function useTsumiki(language: LanguagePack, progress?: ProgressStore): Ts
       presentedAt.current = at;
 
       const key = itemKey(language.code, scenario.id, item.id);
-      const base = { languageCode: language.code, at, durationMs } as const;
+      const base = {
+        languageCode: language.code,
+        /* Every row written from here is the sentence drill by definition —
+           this hook is what the sentence drill is. */
+        mode: 'sentence',
+        scenarioId: scenario.id,
+        at,
+        durationMs,
+      } as const;
 
       fireAndForget(
         progress.recordAttempt({ ...base, key, unit: 'item', outcome, misses: state.misses }),
@@ -145,20 +162,30 @@ export function useTsumiki(language: LanguagePack, progress?: ProgressStore): Ts
       if (!settled) return;
 
       /* Indirect evidence, and marked as such by viaItem: building the sentence
-         correctly does not establish that every tile in it was known. There is
-         also no way to tell which tile was wrong — checkAnswer compares whole
-         joined strings — so a settled item can only give all of its tiles the
-         same outcome. */
-      for (const tile of item.ans) {
+         correctly does not establish that every tile in it was known, nor that
+         the learner chose は for the reason the sentence is about. There is
+         also no way to tell which part was wrong — checkAnswer compares whole
+         joined strings — so a settled item can only give everything below it
+         the same outcome.
+
+         The tags are the reason this is worth writing at all. A row against the
+         sentence says a learner missed sentence 3; a row against `ja:particle:ni`
+         is what can eventually say they keep missing に. */
+      const indirect = [
+        ...item.ans.map((tile) => ({ key: tileKey(language.code, tile), unit: 'tile' as const })),
+        ...item.tags.particles.map((id) => ({
+          key: particleKey(language.code, id),
+          unit: 'particle' as const,
+        })),
+        ...item.tags.conjugations.map((id) => ({
+          key: conjugationKey(language.code, id),
+          unit: 'conjugation' as const,
+        })),
+      ];
+
+      for (const { key: on, unit } of indirect) {
         fireAndForget(
-          progress.recordAttempt({
-            ...base,
-            key: tileKey(language.code, tile),
-            unit: 'tile',
-            outcome,
-            misses: 0,
-            viaItem: key,
-          }),
+          progress.recordAttempt({ ...base, key: on, unit, outcome, misses: 0, viaItem: key }),
         );
       }
     },
@@ -189,13 +216,13 @@ export function useTsumiki(language: LanguagePack, progress?: ProgressStore): Ts
 
     const right = isCorrect(item, buildString(bank, state.placed, language.joiner), language.joiner);
     record(right ? 'right' : 'wrong', right);
-    dispatch({ type: 'check', item, bank, joiner: language.joiner });
+    dispatch({ type: 'check', correct: right });
   }, [state, item, bank, language.joiner, record]);
 
   const reveal = useCallback(() => {
     if (isDone(state)) return;
     record('shown', true);
-    dispatch({ type: 'reveal', item, bank });
+    dispatch({ type: 'reveal', placed: revealIndices(item, bank) });
   }, [state, item, bank, record]);
 
   const next = useCallback(() => {

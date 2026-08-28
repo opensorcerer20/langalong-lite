@@ -11,7 +11,7 @@ import { IDBFactory } from 'fake-indexeddb';
 
 import type { NewAttempt } from '../../src/lib/progress';
 import { SCHEDULER_VERSION } from '../../src/lib/progress';
-import { openDatabase } from '../../src/storage/db';
+import { openDatabase, STORE_ATTEMPTS } from '../../src/storage/db';
 import { createIdbProgressStore } from '../../src/storage/idbProgressStore';
 import { createMemoryProgressStore } from '../../src/storage/memoryProgressStore';
 import type { ProgressStore } from '../../src/storage/types';
@@ -23,6 +23,7 @@ function attempt(over: Partial<NewAttempt> = {}): NewAttempt {
     key: 'ja:item:bakery:01',
     languageCode: 'ja',
     unit: 'item',
+    mode: 'sentence',
     at: T0,
     outcome: 'right',
     misses: 0,
@@ -182,5 +183,58 @@ describe.each(IMPLEMENTATIONS)('ProgressStore (%s)', (_name, create) => {
     expect(await store.getSchedule('ja:item:bakery:01')).toBeUndefined();
     expect(await store.attemptsFor('ja:item:bakery:01')).toEqual([]);
     expect(await store.due('ja', T0 + 5000, 10)).toEqual([]);
+  });
+});
+
+/* Rows an older version of the app left behind.
+
+   Outside the contract suite above on purpose. The repair only exists in the
+   IndexedDB store — the in-memory one holds nothing but what this session
+   wrote, so there is nothing there to repair — and the only way to set the
+   condition up is to put a row into the object store directly, which the
+   ProgressStore interface rightly gives no way to do.
+
+   hydrateAttempt itself is tested in tests/lib/progress.test.ts. What this
+   adds is that the store actually calls it, which is the half that would break
+   silently: history would keep working and quietly report every old attempt as
+   having no mode at all. */
+describe('reading rows written before mode and scenarioId existed', () => {
+  const LEGACY_KEY = 'ja:item:bakery:07';
+
+  async function openWithLegacyRow(): Promise<ProgressStore> {
+    globalThis.indexedDB = new IDBFactory();
+    const db = await openDatabase();
+
+    const tx = db.transaction(STORE_ATTEMPTS, 'readwrite');
+    tx.objectStore(STORE_ATTEMPTS).add({
+      key: LEGACY_KEY,
+      languageCode: 'ja',
+      unit: 'item',
+      at: T0,
+      outcome: 'right',
+      misses: 0,
+      durationMs: 3000,
+    });
+    await new Promise((resolve) => {
+      tx.oncomplete = resolve;
+    });
+
+    return createIdbProgressStore(db);
+  }
+
+  it('reports the old row as the sentence drill it must have come from', async () => {
+    const store = await openWithLegacyRow();
+    const [row] = await store.attemptsFor(LEGACY_KEY);
+
+    expect(row).toMatchObject({ mode: 'sentence', scenarioId: 'bakery', outcome: 'right' });
+  });
+
+  it('keeps old and new rows in one readable log', async () => {
+    const store = await openWithLegacyRow();
+    await store.recordAttempt(attempt({ key: LEGACY_KEY, at: T0 + 1000, outcome: 'wrong' }));
+
+    const log = await store.attemptsFor(LEGACY_KEY);
+    expect(log.map((a) => a.outcome)).toEqual(['right', 'wrong']);
+    expect(log.every((a) => a.mode === 'sentence')).toBe(true);
   });
 });

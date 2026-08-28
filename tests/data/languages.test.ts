@@ -143,6 +143,130 @@ describe.each(LANGUAGES)('$name', (language) => {
     }
   });
 
+  describe('particles and conjugation patterns', () => {
+    const particleIds = new Set(language.particles.map((p) => p.id));
+    const patternIds = new Set(language.conjugations.map((c) => c.id));
+
+    /* Same rule as a scenario or sentence id, for the same reason: these are
+       storage key segments, so a change orphans everything recorded under the
+       old one and a ":" would read back as a different key entirely. */
+    it('gives every particle and pattern an id, unique and free of ":"', () => {
+      for (const particle of language.particles) {
+        expect(particle.id.trim(), `a particle has no id`).not.toBe('');
+        expect(particle.id, `particle "${particle.id}" — ":" is the key separator`).not.toContain(':');
+        expect(particle.gloss.trim(), `particle "${particle.id}" has no gloss`).not.toBe('');
+      }
+      expect(particleIds.size, 'two particles share an id').toBe(language.particles.length);
+
+      for (const pattern of language.conjugations) {
+        expect(pattern.id.trim(), 'a conjugation pattern has no id').not.toBe('');
+        expect(pattern.id, `pattern "${pattern.id}" — ":" is the key separator`).not.toContain(':');
+        expect(pattern.name.trim(), `pattern "${pattern.id}" has no name`).not.toBe('');
+        expect(pattern.note.trim(), `pattern "${pattern.id}" has no note`).not.toBe('');
+        expect(pattern.verbGroups.length, `pattern "${pattern.id}" applies to no verb group`)
+          .toBeGreaterThan(0);
+      }
+      expect(patternIds.size, 'two patterns share an id').toBe(language.conjugations.length);
+    });
+
+    /* The two lists overlap by design and must not drift. The grammar pool is
+       what the sentence drill draws distractors from and its order is pinned by
+       the bank fixtures, so particles.ts re-declares its tiles rather than the
+       pool being derived from it — which is exactly the arrangement that lets
+       them fall out of step, hence this. */
+    it('declares every particle with the same tile the grammar pool holds', () => {
+      const pool = new Map(language.grammar.map((tile) => [tile[0], tile[1]]));
+
+      for (const { id, tile } of language.particles) {
+        const [text, reading] = tile;
+        expect(pool.has(text), `particle "${id}" (${text}) is not in the grammar pool`).toBe(true);
+        expect(pool.get(text), `particle "${id}" (${text}) is read two ways`).toBe(reading);
+      }
+    });
+
+    it('points confusedWith at declared particles, never at itself', () => {
+      for (const particle of language.particles) {
+        for (const other of particle.confusedWith) {
+          expect(particleIds.has(other), `particle "${particle.id}" is confused with unknown "${other}"`)
+            .toBe(true);
+          expect(other, `particle "${particle.id}" is confused with itself`).not.toBe(particle.id);
+        }
+        expect(
+          new Set(particle.confusedWith).size,
+          `particle "${particle.id}" repeats a confusion`,
+        ).toBe(particle.confusedWith.length);
+      }
+    });
+
+    /* Confusability runs both ways or it is not confusability. An asymmetric
+       pair would mean は offers が as a distractor while が never offers は,
+       which is not a rule anyone would write on purpose. */
+    it('keeps confusedWith symmetrical', () => {
+      const declared = new Map(language.particles.map((p) => [p.id, new Set(p.confusedWith)]));
+
+      for (const particle of language.particles) {
+        for (const other of particle.confusedWith) {
+          expect(
+            declared.get(other)?.has(particle.id),
+            `"${particle.id}" lists "${other}" but "${other}" does not list "${particle.id}"`,
+          ).toBe(true);
+        }
+      }
+    });
+  });
+
+  /* Tags are what a later exercise selects on and what remediation reports
+     against, so a tag naming something that does not exist is a drill that
+     silently has nothing in it. */
+  it('tags every sentence with particles and patterns the pack declares', () => {
+    const particleIds = new Set(language.particles.map((p) => p.id));
+    const patternIds = new Set(language.conjugations.map((c) => c.id));
+
+    for (const { item, where } of everySentence) {
+      for (const id of item.tags.particles) {
+        expect(particleIds.has(id), `${where} is tagged with unknown particle "${id}"`).toBe(true);
+      }
+      for (const id of item.tags.conjugations) {
+        expect(patternIds.has(id), `${where} is tagged with unknown pattern "${id}"`).toBe(true);
+      }
+      expect(new Set(item.tags.particles).size, `${where} repeats a particle tag`).toBe(
+        item.tags.particles.length,
+      );
+      expect(new Set(item.tags.conjugations).size, `${where} repeats a pattern tag`).toBe(
+        item.tags.conjugations.length,
+      );
+    }
+  });
+
+  /* A tagged particle the sentence does not contain would be a claim about
+     grammar the learner never sees — and, once it is recorded, a row saying
+     they got に right in a sentence with no に in it. The reverse is fine and
+     expected: every sentence contains です and almost none are about it.
+
+     An accepted alternate counts. Station 08 is tagged へ and answers with に,
+     because the pair is the whole point of the sentence and either is correct;
+     the bank seeds へ from the alternate, so the learner really can be shown
+     it. Alternates are plain strings with no tile structure, so this is a
+     substring test rather than a tile lookup — loose enough to admit a false
+     positive, which is the right way round for a check whose job is to catch a
+     tag naming grammar that is simply not there. */
+  it('tags a sentence only with particles it actually puts in front of the learner', () => {
+    const textOf = new Map(language.particles.map((p) => [p.id, p.tile[0]]));
+
+    for (const { item, where } of everySentence) {
+      const answer = new Set(item.ans.map((tile) => tile[0]));
+
+      for (const id of item.tags.particles) {
+        const text = textOf.get(id) ?? '';
+        const inAlternate = (item.alts ?? []).some((alt) => alt.includes(text));
+        expect(
+          answer.has(text) || inAlternate,
+          `${where} is tagged "${id}" but neither its answer nor its alternates use ${text}`,
+        ).toBe(true);
+      }
+    }
+  });
+
   it('lists no alternate identical to the canonical answer', () => {
     for (const { item, where } of everySentence) {
       const canonical = item.ans.map((t) => t[0]).join(language.joiner);

@@ -12,6 +12,7 @@ const ITEM: SentenceItem = {
   en: 'One bread, please.',
   ans: [['パン', 'pan'], ['を', 'o'], ['ください', 'kudasai']],
   note: 'を marks the direct object.',
+  tags: { particles: [], conjugations: [] },
 };
 
 describe('revealIndices', () => {
@@ -33,6 +34,7 @@ describe('revealIndices', () => {
       en: 'Bread bread.',
       ans: [['パン', 'pan'], ['パン', 'pan']],
       note: 'Contrived.',
+      tags: { particles: [], conjugations: [] },
     };
     const bank: readonly Tile[] = [['パン', 'pan'], ['を', 'o'], ['パン', 'pan']];
     expect(revealIndices(doubled, bank)).toEqual([0, 2]);

@@ -17,6 +17,79 @@
  */
 export type Tile = readonly [text: string, reading: string];
 
+/**
+ * How a verb inflects, which is what decides how a pattern is formed from it.
+ *
+ * The three names are Japanese grammar's, but the concept is not: most
+ * languages sort their verbs into conjugation classes, and a pack that needs
+ * different names declares different ones. Nothing outside a pack reads the
+ * values — they are only ever matched against each other.
+ */
+export type VerbGroup = 'godan' | 'ichidan' | 'irregular';
+
+/**
+ * One function word the language marks grammatical roles with.
+ *
+ * The tile itself is already in the grammar pool; this adds what the pool
+ * cannot express — which particles are worth contrasting against which, so a
+ * drill can offer a genuinely confusable wrong answer rather than a random one.
+ */
+export interface Particle {
+  /**
+   * Durable identity. Latin and free of ":", because it is a storage key
+   * segment: `ja:particle:wo`. Fixed once shipped, like every other id here.
+   *
+   * Not the particle's text, which is the one thing that could not serve — a
+   * key has to survive being written down in a database and read back, and は
+   * is neither latin nor unambiguous once romanised (は is read "wa" here and
+   * "ha" elsewhere).
+   */
+  readonly id: string;
+  /** The particle as it appears on a tile. Also in the pack's grammar pool. */
+  readonly tile: Tile;
+  /** What it does, in one short phrase. Shown as the answer's explanation. */
+  readonly gloss: string;
+  /**
+   * Particle ids commonly confused with this one — the distractor set.
+   *
+   * Declared rather than derived: which particles compete is a fact about the
+   * language and about learners, not something the tile texts imply. Meant to
+   * be symmetrical (if は lists が, が lists は); the content tests check it.
+   */
+  readonly confusedWith: readonly string[];
+}
+
+/** One inflected form a verb can be drilled into. */
+export interface ConjugationPattern {
+  /** Durable identity, and a storage key segment: `ja:conjugation:te-form`. */
+  readonly id: string;
+  /** The name a learner would recognise: "te-form", "past plain". */
+  readonly name: string;
+  /** Which verb groups this pattern applies to. */
+  readonly verbGroups: readonly VerbGroup[];
+  /** How the form is built, shown when the learner gets it wrong. */
+  readonly note: string;
+}
+
+/**
+ * What a sentence teaches, as opposed to what it happens to contain.
+ *
+ * Authored rather than inferred, and the distinction is the point. Every
+ * sentence in the bakery set contains です; almost none of them are *about*
+ * です. Tagging is what lets a later exercise ask "drill the thing this
+ * sentence was written to teach" and lets remediation say which grammar point
+ * a learner keeps missing, neither of which follows from the answer tiles.
+ *
+ * Vocabulary is deliberately absent: which words a sentence uses genuinely
+ * does follow from its tiles, so it is derived — see src/lib/tags.ts.
+ */
+export interface SentenceTags {
+  /** Particle ids this sentence exercises. May be empty. */
+  readonly particles: readonly string[];
+  /** Conjugation pattern ids this sentence exercises. May be empty. */
+  readonly conjugations: readonly string[];
+}
+
 /** One drill sentence. */
 export interface SentenceItem {
   /**
@@ -41,6 +114,8 @@ export interface SentenceItem {
   readonly alts?: readonly string[];
   /** The grammar explanation shown after a second miss. Always required. */
   readonly note: string;
+  /** The grammar points this sentence was written to teach. See SentenceTags. */
+  readonly tags: SentenceTags;
 }
 
 /** One situation: its sentences plus the vocabulary its distractors draw on. */
@@ -88,6 +163,17 @@ export interface LanguagePack {
    * wrong tile is always grammatically plausible.
    */
   readonly grammar: readonly Tile[];
+  /**
+   * The pack's particles, as declared things rather than as loose tiles.
+   *
+   * Every one of these also appears in `grammar` — the pool is what feeds
+   * distractors into the sentence drill, and that must not change — so the two
+   * overlap on purpose. What this adds is identity and confusability, neither
+   * of which a bare tile can carry. The content tests hold the two in step.
+   */
+  readonly particles: readonly Particle[];
+  /** The inflected forms this language's verbs can be drilled into. */
+  readonly conjugations: readonly ConjugationPattern[];
   /**
    * The situations this language drills, in home-screen order.
    *
