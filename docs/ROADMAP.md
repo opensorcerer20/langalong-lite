@@ -30,3 +30,7 @@ Rough notes. These no longer wait on per-item history — it is recorded now —
   - two stars: finished with zero misses
   - three stars: finished all sections with zero misses
 - Highlight incorrect tile(s) after 2nd incorrect answer, accounting for alternate answers
+- Increased difficulty options
+  - 1) (my current preference) totally based on scenarios, thus the content of each dictates difficulty directly
+  - 2) more complex sentences or exercise formulation in code
+  - 3) utilize user right/wrong frequency to determine what is difficult for player
