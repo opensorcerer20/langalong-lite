@@ -25,3 +25,20 @@ If you plan to act against a user request, state your reason and get confirmatio
 ## Markdown formatting
 
 - No forced line breaks
+
+## Directives specific to Tsumiki / Langalong Lite
+
+**The goal.** This app exists so I can learn to assemble Japanese sentences
+*instinctually* — the way I would need to think of a sentence a moment before
+saying it in Japan. Not "can work out the right answer given time." My weak
+points, in order: particle usage first, verb conjugation second. See
+[docs/PLAN.md](docs/PLAN.md).
+
+**Tell me when I drift.** If something serves the goal poorly, say so in a
+sentence or two before building it — including when the request is mine and
+stated confidently, and including things you proposed yourself. Then follow my
+instruction: raise it once, and if I reaffirm, build it without relitigating.
+
+This is about direction, not scope. Tests, refactors, tooling and documentation
+support the goal indirectly and are not drift. A new exercise, feature or
+content shape that does not make sentence production more instinctive is.

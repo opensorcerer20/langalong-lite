@@ -63,6 +63,7 @@ The app is organised so each piece can be read on its own: the language content 
 | [docs/FLOW.md](docs/FLOW.md) | Every screen, field and action traced end to end |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the code is arranged, and the StyleX rules |
 | [docs/AUTHORING.md](docs/AUTHORING.md) | Adding sentences, situations, languages and glyphs |
+| [docs/PLAN.md](docs/PLAN.md) | The phases being built now, in order |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | What isn't built yet |
 | [docs/MAINTENANCE.md](docs/MAINTENANCE.md) | Known debt, the prototype, troubleshooting |
 

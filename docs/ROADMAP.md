@@ -4,6 +4,8 @@
 
 Two lists at two levels of finish. **Planned** is decided work that hasn't been built. **Todo** is working notes — ideas in the order they occurred, not commitments.
 
+Work that has an order and a done-condition moves out of here and into [PLAN.md](PLAN.md), which is the ordered list of what is actually being built. Nothing should sit in both.
+
 ## Planned
 
 - **PWA support.** The prototype was installable and worked fully offline; the React app is not and does not. The service worker and manifest were left behind in `prototype/` during the conversion rather than being ported, to be re-added once the component tree settled. Vite hashes built filenames, so the hand-maintained precache list needs replacing with a generated one. Progress is already in IndexedDB rather than `localStorage` partly for this: a service worker can read the former and not the latter, which is what a daily reminder needs.
@@ -35,3 +37,8 @@ Rough notes. These no longer wait on per-item history — it is recorded now —
   - 1) (my current preference) totally based on scenarios, thus the content of each dictates difficulty directly
   - 2) more complex sentences or exercise formulation in code
   - 3) utilize user right/wrong frequency to determine what is difficult for player
+- immediately show right/wrong for FITB when only one tile necessary
+- if the idea is to have user go through exercises in a specific order before full sentences...
+  - clicking on scenario goes to the "next up" mode
+  - all modes shown and clickable on scenario list item
+  - "next up" mode clearly marked
