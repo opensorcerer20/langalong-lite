@@ -2,7 +2,7 @@
    docs/japanese-app-content-architecture.md.
 
    The distinction that matters: this file describes content at rest, where a
-   tile is authored once and an exercise points at it by id. types.ts describes
+   tile is authored once and an exercise points at it by id. drill.ts describes
    content in play, where an exercise has already had its tiles looked up and
    handed to it. resolve.ts is what turns the first into the second.
 
@@ -12,7 +12,7 @@
    word class, later its tags) that a bare [text, reading] pair had nowhere to
    put.
 
-   Nothing here is Japanese. A library is any L1→L2 pairing. */
+   Nothing here is Japanese. A library is any native language → new language pairing. */
 
 /**
  * A tile's word class. Required on every tile — it is half the identity of a
@@ -38,7 +38,8 @@ export type TileType =
   | 'question';
 
 /**
- * A tile's id, and also its dedup key: `type:l2`, e.g. `particle:を`.
+ * A tile's id, and also its dedup key: its type and its new-language text,
+ * joined by a colon — `particle:を`.
  *
  * Deriving the id from the pair that identifies a tile means there is no id to
  * allocate, no counter to keep, and no way for two authored tiles to collide
@@ -51,9 +52,9 @@ export type TileId = `${TileType}:${string}`;
 export type ScenarioId = string;
 
 /**
- * An L1→L2 pairing, e.g. `en2ja` — the language the learner speaks against the
- * one they are learning. A course-level fact, which is why it sits on the
- * scenario rather than on every exercise.
+ * A native language → new language pairing, e.g. `en2ja` — the language the
+ * learner speaks against the one they are learning. A course-level fact, which
+ * is why it sits on the scenario rather than on every exercise.
  */
 export type LibraryId = string;
 
@@ -65,7 +66,7 @@ export type LibraryId = string;
  * way at all.
  */
 export interface StoredTile {
-  /** `type:l2`. See TileId. */
+  /** The type and the new-language text, colon-joined. See TileId. */
   readonly id: TileId;
   /**
    * Every situation whose content uses this tile — in one of its exercises, or
@@ -77,8 +78,8 @@ export interface StoredTile {
    * tile like と that is a distractor and nothing else.
    */
   readonly scenarioIds: readonly ScenarioId[];
-  /** The target-language text as it appears on the tile, e.g. パン. */
-  readonly l2: string;
+  /** The tile's text in the language being learned, e.g. パン. */
+  readonly newLanguageText: string;
   /** Its reading in latin script — romaji for Japanese, pinyin for Mandarin. */
   readonly reading: string;
   readonly type: TileType;
@@ -95,7 +96,7 @@ export interface StoredExercise {
   /** `<scenarioId>-<nn>`, e.g. `bakery-01`. */
   readonly id: string;
   readonly scenarioId: ScenarioId;
-  /** The L1 prompt shown to the learner, e.g. 'One bread, please.' */
+  /** The native language prompt shown to the learner, e.g. 'One bread, please.' for English speakers */
   readonly promptText: string;
   /** The canonical answer, as tile ids in order. */
   readonly answerTileIds: readonly TileId[];

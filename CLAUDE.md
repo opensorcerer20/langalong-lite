@@ -70,3 +70,30 @@ If a request is ambiguous, or implementing it would require acting in conflict w
 
 ## Markdown formatting
 - No forced line breaks
+
+## Explaining data structures & relationships
+
+Prose descriptions of how data fits together (nested objects, relationships between
+entities, data flow) don't work well for me. When explaining these, prefer:
+
+- **Diagrams**: ASCII art, tree structures, or Mermaid diagrams for relationships/hierarchies
+- **Pseudocode or code snippets**: actual shape of the data (e.g. a sample JSON object,
+  a struct/interface definition, a small code example) instead of describing it in words
+- **Tables**: for comparing fields/types across entities
+
+Avoid: "The user object contains an array of orders, each of which has a nested
+shipping address and a list of line items that reference product IDs..."
+
+Prefer:
+```
+User
+ ├─ orders[]
+ │   ├─ shippingAddress
+ │   └─ lineItems[] → productId
+```
+or an equivalent JSON/type example.
+
+This applies to explanations of schemas, API responses, state shape, config structure,
+component props, etc. — anywhere data relationships are being described.
+
+When in doubt, default to a code/diagram representation even for simple structures.

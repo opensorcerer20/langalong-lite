@@ -1,15 +1,24 @@
 /* The en2ja library: an English speaker learning Japanese.
 
-   Everything here is content at rest — three tables and the pool, exactly as
-   docs/japanese-app-content-architecture.md describes them. Nothing is
-   resolved, so an exercise still holds tile ids rather than tiles; turning this
-   into something the drill can run on is resolve.ts's job.
+   Which file supplies which part of the store:
 
-   Adding a situation means a file under exercises/, an entry in scenarios.ts,
-   and its tiles in tiles.ts. Nothing here changes but the import list. */
+     tiles.ts          ──► EN2JA_CONTENT.tiles           every tile, deduped
+     tiles.ts          ──► EN2JA_CONTENT.grammarTileIds  shared pool, as ids
+     scenarios.ts      ──► EN2JA_CONTENT.scenarios       + kicker/blurb/vocab
+     exercises/*.ts    ──► EN2JA_CONTENT.exercises       concatenated in
+                                                         home-screen set order
 
+   Then one more step, which is the only thing this file does that the others
+   do not:
+
+     EN2JA_CONTENT (ids)  ─ resolveLibrary ─►  EN2JA (tiles)
+
+   Adding a situation: a file under exercises/, an entry in scenarios.ts, its
+   tiles in tiles.ts. Nothing here changes but the import list. */
+
+import type { DrillLanguage, DrillPack } from '../drill';
+import { resolveLibrary } from '../resolve';
 import type { ContentStore } from '../schema';
-import type { LanguagePack } from '../types';
 import { BAKERY_EXERCISES } from './exercises/bakery';
 import { STATION_EXERCISES } from './exercises/station';
 import { EN2JA_SCENARIOS } from './scenarios';
@@ -27,11 +36,8 @@ export const EN2JA_CONTENT: ContentStore = {
  * The facts about Japanese that are not content: how its script joins, and what
  * renders it. They belong to the language rather than to any situation, which
  * is why they sit beside the store instead of inside it.
- *
- * Typed as the pack minus the two fields resolve.ts fills in, so the two halves
- * cannot drift apart without a type error.
  */
-export const EN2JA_LANGUAGE: Omit<LanguagePack, 'grammar' | 'scenarios'> = {
+export const EN2JA_LANGUAGE: DrillLanguage = {
   code: 'ja',
   name: 'Japanese',
   /* Japanese is written without spaces, so tiles butt straight up against one
@@ -40,3 +46,12 @@ export const EN2JA_LANGUAGE: Omit<LanguagePack, 'grammar' | 'scenarios'> = {
   /* Declared in src/styles/fonts.css, subset to the kana and kanji in use. */
   fontStack: "'Noto Sans JP'",
 };
+
+/**
+ * The library, resolved into a pack the drill can run on.
+ *
+ * Resolution happens once, here, at module load. A content mistake — an id
+ * naming a tile that is not in the registry — throws before the app renders
+ * anything, rather than surfacing as a broken drill later.
+ */
+export const EN2JA: DrillPack = resolveLibrary(EN2JA_CONTENT, EN2JA_LANGUAGE);

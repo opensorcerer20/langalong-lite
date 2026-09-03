@@ -1,4 +1,4 @@
-/* One tile — the only place a piece of the target language is drawn.
+/* One tile — the only place a piece of the new language is drawn.
 
    The same component serves both rows: a `bank` tile is surface with a rule and
    is tapped to place it, a `placed` tile is inverted ink-on-ground and is tapped

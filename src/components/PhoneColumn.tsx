@@ -13,7 +13,7 @@ import type { CSSProperties, ReactNode } from 'react';
 export interface PhoneColumnProps {
   readonly children: ReactNode;
   /**
-   * Font families for target-language text, from the language pack. Omitted,
+   * Font families for new-language text, from the language pack. Omitted,
    * the --font-target fallback in global.css stands.
    */
   readonly fontStack?: string;

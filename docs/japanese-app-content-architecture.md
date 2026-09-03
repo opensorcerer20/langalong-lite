@@ -12,7 +12,7 @@ Scenario: { id, name, library }   // library e.g. "en2ja" — which language the
 Tile: {
   id,
   scenarioIds,   // array — a tile is authored once, reusable across scenarios
-  l2,            // target-language text, e.g. "パン"
+  newLanguageText,            // new language text, e.g. "パン"
   reading,       // romaji, e.g. "pan" — deliberate choice for the en2ja direction
   type           // "noun" | "verb" | "particle" | ... — required
 }
@@ -20,7 +20,7 @@ Tile: {
 Exercise: {
   id,
   scenarioId,
-  promptText,             // L1 text, e.g. "One bread, please." — free text, not tile-based
+  promptText,             // native language text, e.g. "One bread, please." for English speakers — free text, not tile-based
   answerTileIds,          // ordered Tile ids — canonical answer
   alternateAnswerTileIds, // [[tileId,...], ...] — other valid tile sequences
   note,                   // optional teaching aside, shown on right/wrong
@@ -51,8 +51,8 @@ Your revised raw shape:
 
 This resolves essentially every open issue from the previous pass:
 
-- `tags.particles` now uses `を`, matching the tile's `l2` exactly — no more identifier mismatch. This also unlocks a genuinely useful validation step (see below).
-- Every tuple, including inside `alts`, now consistently carries `[l2, reading, type]` — no missing fields.
+- `tags.particles` now uses `を`, matching the tile's `newLanguage` exactly — no more identifier mismatch. This also unlocks a genuinely useful validation step (see below).
+- Every tuple, including inside `alts`, now consistently carries `[newLanguage, reading, type]` — no missing fields.
 - `alts` is now an array of tuple-arrays, so a second alternate phrasing can be added later without changing shape.
 - `scenario` is explicit on the entry rather than inferred purely from filename — the filename becomes a sanity check, not the source of truth.
 - Reading is romaji, deliberately, for the en2ja direction.
@@ -61,14 +61,14 @@ This resolves essentially every open issue from the previous pass:
 **Import transform, finalized:**
 
 1. **`question`** → `Exercise.promptText`, stored verbatim.
-2. **`answer`** → for each `[l2, reading, type]` tuple: look up an existing `Tile` matching `(l2, type)`. Reuse if found (append this scenario to its `scenarioIds` if not already present); create if not. Collect resulting IDs, in order, as `answerTileIds`. `type` is now required — reject an entry missing it, rather than treating it as nullable.
+2. **`answer`** → for each `[newLanguage, reading, type]` tuple: look up an existing `Tile` matching `(newLanguage, type)`. Reuse if found (append this scenario to its `scenarioIds` if not already present); create if not. Collect resulting IDs, in order, as `answerTileIds`. `type` is now required — reject an entry missing it, rather than treating it as nullable.
 3. **`alts`** → same resolution per tuple-array, producing one entry per alternate in `alternateAnswerTileIds`.
 4. **`note`** → stored verbatim on `Exercise`.
-5. **`tags`** → flatten `{ particles: [...], conjugations: [...] }` into prefixed strings (`["particle:を"]`). Because tag values now match tile `l2` exactly, add a validation step: every tagged particle/conjugation value should appear among the `l2` values of tiles in `answer` — catches typos or stale tags at import time instead of silently.
+5. **`tags`** → flatten `{ particles: [...], conjugations: [...] }` into prefixed strings (`["particle:を"]`). Because tag values now match tile `newLanguage` exactly, add a validation step: every tagged particle/conjugation value should appear among the `newLanguage` values of tiles in `answer` — catches typos or stale tags at import time instead of silently.
 6. **`scenario`** → resolve to a `Scenario` row (create if new). The `scenario` field is the sole source of truth — files are no longer named after scenarios, so there's no filename to cross-check against.
 7. **`library`** (from folder, e.g. `en2ja`) → stored on the `Scenario` record, not per-exercise, since direction is a course-level setting rather than a per-item fact.
 
-**Dedup/reuse edge case, unchanged from before:** matching tiles on `(l2, type)` will only merge two tiles if both fields agree exactly — worth a periodic lint (list tiles with identical `l2` but different `type`) once you have enough content for accidental near-duplicates to matter. Not a concern at current scale.
+**Dedup/reuse edge case, unchanged from before:** matching tiles on `(newLanguage, type)` will only merge two tiles if both fields agree exactly — worth a periodic lint (list tiles with identical `newLanguage` but different `type`) once you have enough content for accidental near-duplicates to matter. Not a concern at current scale.
 
 ---
 
