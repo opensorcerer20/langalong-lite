@@ -68,9 +68,13 @@ export interface StoredTile {
   /** `type:l2`. See TileId. */
   readonly id: TileId;
   /**
-   * Every situation this tile belongs to, for drawing that situation's
-   * distractors. Empty means the shared grammar pool: a tile every situation
-   * draws on, belonging to none of them.
+   * Every situation whose content uses this tile — in one of its exercises, or
+   * in its vocabulary list. A record of where the tile is in play, nothing
+   * more: what a situation offers as distractors is StoredScenario.vocab, so
+   * adding a scenario here never changes what the learner sees.
+   *
+   * Empty means no situation uses it yet, which is ordinary for a grammar-pool
+   * tile like と that is a distractor and nothing else.
    */
   readonly scenarioIds: readonly ScenarioId[];
   /** The target-language text as it appears on the tile, e.g. パン. */
@@ -144,4 +148,14 @@ export interface ContentStore {
   /** Every tile in the library, including the shared grammar pool. */
   readonly tiles: readonly StoredTile[];
   readonly exercises: readonly StoredExercise[];
+  /**
+   * The shared distractor pool: the particles, endings and function words every
+   * situation draws on, on top of its own vocabulary.
+   *
+   * A list of its own rather than "the tiles with no scenarioIds", because most
+   * grammar tiles are also used by an exercise somewhere — を is in the pool
+   * *and* in half the bakery answers — so membership cannot be inferred from
+   * whether the tile happens to be in play anywhere.
+   */
+  readonly grammarTileIds: readonly TileId[];
 }
