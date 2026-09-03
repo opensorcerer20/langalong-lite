@@ -19,7 +19,6 @@ const bankFor = (index: number) =>
     index,
     { grammar: LANGUAGE.grammar, words: BAKERY.words },
     TILE_MULTIPLIER,
-    LANGUAGE.joiner,
   );
 
 /** The tile bank as rendered — the hidden used tiles included. */
@@ -51,7 +50,7 @@ describe('App', () => {
     render(<App />);
     await user.click(screen.getByText('Bakery'));
 
-    expect(screen.getByRole('heading')).toHaveTextContent(BAKERY.items[0]!.en);
+    expect(screen.getByRole('heading')).toHaveTextContent(BAKERY.items[0]!.promptText);
     expect(screen.getByText(/item 1 of 10/)).toBeInTheDocument();
     expect(screen.getByText('Bakery · 01')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /all/i })).toBeInTheDocument();
@@ -155,7 +154,7 @@ describe('App', () => {
     await user.click(primary());
     await user.click(primary());
 
-    expect(screen.getByRole('heading')).toHaveTextContent(BAKERY.items[1]!.en);
+    expect(screen.getByRole('heading')).toHaveTextContent(BAKERY.items[1]!.promptText);
     expect(screen.getByText(/item 2 of 10/)).toBeInTheDocument();
     expect(container.querySelectorAll('[data-variant="placed"]')).toHaveLength(0);
     expect(screen.getByRole('status')).toHaveTextContent('');
@@ -203,7 +202,7 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: /practise this set again/i }));
 
     expect(screen.getByText(/item 1 of 10/)).toBeInTheDocument();
-    expect(screen.getByRole('heading')).toHaveTextContent(BAKERY.items[0]!.en);
+    expect(screen.getByRole('heading')).toHaveTextContent(BAKERY.items[0]!.promptText);
   });
 
   it('goes back to the situations and into the other set', async () => {
@@ -216,7 +215,7 @@ describe('App', () => {
 
     await user.click(screen.getByText('Train station'));
     expect(screen.getByText('Train station · 02')).toBeInTheDocument();
-    expect(screen.getByRole('heading')).toHaveTextContent(LANGUAGE.scenarios[1]!.items[0]!.en);
+    expect(screen.getByRole('heading')).toHaveTextContent(LANGUAGE.scenarios[1]!.items[0]!.promptText);
     expect(screen.getByText(/item 1 of 8/)).toBeInTheDocument();
   });
 
@@ -240,7 +239,7 @@ describe('App', () => {
     render(<App />);
     await user.click(screen.getByText('Bakery'));
 
-    const needed = BAKERY.items[0]!.ans.length;
+    const needed = BAKERY.items[0]!.answer.length;
     expect(bankTiles().length).toBeGreaterThan(needed * 2);
   });
 
@@ -250,7 +249,7 @@ describe('App', () => {
     await user.click(screen.getByText('Bakery'));
 
     const tile = bankTiles()[0]!;
-    const [kana] = bankFor(0)[0]!;
+    const { newLanguageText: kana } = bankFor(0)[0]!;
     expect(within(tile).getByText(kana)).toBeInTheDocument();
     expect(tile.textContent).not.toBe(kana);
   });

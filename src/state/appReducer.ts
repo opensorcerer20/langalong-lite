@@ -6,7 +6,7 @@
    rules readable on their own and testable without loading a single sentence,
    and it is why useTsumiki, not this file, is the place data meets state. */
 
-import type { SentenceItem, Tile } from '../data/types';
+import type { DrillItem, Tile } from '../data/drill';
 import { buildString, isCorrect } from '../lib/checkAnswer';
 import { revealIndices } from '../lib/revealPlacement';
 
@@ -57,8 +57,8 @@ export type AppAction =
   /* `joiner` rides along for the same reason `item` and `bank` do: judging the
      answer means joining tiles into a string, and how they join is the
      language's business. `reveal` works on tiles alone and so needs none. */
-  | { type: 'check'; item: SentenceItem; bank: readonly Tile[]; joiner: string }
-  | { type: 'reveal'; item: SentenceItem; bank: readonly Tile[] }
+  | { type: 'check'; item: DrillItem; bank: readonly Tile[]; joiner: string }
+  | { type: 'reveal'; item: DrillItem; bank: readonly Tile[] }
   | { type: 'next'; itemCount: number }
   | { type: 'restart' };
 

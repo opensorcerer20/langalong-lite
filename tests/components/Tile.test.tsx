@@ -3,9 +3,9 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { Tile } from '../../src/components/Tile';
-import type { Tile as TileData } from '../../src/data/types';
+import { tile } from '../helpers/fixtures';
 
-const PAN: TileData = ['パン', 'pan'];
+const PAN = tile('パン', 'pan');
 
 describe('Tile', () => {
   it('shows the kana and its romaji', () => {

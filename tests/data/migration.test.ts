@@ -13,15 +13,33 @@ import { describe, expect, it } from 'vitest';
 import { TILE_MULTIPLIER } from '../../src/config';
 import { EN2JA } from '../../src/data/en2ja';
 import { JA } from '../../src/data/ja';
-import type { DrillItem } from '../../src/data/drill';
+import type { DrillItem, Tile } from '../../src/data/drill';
 import type { SentenceItem, Tile as TupleTile } from '../../src/data/types';
 import { buildBank } from '../../src/lib/buildBank';
+import { segmentLongestFirst } from '../../src/lib/segment';
 
 /** The new pack's tiles as the old pack wrote them, so the two can be compared. */
-const asTuples = (tiles: readonly { newLanguageText: string; reading: string }[]): TupleTile[] =>
+const asTuples = (tiles: readonly Tile[]): TupleTile[] =>
   tiles.map((tile) => [tile.newLanguageText, tile.reading]);
 
-const texts = (tiles: readonly TupleTile[]) => tiles.map(([text]) => text);
+/**
+ * The old pack's tuples as the new pack's objects, so buildBank — which now
+ * takes only the new shape — can be run over both.
+ *
+ * The synthesised id is the tile's text. The real registry keys on
+ * `type:text`, but no two tiles in this content share a text, so keying on
+ * text alone partitions the tiles identically — and it is exactly the key the
+ * old buildBank deduplicated on, which is the behaviour being compared.
+ */
+const asTiles = (tuples: readonly TupleTile[]): Tile[] =>
+  tuples.map(([text, reading]) => ({
+    id: text,
+    newLanguageText: text,
+    reading,
+    type: 'noun' as const,
+  }));
+
+const texts = (tiles: readonly Tile[]) => tiles.map((tile) => tile.newLanguageText);
 
 describe('the en2ja pack reproduces the ja pack', () => {
   it('declares the same language facts', () => {
@@ -93,33 +111,41 @@ describe.each(PAIRS)('$name', ({ fresh, old }) => {
   it('builds an identical tile bank for every item', () => {
     fresh.items.forEach((item, index) => {
       const freshBank = buildBank(
-        toOldShape(item),
+        item,
         index,
-        { grammar: asTuples(EN2JA.grammar), words: asTuples(fresh.words) },
+        { grammar: EN2JA.grammar, words: fresh.words },
         TILE_MULTIPLIER,
-        EN2JA.joiner,
       );
       const oldBank = buildBank(
-        old.items[index]!,
+        toDrillItem(old.items[index]!, old),
         index,
-        { grammar: JA.grammar, words: old.words },
+        { grammar: asTiles(JA.grammar), words: asTiles(old.words) },
         TILE_MULTIPLIER,
-        JA.joiner,
       );
       expect(texts(freshBank), item.promptText).toEqual(texts(oldBank));
     });
   });
 });
 
-/** A drill item written the way the current buildBank still expects to read it. */
-function toOldShape(item: DrillItem): SentenceItem {
-  const alts = item.alternates.map((alternate) =>
-    alternate.map((tile) => tile.newLanguageText).join(EN2JA.joiner),
-  );
+/**
+ * An old-pack item in the new shape, so both can go through the same buildBank.
+ *
+ * The old `alts` are written-out strings, so recovering their tiles means
+ * segmenting them against the vocabulary in play — the very step the new
+ * format removes, and the reason this function exists only in this file.
+ */
+function toDrillItem(item: SentenceItem, scenario: { words: readonly TupleTile[] }): DrillItem {
+  const vocab = [...item.ans, ...JA.grammar, ...scenario.words];
   return {
-    en: item.promptText,
-    ans: asTuples(item.answer),
+    id: 'old',
+    promptText: item.en,
+    answer: asTiles(item.ans),
+    alternates: (item.alts ?? []).map((alt) => {
+      const { tiles, rest } = segmentLongestFirst(alt, vocab, JA.joiner);
+      expect(rest, `"${alt}" left "${rest}" unsegmented`).toBe('');
+      return asTiles(tiles);
+    }),
     note: item.note,
-    ...(alts.length > 0 ? { alts } : {}),
+    tags: [],
   };
 }

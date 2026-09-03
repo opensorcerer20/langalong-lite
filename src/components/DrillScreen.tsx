@@ -22,12 +22,12 @@ export function DrillScreen({ tsumiki }: DrillScreenProps) {
 
   return (
     <section {...stylex.props(shared.screen)}>
-      <PromptBand prompt={item.en} language={language.name} index={state.item} total={total} />
+      <PromptBand prompt={item.promptText} language={language.name} index={state.item} total={total} />
 
       <AnswerLine
         bank={bank}
         placed={state.placed}
-        length={item.ans.length}
+        length={item.answer.length}
         showReading={SHOW_READING}
         locked={done}
         onRemove={tsumiki.untap}

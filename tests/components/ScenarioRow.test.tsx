@@ -3,21 +3,17 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { ScenarioRow } from '../../src/components/ScenarioRow';
-import type { Scenario, SentenceItem } from '../../src/data/types';
+import { drillItem, drillScenario, tile } from '../helpers/fixtures';
 
-const item = (en: string): SentenceItem => ({
-  en,
-  ans: [['パン', 'pan']],
-  note: 'A note.',
-});
+const item = (promptText: string) => drillItem({ promptText, answer: [tile('パン', 'pan')] });
 
-const BAKERY: Scenario = {
+const BAKERY = drillScenario({
+  id: 'bakery',
   name: 'Bakery',
-  kicker: 'Set 01',
   blurb: 'Asking for items, counting them, paying at the counter.',
   items: [item('One bread, please.'), item('How much is this?')],
-  words: [['パン', 'pan']],
-};
+  words: [tile('パン', 'pan')],
+});
 
 describe('ScenarioRow', () => {
   it('shows the set number, name and blurb', () => {
@@ -33,7 +29,7 @@ describe('ScenarioRow', () => {
   });
 
   it('does not say "1 sentences"', () => {
-    const single: Scenario = { ...BAKERY, items: [item('One bread, please.')] };
+    const single = { ...BAKERY, items: [item('One bread, please.')] };
     render(<ScenarioRow scenario={single} onOpen={() => {}} />);
     expect(screen.getByText('1 sentence')).toBeInTheDocument();
   });

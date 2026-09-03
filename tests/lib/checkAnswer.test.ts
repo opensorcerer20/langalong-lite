@@ -1,21 +1,24 @@
 import { describe, expect, it } from 'vitest';
 
-import type { SentenceItem, Tile } from '../../src/data/types';
+import type { Tile } from '../../src/data/drill';
 import { acceptedAnswers, buildString, isCorrect } from '../../src/lib/checkAnswer';
+import { drillItem, tile } from '../helpers/fixtures';
 
 const BANK: readonly Tile[] = [
-  ['ください', 'kudasai'],
-  ['パン', 'pan'],
-  ['を', 'o'],
-  ['お願いします', 'onegaishimasu'],
+  tile('ください', 'kudasai', 'verb'),
+  tile('パン', 'pan'),
+  tile('を', 'o', 'particle'),
+  tile('お願いします', 'onegaishimasu', 'verb'),
 ];
 
-const ITEM: SentenceItem = {
-  en: 'One bread, please.',
-  ans: [['パン', 'pan'], ['を', 'o'], ['ください', 'kudasai']],
-  alts: ['パンをお願いします'],
+const ITEM = drillItem({
+  promptText: 'One bread, please.',
+  answer: [tile('パン', 'pan'), tile('を', 'o', 'particle'), tile('ください', 'kudasai', 'verb')],
+  alternates: [
+    [tile('パン', 'pan'), tile('を', 'o', 'particle'), tile('お願いします', 'onegaishimasu', 'verb')],
+  ],
   note: 'を marks the direct object.',
-};
+});
 
 /* The fixture is Japanese, which is written without spaces. A space-separated
    language is exercised in the SPACED block at the foot of the file. */
@@ -45,7 +48,7 @@ describe('acceptedAnswers', () => {
   });
 
   it('is just the canonical answer when there are no alternates', () => {
-    const noAlts: SentenceItem = { en: ITEM.en, ans: ITEM.ans, note: ITEM.note };
+    const noAlts = drillItem({ ...ITEM, alternates: [] });
     expect(acceptedAnswers(noAlts, JOINER)).toEqual(['パンをください']);
   });
 });
@@ -82,17 +85,17 @@ describe('isCorrect', () => {
    non-empty joiner has. It is what a Spanish or French pack would rely on. */
 describe('a space-separated language', () => {
   const SPACED_BANK: readonly Tile[] = [
-    ['pan', 'pan'],
-    ['un', 'un'],
-    ['por favor', 'por favor'],
+    tile('pan', 'pan'),
+    tile('un', 'un'),
+    tile('por favor', 'por favor'),
   ];
 
-  const SPACED_ITEM: SentenceItem = {
-    en: 'One bread, please.',
-    ans: [['un', 'un'], ['pan', 'pan'], ['por favor', 'por favor']],
-    alts: ['un pan'],
+  const SPACED_ITEM = drillItem({
+    promptText: 'One bread, please.',
+    answer: [tile('un', 'un'), tile('pan', 'pan'), tile('por favor', 'por favor')],
+    alternates: [[tile('un', 'un'), tile('pan', 'pan')]],
     note: 'Placeholder.',
-  };
+  });
 
   it('joins the placed tiles with the separator', () => {
     expect(buildString(SPACED_BANK, [1, 0, 2], ' ')).toBe('un pan por favor');

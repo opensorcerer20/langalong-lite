@@ -9,8 +9,9 @@
 
 import { describe, expect, it } from 'vitest';
 
+import { TILE_MULTIPLIER } from '../../src/config';
 import { LANGUAGES } from '../../src/data/languages';
-import { segmentLongestFirst } from '../../src/lib/segment';
+import { buildBank } from '../../src/lib/buildBank';
 
 describe('LANGUAGES', () => {
   it('ships at least one pack — the app has nothing to drill otherwise', () => {
@@ -36,8 +37,8 @@ describe.each(LANGUAGES)('$name', (language) => {
   });
 
   it('holds no duplicate in the grammar pool — a repeat wastes a distractor slot', () => {
-    const texts = language.grammar.map((t) => t[0]);
-    expect(new Set(texts).size).toBe(texts.length);
+    const ids = language.grammar.map((t) => t.id);
+    expect(new Set(ids).size).toBe(ids.length);
   });
 
   describe.each(language.scenarios)('$name', (scenario) => {
@@ -46,10 +47,10 @@ describe.each(LANGUAGES)('$name', (language) => {
       expect(scenario.words.length).toBeGreaterThan(0);
     });
 
-    describe.each(scenario.items)('$en', (item) => {
-      it('has an English prompt and at least two tiles', () => {
-        expect(item.en).not.toBe('');
-        expect(item.ans.length).toBeGreaterThanOrEqual(2);
+    describe.each(scenario.items)('$promptText', (item) => {
+      it('has a native-language prompt and at least two tiles', () => {
+        expect(item.promptText).not.toBe('');
+        expect(item.answer.length).toBeGreaterThanOrEqual(2);
       });
 
       it('has a grammar note — it is what the learner sees after a second miss', () => {
@@ -57,28 +58,39 @@ describe.each(LANGUAGES)('$name', (language) => {
       });
 
       it('has a text and a reading on every tile', () => {
-        for (const tile of item.ans) {
-          expect(tile).toHaveLength(2);
-          expect(tile[0].trim()).not.toBe('');
-          expect(tile[1].trim()).not.toBe('');
+        for (const tile of item.answer) {
+          expect(tile.newLanguageText.trim()).not.toBe('');
+          expect(tile.reading.trim()).not.toBe('');
         }
       });
 
-      /* The one that matters most. An alternate the vocabulary cannot spell
-         would be accepted by check() but impossible to build from the bank —
-         the drill would look broken with no way to tell why. */
-      it('can build every alternate from tiles in play', () => {
-        const vocab = [...item.ans, ...language.grammar, ...scenario.words];
-        for (const alt of item.alts ?? []) {
-          const { tiles, rest } = segmentLongestFirst(alt, vocab, language.joiner);
-          expect(rest, `"${alt}" left "${rest}" unsegmented`).toBe('');
-          expect(tiles.map((t) => t[0]).join(language.joiner)).toBe(alt);
+      /* The one that matters most. An accepted answer the bank cannot build
+         would be judged correct by check() but impossible to assemble — the
+         drill would look broken with no way to tell why. buildBank seeds an
+         alternate's tiles precisely so this holds; the test is what proves it
+         still does. */
+      it('can build every alternate from the bank it is offered', () => {
+        const bank = buildBank(
+          item,
+          0,
+          { grammar: language.grammar, words: scenario.words },
+          TILE_MULTIPLIER,
+        );
+        const available = new Set(bank.map((t) => t.id));
+        for (const alternate of item.alternates) {
+          expect(alternate.length, 'an alternate with no tiles is never buildable')
+            .toBeGreaterThan(0);
+          for (const tile of alternate) {
+            expect(available, `${tile.id} is missing from the bank`).toContain(tile.id);
+          }
         }
       });
 
       it('does not list an alternate identical to the canonical answer', () => {
-        const canonical = item.ans.map((t) => t[0]).join(language.joiner);
-        expect(item.alts ?? []).not.toContain(canonical);
+        const sentence = (tiles: readonly { newLanguageText: string }[]) =>
+          tiles.map((t) => t.newLanguageText).join(language.joiner);
+        const canonical = sentence(item.answer);
+        expect(item.alternates.map(sentence)).not.toContain(canonical);
       });
     });
   });

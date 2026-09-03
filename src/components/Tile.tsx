@@ -14,7 +14,7 @@
 
 import * as stylex from '@stylexjs/stylex';
 
-import type { Tile as TileData } from '../data/types';
+import type { Tile as TileData } from '../data/drill';
 
 export interface TileProps {
   readonly tile: TileData;
@@ -40,7 +40,7 @@ export function Tile({
   disabled = false,
   onClick,
 }: TileProps) {
-  const [text, reading] = tile;
+  const { newLanguageText, reading } = tile;
   const isBank = variant === 'bank';
 
   return (
@@ -57,7 +57,7 @@ export function Tile({
       disabled={disabled}
       onClick={onClick}
     >
-      <span {...stylex.props(s.text)}>{text}</span>
+      <span {...stylex.props(s.text)}>{newLanguageText}</span>
       {showReading && (
         <span {...stylex.props(s.reading, isBank ? s.readingBank : s.readingPlaced)}>{reading}</span>
       )}

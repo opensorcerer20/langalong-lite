@@ -3,15 +3,16 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { ScenarioList } from '../../src/components/ScenarioList';
-import type { Scenario } from '../../src/data/types';
+import { drillItem, drillScenario, tile } from '../helpers/fixtures';
 
-const scenario = (name: string, kicker: string): Scenario => ({
-  name,
-  kicker,
-  blurb: `About ${name}.`,
-  items: [{ en: 'One bread, please.', ans: [['パン', 'pan']], note: 'A note.' }],
-  words: [['パン', 'pan']],
-});
+const scenario = (name: string, kicker: string) =>
+  drillScenario({
+    name,
+    kicker,
+    blurb: `About ${name}.`,
+    items: [drillItem({ promptText: 'One bread, please.', answer: [tile('パン', 'pan')] })],
+    words: [tile('パン', 'pan')],
+  });
 
 const SCENARIOS = [scenario('Bakery', 'Set 01'), scenario('Train station', 'Set 02')];
 

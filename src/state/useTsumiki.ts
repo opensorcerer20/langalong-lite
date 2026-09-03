@@ -17,7 +17,7 @@ import { useCallback, useMemo, useReducer } from 'react';
 
 import { NOTE_AFTER_MISSES, REVEAL_AFTER_MISSES, TILE_MULTIPLIER } from '../config';
 import { LANGUAGE } from '../data/languages';
-import type { LanguagePack, Scenario, SentenceItem, Tile } from '../data/types';
+import type { DrillItem, DrillPack, DrillScenario, Tile } from '../data/drill';
 import { buildBank } from '../lib/buildBank';
 import { appReducer, initialState, isDone } from './appReducer';
 import type { AppState } from './appReducer';
@@ -25,13 +25,13 @@ import type { AppState } from './appReducer';
 export interface Tsumiki {
   readonly state: AppState;
   /** The language being drilled. Components read its name and font from here. */
-  readonly language: LanguagePack;
+  readonly language: DrillPack;
   /** Every situation, for the home screen. */
-  readonly scenarios: readonly Scenario[];
+  readonly scenarios: readonly DrillScenario[];
   /** The situation currently open. */
-  readonly scenario: Scenario;
+  readonly scenario: DrillScenario;
   /** The item currently being drilled. */
-  readonly item: SentenceItem;
+  readonly item: DrillItem;
   /** The item's tile bank. Stable for as long as the item is. */
   readonly bank: readonly Tile[];
   /** Items in the current set. */
@@ -85,7 +85,6 @@ export function useTsumiki(): Tsumiki {
         state.item,
         { grammar: LANGUAGE.grammar, words: scenario.words },
         TILE_MULTIPLIER,
-        LANGUAGE.joiner,
       ),
     [item, state.item, scenario.words],
   );

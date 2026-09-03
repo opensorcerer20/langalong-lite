@@ -62,9 +62,9 @@ describe('useTsumiki', () => {
 
   it('holds every tile the current answer needs', () => {
     const { result } = open();
-    const texts = result.current.bank.map((t) => t[0]);
-    for (const tile of result.current.item.ans) {
-      expect(texts).toContain(tile[0]);
+    const texts = result.current.bank.map((t) => t.newLanguageText);
+    for (const answerTile of result.current.item.answer) {
+      expect(texts).toContain(answerTile.newLanguageText);
     }
   });
 
@@ -80,8 +80,8 @@ describe('useTsumiki', () => {
     const view = open();
     act(() => view.result.current.reveal());
     const { bank, state, item } = view.result.current;
-    expect(state.placed.map((i) => bank[i]?.[0]).join('')).toBe(
-      item.ans.map((t) => t[0]).join(''),
+    expect(state.placed.map((i) => bank[i]?.newLanguageText).join('')).toBe(
+      item.answer.map((t) => t.newLanguageText).join(''),
     );
   });
 
