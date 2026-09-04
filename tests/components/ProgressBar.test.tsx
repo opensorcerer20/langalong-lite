@@ -1,5 +1,13 @@
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import {
+  describe,
+  expect,
+  it,
+} from 'vitest';
+
+import {
+  render,
+  screen,
+} from '@testing-library/react';
 
 import { ProgressBar } from '../../src/components/ProgressBar';
 
@@ -16,14 +24,15 @@ describe('ProgressBar', () => {
     expect(bar()).toHaveAttribute('aria-valuenow', '33');
   });
 
-  /* The ends of the range, and past them: a value outside 0–1 is clamped rather
-     than allowed to overflow the rule. */
-  it('reads empty and full at the ends, and clamps beyond them', () => {
+  it('reads empty at the start and full at the end', () => {
     const { rerender } = render(<ProgressBar value={0} />);
     expect(bar()).toHaveAttribute('aria-valuenow', '0');
     rerender(<ProgressBar value={1} />);
     expect(bar()).toHaveAttribute('aria-valuenow', '100');
-    rerender(<ProgressBar value={1.8} />);
+  });
+
+  it('clamps a value outside 0–1 rather than overflowing the rule', () => {
+    const { rerender } = render(<ProgressBar value={1.8} />);
     expect(bar()).toHaveAttribute('aria-valuenow', '100');
     rerender(<ProgressBar value={-0.4} />);
     expect(bar()).toHaveAttribute('aria-valuenow', '0');

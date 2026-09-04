@@ -1,25 +1,37 @@
-import { render, screen } from '@testing-library/react';
+import {
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
+
+import {
+  render,
+  screen,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
 
 import { ScenarioList } from '../../src/components/ScenarioList';
-import type { Scenario } from '../../src/data/types';
+import {
+  drillItem,
+  drillScenario,
+  tile,
+} from '../helpers/fixtures';
 
-const scenario = (name: string, kicker: string): Scenario => ({
-  id: name.toLowerCase().replace(/\W+/g, '-'),
-  name,
-  kicker,
-  blurb: `About ${name}.`,
-  items: [{ id: '01', en: 'One bread, please.', ans: [['パン', 'pan']], note: 'A note.', tags: { particles: [], conjugations: [] } }],
-  words: [['パン', 'pan']],
-});
+const scenario = (name: string, kicker: string) =>
+  drillScenario({
+    name,
+    kicker,
+    blurb: `About ${name}.`,
+    items: [drillItem({ promptText: 'One bread, please.', answer: [tile('パン', 'pan')] })],
+    words: [tile('パン', 'pan')],
+  });
 
 const SCENARIOS = [scenario('Bakery', 'Set 01'), scenario('Train station', 'Set 02')];
 
 describe('ScenarioList', () => {
-  it('is a navigation landmark listing every scenario in order', () => {
+  it('lists every scenario in order', () => {
     render(<ScenarioList scenarios={SCENARIOS} onOpen={() => {}} />);
-    expect(screen.getByRole('navigation', { name: /situations/i })).toBeInTheDocument();
     const rows = screen.getAllByRole('button');
     expect(rows).toHaveLength(2);
     expect(rows[0]).toHaveTextContent('Bakery');
@@ -34,4 +46,13 @@ describe('ScenarioList', () => {
     expect(onOpen).toHaveBeenCalledWith(1);
   });
 
+  it('is a navigation landmark', () => {
+    render(<ScenarioList scenarios={SCENARIOS} onOpen={() => {}} />);
+    expect(screen.getByRole('navigation', { name: /situations/i })).toBeInTheDocument();
+  });
+
+  it('renders nothing when there are no scenarios', () => {
+    render(<ScenarioList scenarios={[]} onOpen={() => {}} />);
+    expect(screen.queryAllByRole('button')).toHaveLength(0);
+  });
 });

@@ -1,15 +1,25 @@
-import { render, screen } from '@testing-library/react';
+import {
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
+
+import {
+  render,
+  screen,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
 
 import { AnswerLine } from '../../src/components/AnswerLine';
-import type { Tile } from '../../src/data/types';
+import type { Tile } from '../../src/data/drill';
+import { tile } from '../helpers/fixtures';
 
 const BANK: readonly Tile[] = [
-  ['ください', 'kudasai'],
-  ['は', 'wa'],
-  ['パン', 'pan'],
-  ['を', 'o'],
+  tile('ください', 'kudasai', 'verb'),
+  tile('は', 'wa', 'particle'),
+  tile('パン', 'pan'),
+  tile('を', 'o', 'particle'),
 ];
 
 const line = (placed: number[], props: Partial<Parameters<typeof AnswerLine>[0]> = {}) =>
@@ -30,18 +40,14 @@ describe('AnswerLine', () => {
     expect(container.querySelectorAll('[data-slot]')).toHaveLength(2);
   });
 
-  /* Full, and past full. Note that only the first half of this can fail: with
-     more placed than the sentence needs, `remaining` goes negative, and
-     Array.from({ length: -1 }) is already [] — so the Math.max(0, …) guard in
-     AnswerLine is unobservable from here and the overfull case documents the
-     intent rather than defending it. Kept for that reason, not mistaken for
-     coverage. */
-  it('shows no slots once the line is full, however many are placed', () => {
-    const { container: full } = line([2, 3, 0]);
-    expect(full.querySelectorAll('[data-slot]')).toHaveLength(0);
+  it('shows no slots once the line is full', () => {
+    const { container } = line([2, 3, 0]);
+    expect(container.querySelectorAll('[data-slot]')).toHaveLength(0);
+  });
 
-    const { container: overfull } = line([2, 3, 0, 1]);
-    expect(overfull.querySelectorAll('[data-slot]')).toHaveLength(0);
+  it('does not show negative slots when more tiles are placed than needed', () => {
+    const { container } = line([2, 3, 0, 1]);
+    expect(container.querySelectorAll('[data-slot]')).toHaveLength(0);
   });
 
   it('removes a tile by its position on the line, not its bank index', async () => {

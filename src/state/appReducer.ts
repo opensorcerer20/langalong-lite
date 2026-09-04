@@ -1,16 +1,20 @@
 /* The whole of the app's behaviour, as one pure function.
 
-   This file imports nothing at all, which is the strongest form of the rule it
-   was already following. Where a transition needs to know what the answer is —
-   `check` and `reveal` — the caller puts the *verdict* in the action rather
-   than the material to reach one: `check` carries whether the answer was right,
-   `reveal` carries the positions to fill. Judging is useTsumiki's job, where
-   the content and the language's joiner already are.
+   This file deliberately imports no language content. Where a transition needs
+   to know what the answer is — `check` and `reveal` — the caller puts the item,
+   the tile bank and the language's joiner in the action itself. That keeps the
+   rules readable on their own and testable without loading a single sentence,
+   and it is why useTsumiki, not this file, is the place data meets state. */
 
-   That split is what makes these rules exercise-agnostic. Nothing below knows
-   what a sentence is, so the miss ladder, the first-try score and advancing
-   through a set work identically for a vocabulary cloze or a conjugation drill
-   — the pieces that differ are the ones that were never in here. */
+import type {
+  DrillItem,
+  Tile,
+} from '../data/drill';
+import {
+  buildString,
+  isCorrect,
+} from '../lib/checkAnswer';
+import { revealIndices } from '../lib/revealPlacement';
 
 /** Which screen is showing. */
 export type Screen = 'home' | 'drill';
@@ -56,15 +60,11 @@ export type AppAction =
   | { type: 'goHome' }
   | { type: 'tap'; bankIndex: number }
   | { type: 'untap'; position: number }
-  /* The verdict, not the evidence. useTsumiki already computed this to decide
-     what to record before dispatching — it had to, because a store write
-     cannot wait for a re-render — so passing it in removes a second, separate
-     judgement of the same answer rather than moving work around. */
-  | { type: 'check'; correct: boolean }
-  /* The bank positions that spell the answer, worked out by the caller. Which
-     positions those are depends on what kind of exercise this is; that the
-     line then locks does not. */
-  | { type: 'reveal'; placed: readonly number[] }
+  /* `joiner` rides along for the same reason `item` and `bank` do: judging the
+     answer means joining tiles into a string, and how they join is the
+     language's business. `reveal` works on tiles alone and so needs none. */
+  | { type: 'check'; item: DrillItem; bank: readonly Tile[]; joiner: string }
+  | { type: 'reveal'; item: DrillItem; bank: readonly Tile[] }
   | { type: 'next'; itemCount: number }
   | { type: 'restart' };
 
@@ -112,7 +112,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       if (isDone(state)) return state;
       if (state.placed.length === 0) return state;
 
-      if (action.correct) {
+      const built = buildString(action.bank, state.placed, action.joiner);
+      if (isCorrect(action.item, built, action.joiner)) {
         return {
           ...state,
           status: 'right',
@@ -133,7 +134,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       if (isDone(state)) return state;
       return {
         ...state,
-        placed: action.placed,
+        placed: revealIndices(action.item, action.bank),
         status: 'shown',
         /* No firstTry credit: revealing forfeits it. */
       };

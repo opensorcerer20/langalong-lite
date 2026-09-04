@@ -1,11 +1,20 @@
-import { render, screen } from '@testing-library/react';
+import {
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
+
+import {
+  render,
+  screen,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
 
 import { Tile } from '../../src/components/Tile';
-import type { Tile as TileData } from '../../src/data/types';
+import { tile } from '../helpers/fixtures';
 
-const PAN: TileData = ['パン', 'pan'];
+const PAN = tile('パン', 'pan');
 
 describe('Tile', () => {
   it('shows the kana and its romaji', () => {
@@ -59,12 +68,15 @@ describe('Tile', () => {
     expect(placed.querySelector('button')).toHaveAttribute('data-variant', 'placed');
   });
 
-  /* That the two variants also *look* different was asserted here by comparing
-     their class names, which is true of any two StyleX rules whether or not they
-     differ meaningfully — it would pass with both variants styled identically.
-     The appearance is a job for the emitted CSS, not for jsdom.
+  it('styles the two variants differently', () => {
+    const { container: bank } = render(<Tile tile={PAN} variant="bank" />);
+    const { container: placed } = render(<Tile tile={PAN} variant="placed" />);
+    expect(bank.querySelector('button')?.className).not.toBe(
+      placed.querySelector('button')?.className,
+    );
+  });
 
-     A settled tile must not light up under the cursor. That guard is the
+  /* A settled tile must not light up under the cursor. That guard is the
      `:hover:not(:disabled)` condition in Tile's stylesheet, which jsdom does not
      evaluate — so it is verified against the emitted CSS at build time, not
      here. What this file can assert is the behavioural half: a disabled tile

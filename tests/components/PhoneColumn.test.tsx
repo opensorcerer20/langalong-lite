@@ -1,11 +1,27 @@
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import {
+  describe,
+  expect,
+  it,
+} from 'vitest';
+
+import {
+  render,
+  screen,
+} from '@testing-library/react';
 
 import { PhoneColumn } from '../../src/components/PhoneColumn';
 
 describe('PhoneColumn', () => {
-  /* The ruled column inside a centring frame — two elements, not one. The
-     assertion that the children reach the page at all is the last line here. */
+  it('renders what it is given', () => {
+    render(
+      <PhoneColumn>
+        <p>Inside the column.</p>
+      </PhoneColumn>,
+    );
+    expect(screen.getByText('Inside the column.')).toBeInTheDocument();
+  });
+
+  /* The ruled column inside a centring frame — two elements, not one. */
   it('wraps its children in a column inside a frame', () => {
     const { container } = render(
       <PhoneColumn>
@@ -15,7 +31,6 @@ describe('PhoneColumn', () => {
     const frame = container.firstElementChild;
     expect(frame?.children).toHaveLength(1);
     expect(frame?.firstElementChild?.textContent).toBe('Inside the column.');
-    expect(screen.getByText('Inside the column.')).toBeInTheDocument();
   });
 
   /* How the language pack's font reaches Tile: StyleX values are static, so the
