@@ -2,10 +2,10 @@
 
 import * as stylex from '@stylexjs/stylex';
 
-import type { Scenario } from '../data/types';
+import type { DrillScenario } from '../data/drill';
 
 export interface ScenarioRowProps {
-  readonly scenario: Scenario;
+  readonly scenario: DrillScenario;
   readonly onOpen: () => void;
 }
 

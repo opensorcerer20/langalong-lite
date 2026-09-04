@@ -23,29 +23,55 @@
    It is also where the config dials are applied, so no component has to know
    what "two misses" means. */
 
-import { useCallback, useMemo, useReducer, useRef } from 'react';
+import {
+  useCallback,
+  useMemo,
+  useReducer,
+  useRef,
+} from 'react';
 
-import { NOTE_AFTER_MISSES, REVEAL_AFTER_MISSES, TILE_MULTIPLIER } from '../config';
-import type { LanguagePack, Scenario, SentenceItem, Tile } from '../data/types';
+import {
+  NOTE_AFTER_MISSES,
+  REVEAL_AFTER_MISSES,
+  TILE_MULTIPLIER,
+} from '../config';
+import type {
+  DrillItem,
+  DrillPack,
+  DrillScenario,
+  Tile,
+} from '../data/drill';
 import { buildBank } from '../lib/buildBank';
-import { buildString, isCorrect } from '../lib/checkAnswer';
-import { conjugationKey, itemKey, particleKey, tileKey } from '../lib/keys';
+import {
+  buildString,
+  isCorrect,
+} from '../lib/checkAnswer';
+import {
+  conjugationKey,
+  itemKey,
+  particleKey,
+  tileKey,
+} from '../lib/keys';
 import type { Outcome } from '../lib/progress';
 import { revealIndices } from '../lib/revealPlacement';
 import type { ProgressStore } from '../storage/types';
-import { appReducer, initialState, isDone } from './appReducer';
 import type { AppState } from './appReducer';
+import {
+  appReducer,
+  initialState,
+  isDone,
+} from './appReducer';
 
 export interface Tsumiki {
   readonly state: AppState;
   /** The language being drilled. Components read its name and font from here. */
-  readonly language: LanguagePack;
+  readonly language: DrillPack;
   /** Every situation, for the home screen. */
-  readonly scenarios: readonly Scenario[];
+  readonly scenarios: readonly DrillScenario[];
   /** The situation currently open. */
-  readonly scenario: Scenario;
+  readonly scenario: DrillScenario;
   /** The item currently being drilled. */
-  readonly item: SentenceItem;
+  readonly item: DrillItem;
   /** The item's tile bank. Stable for as long as the item is. */
   readonly bank: readonly Tile[];
   /** Items in the current set. */
@@ -114,7 +140,6 @@ export function useTsumiki(language: LanguagePack, progress?: ProgressStore): Ts
         state.item,
         { grammar: language.grammar, words: scenario.words },
         TILE_MULTIPLIER,
-        language.joiner,
       ),
     [item, state.item, scenario.words, language.grammar, language.joiner],
   );

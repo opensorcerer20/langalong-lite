@@ -7,18 +7,20 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { DrillScreen } from '../../src/components/DrillScreen';
-import type { LanguagePack, SentenceItem, Tile } from '../../src/data/types';
+import type { DrillPack, Tile } from '../../src/data/drill';
 import { initialState } from '../../src/state/appReducer';
 import type { AppState } from '../../src/state/appReducer';
 import type { Tsumiki } from '../../src/state/useTsumiki';
+import { drillItem, drillScenario, tile } from '../helpers/fixtures';
 
 const BANK: readonly Tile[] = [
-  ['ください', 'kudasai'],
-  ['は', 'wa'],
-  ['パン', 'pan'],
-  ['を', 'o'],
+  tile('ください', 'kudasai', 'verb'),
+  tile('は', 'wa', 'particle'),
+  tile('パン', 'pan'),
+  tile('を', 'o', 'particle'),
 ];
 
+<<<<<<< HEAD
 const ITEM: SentenceItem = {
   id: '01',
   en: 'One bread, please.',
@@ -28,17 +30,24 @@ const ITEM: SentenceItem = {
 };
 
 const SCENARIO = {
+=======
+const ITEM = drillItem({
+  promptText: 'One bread, please.',
+  answer: [tile('パン', 'pan'), tile('を', 'o', 'particle'), tile('ください', 'kudasai', 'verb')],
+  note: 'を marks the direct object.',
+});
+
+const SCENARIO = drillScenario({
+>>>>>>> rewrite-01
   id: 'bakery',
   name: 'Bakery',
-  kicker: 'Set 01',
   blurb: 'At the counter.',
   items: [ITEM],
-  words: [],
-};
+});
 
 /* A stand-in pack rather than the real one: this screen only reads the name and
    the joiner, and building them here keeps the test off the shipped content. */
-const LANGUAGE: LanguagePack = {
+const LANGUAGE: DrillPack = {
   code: 'ja',
   name: 'Japanese',
   joiner: '',

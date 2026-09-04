@@ -5,12 +5,44 @@
    score, advancing — and nothing about what makes an answer right, which is
    why these rules carry over unchanged to an exercise that is not a sentence. */
 
-import { describe, expect, it } from 'vitest';
+import {
+  describe,
+  expect,
+  it,
+} from 'vitest';
 
-import { appReducer, initialState, isDone } from '../../src/state/appReducer';
-import type { AppAction, AppState } from '../../src/state/appReducer';
+import type { Tile } from '../../src/data/drill';
+import type {
+  AppAction,
+  AppState,
+} from '../../src/state/appReducer';
+import {
+  appReducer,
+  initialState,
+  isDone,
+} from '../../src/state/appReducer';
+import {
+  drillItem,
+  tile,
+} from '../helpers/fixtures';
 
-/** Two runs of bank positions. Which tiles they are is not this file's business. */
+const BANK: readonly Tile[] = [
+  tile('ください', 'kudasai', 'verb'),
+  tile('は', 'wa', 'particle'),
+  tile('パン', 'pan'),
+  tile('を', 'o', 'particle'),
+];
+
+const ITEM = drillItem({
+  promptText: 'One bread, please.',
+  answer: [tile('パン', 'pan'), tile('を', 'o', 'particle'), tile('ください', 'kudasai', 'verb')],
+  alternates: [
+    [tile('パン', 'pan'), tile('を', 'o', 'particle'), tile('お願いします', 'onegaishimasu', 'verb')],
+  ],
+  note: 'を marks the direct object.',
+});
+
+/** パン + を + ください, in bank positions. */
 const RIGHT = [2, 3, 0];
 const WRONG = [2, 1, 0];
 
