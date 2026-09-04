@@ -5,13 +5,33 @@
    that cannot be completed. Driving them off LANGUAGES rather than off one
    language means a pack added later inherits the whole net for free.
 
-   Anything true only of Japanese belongs in ja.test.ts, not here. */
+   Anything true only of Japanese belongs in en2ja.test.ts, not here. */
 
 import { describe, expect, it } from 'vitest';
 
 import { TILE_MULTIPLIER } from '../../src/config';
+import type { DrillPack, Tile } from '../../src/data/drill';
 import { LANGUAGES } from '../../src/data/languages';
 import { buildBank } from '../../src/lib/buildBank';
+
+/**
+ * Every tile a pack can put in front of a learner, from all four places one
+ * can reach the drill:
+ *
+ *   pack.grammar[]                       shared distractor pool
+ *   scenario.words[]                     per-situation distractors
+ *   item.answer[]                        canonical answers
+ *   item.alternates[][]                  accepted alternates
+ */
+function everyTile(language: DrillPack): Tile[] {
+  return [
+    ...language.grammar,
+    ...language.scenarios.flatMap((scenario) => [
+      ...scenario.words,
+      ...scenario.items.flatMap((item) => [...item.answer, ...item.alternates.flat()]),
+    ]),
+  ];
+}
 
 describe('LANGUAGES', () => {
   it('ships at least one pack — the app has nothing to drill otherwise', () => {
@@ -39,6 +59,48 @@ describe.each(LANGUAGES)('$name', (language) => {
   it('holds no duplicate in the grammar pool — a repeat wastes a distractor slot', () => {
     const ids = language.grammar.map((t) => t.id);
     expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  /* The three checks below are the tile registry's own integrity, seen from
+     the resolved side. They matter because a tile's id is what buildBank
+     deduplicates on and what revealPlacement matches on — so an id that does
+     not say what the tile is, or two tiles that look alike but are not, break
+     the drill in ways no other test would notice. */
+
+  it('gives every tile an id that matches its own type and text', () => {
+    for (const tile of everyTile(language)) {
+      expect(tile.id, `${tile.newLanguageText} carries an id that is not its own`).toBe(
+        `${tile.type}:${tile.newLanguageText}`,
+      );
+    }
+  });
+
+  /* The lint the content architecture doc recommends. Two tiles reading alike
+     but typed differently would be two ids, so the bank could hold both and
+     show the learner what looks like the same tile twice — and "Show me the
+     answer" would then have to pick between them by id, invisibly. */
+  it('never gives one piece of text two different types', () => {
+    const typesByText = new Map<string, Set<string>>();
+    for (const tile of everyTile(language)) {
+      const seen = typesByText.get(tile.newLanguageText) ?? new Set<string>();
+      seen.add(tile.type);
+      typesByText.set(tile.newLanguageText, seen);
+    }
+    for (const [text, types] of typesByText) {
+      expect([...types], `"${text}" is typed ${[...types].join(' and ')}`).toHaveLength(1);
+    }
+  });
+
+  it('never gives one piece of text two different readings', () => {
+    const readingsByText = new Map<string, Set<string>>();
+    for (const tile of everyTile(language)) {
+      const seen = readingsByText.get(tile.newLanguageText) ?? new Set<string>();
+      seen.add(tile.reading);
+      readingsByText.set(tile.newLanguageText, seen);
+    }
+    for (const [text, readings] of readingsByText) {
+      expect([...readings], `"${text}" reads as ${[...readings].join(' and ')}`).toHaveLength(1);
+    }
   });
 
   describe.each(language.scenarios)('$name', (scenario) => {

@@ -29,8 +29,8 @@
               ├─ answer[]        → Tile    the canonical answer, in order
               └─ alternates[][]  → Tile    each row a complete answer
 
-   These shapes take over from types.ts in step 7, which is why the names
-   overlap with nothing there. */
+   lib/, state/ and components/ all speak these shapes and never the stored
+   ones — resolve.ts is the only thing that has seen a tile id. */
 
 import type { ScenarioId, TileType } from './schema';
 
