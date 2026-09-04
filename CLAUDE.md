@@ -71,6 +71,16 @@ If a request is ambiguous, or implementing it would require acting in conflict w
 ## Markdown formatting
 - No forced line breaks
 
+## Code comments
+
+Keep comments short. Prefer one line over a paragraph, and a diagram or a type signature over either.
+
+Comment the non-obvious: why a value is load-bearing, a constraint that isn't visible locally, a decision that looks arbitrary but isn't. Don't restate what the code says, don't re-explain something already covered elsewhere in the file, and don't narrate history the git log already holds.
+
+File-header comments: a few lines on what the file is for and how it connects to its neighbours. Not an essay.
+
+This takes precedence over "Match my codebase" above. Several existing files open with long prose blocks; that's the old style, and new or edited code should be terser rather than matching it.
+
 ## Explaining data structures & relationships
 
 Prose descriptions of how data fits together (nested objects, relationships between
