@@ -3,9 +3,8 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { ScenarioList } from '../../src/components/ScenarioList';
-import { drillItem, drillScenario, tile } from '../helpers/fixtures';
+import type { Scenario } from '../../src/data/types';
 
-<<<<<<< HEAD
 const scenario = (name: string, kicker: string): Scenario => ({
   id: name.toLowerCase().replace(/\W+/g, '-'),
   name,
@@ -14,16 +13,6 @@ const scenario = (name: string, kicker: string): Scenario => ({
   items: [{ id: '01', en: 'One bread, please.', ans: [['パン', 'pan']], note: 'A note.', tags: { particles: [], conjugations: [] } }],
   words: [['パン', 'pan']],
 });
-=======
-const scenario = (name: string, kicker: string) =>
-  drillScenario({
-    name,
-    kicker,
-    blurb: `About ${name}.`,
-    items: [drillItem({ promptText: 'One bread, please.', answer: [tile('パン', 'pan')] })],
-    words: [tile('パン', 'pan')],
-  });
->>>>>>> rewrite-01
 
 const SCENARIOS = [scenario('Bakery', 'Set 01'), scenario('Train station', 'Set 02')];
 

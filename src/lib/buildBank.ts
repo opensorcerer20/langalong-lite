@@ -6,8 +6,7 @@
 
      1. the answer's own tiles;
      2. any extra tile the accepted alternates need, so every accepted answer is
-        actually buildable — パンをお願いします needs お願いします, which the
-        canonical パンをください does not supply;
+        actually buildable;
      3. distractors drawn from the grammar pool plus the scene's vocabulary,
         until the bank reaches its target size;
      4. a shuffle.
@@ -18,7 +17,8 @@
    arithmetic below is arbitrary but must not be "tidied": changing it reshuffles
    every bank in the app. */
 
-import type { DrillItem, Tile } from '../data/drill';
+import type { SentenceItem, Tile } from '../data/types';
+import { segmentLongestFirst } from './segment';
 
 /** No bank is ever smaller than this, however short the sentence. */
 export const MIN_BANK_TILES = 12;
@@ -38,28 +38,29 @@ export interface BankPools {
  *                   draw and shuffle — two items with the same index and pools
  *                   produce the same bank.
  * @param multiplier Distractor density; see TILE_MULTIPLIER in src/config.ts.
+ * @param joiner     What sits between tiles in this language's script; see
+ *                   LanguagePack.joiner. Used only to segment the alternates.
  */
 export function buildBank(
-  item: DrillItem,
+  item: SentenceItem,
   index: number,
   pools: BankPools,
   multiplier: number,
+  joiner: string,
 ): Tile[] {
-  const need = Math.max(MIN_BANK_TILES, Math.ceil(item.answer.length * multiplier));
+  const need = Math.max(MIN_BANK_TILES, Math.ceil(item.ans.length * multiplier));
 
-  /* Keyed by the tile's id: a tile already in the bank is never added again,
+  /* Keyed by the tile's text: a tile already in the bank is never added again,
      and is excluded from the distractor pool below. */
-  const used = new Set<string>(item.answer.map((tile) => tile.id));
-  const bank: Tile[] = [...item.answer];
+  const used = new Set<string>(item.ans.map((tile) => tile[0]));
+  const bank: Tile[] = [...item.ans];
 
-  /* 2. Seed whatever the alternates need and the canonical answer lacks. The
-        alternates arrive as tiles, so there is nothing to work out here — an
-        alternate used to be a written-out string that had to be split back
-        into tiles against the vocabulary in play before it could be seeded. */
-  for (const alternate of item.alternates) {
-    for (const tile of alternate) {
-      if (!used.has(tile.id)) {
-        used.add(tile.id);
+  /* 2. Seed whatever the alternates need and the canonical answer lacks. */
+  const vocab = [...item.ans, ...pools.grammar, ...pools.words];
+  for (const alt of item.alts ?? []) {
+    for (const tile of segmentLongestFirst(alt, vocab, joiner).tiles) {
+      if (!used.has(tile[0])) {
+        used.add(tile[0]);
         bank.push(tile);
       }
     }
@@ -68,7 +69,7 @@ export function buildBank(
   /* 3. Fill with distractors. Drawing by index and removing as we go means a
         tile is never drawn twice, and the stride keeps consecutive draws from
         clustering in one part of the pool. */
-  const pool = [...pools.grammar, ...pools.words].filter((tile) => !used.has(tile.id));
+  const pool = [...pools.grammar, ...pools.words].filter((tile) => !used.has(tile[0]));
   let draw = 0;
   while (bank.length < need && pool.length > 0) {
     const [tile] = pool.splice((index * 7 + draw * 13 + 3) % pool.length, 1);

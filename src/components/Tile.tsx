@@ -1,4 +1,4 @@
-/* One tile — the only place a piece of the new language is drawn.
+/* One tile — the only place a piece of the target language is drawn.
 
    The same component serves both rows: a `bank` tile is surface with a rule and
    is tapped to place it, a `placed` tile is inverted ink-on-ground and is tapped
@@ -14,7 +14,7 @@
 
 import * as stylex from '@stylexjs/stylex';
 
-import type { Tile as TileData } from '../data/drill';
+import type { Tile as TileData } from '../data/types';
 
 export interface TileProps {
   readonly tile: TileData;
@@ -40,7 +40,7 @@ export function Tile({
   disabled = false,
   onClick,
 }: TileProps) {
-  const { newLanguageText, reading } = tile;
+  const [text, reading] = tile;
   const isBank = variant === 'bank';
 
   return (
@@ -57,7 +57,7 @@ export function Tile({
       disabled={disabled}
       onClick={onClick}
     >
-      <span {...stylex.props(s.text)}>{newLanguageText}</span>
+      <span {...stylex.props(s.text)}>{text}</span>
       {showReading && (
         <span {...stylex.props(s.reading, isBank ? s.readingBank : s.readingPlaced)}>{reading}</span>
       )}

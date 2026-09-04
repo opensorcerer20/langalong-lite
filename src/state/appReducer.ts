@@ -7,9 +7,10 @@
    `reveal` carries the positions to fill. Judging is useTsumiki's job, where
    the content and the language's joiner already are.
 
-import type { DrillItem, Tile } from '../data/drill';
-import { buildString, isCorrect } from '../lib/checkAnswer';
-import { revealIndices } from '../lib/revealPlacement';
+   That split is what makes these rules exercise-agnostic. Nothing below knows
+   what a sentence is, so the miss ladder, the first-try score and advancing
+   through a set work identically for a vocabulary cloze or a conjugation drill
+   — the pieces that differ are the ones that were never in here. */
 
 /** Which screen is showing. */
 export type Screen = 'home' | 'drill';
@@ -55,11 +56,15 @@ export type AppAction =
   | { type: 'goHome' }
   | { type: 'tap'; bankIndex: number }
   | { type: 'untap'; position: number }
-  /* `joiner` rides along for the same reason `item` and `bank` do: judging the
-     answer means joining tiles into a string, and how they join is the
-     language's business. `reveal` works on tiles alone and so needs none. */
-  | { type: 'check'; item: DrillItem; bank: readonly Tile[]; joiner: string }
-  | { type: 'reveal'; item: DrillItem; bank: readonly Tile[] }
+  /* The verdict, not the evidence. useTsumiki already computed this to decide
+     what to record before dispatching — it had to, because a store write
+     cannot wait for a re-render — so passing it in removes a second, separate
+     judgement of the same answer rather than moving work around. */
+  | { type: 'check'; correct: boolean }
+  /* The bank positions that spell the answer, worked out by the caller. Which
+     positions those are depends on what kind of exercise this is; that the
+     line then locks does not. */
+  | { type: 'reveal'; placed: readonly number[] }
   | { type: 'next'; itemCount: number }
   | { type: 'restart' };
 

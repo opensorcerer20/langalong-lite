@@ -2,12 +2,12 @@
 
 import * as stylex from '@stylexjs/stylex';
 
-import type { DrillScenario } from '../data/drill';
+import type { Scenario } from '../data/types';
 import { shared } from '../styles/shared';
 import { ScenarioList } from './ScenarioList';
 
 export interface HomeScreenProps {
-  readonly scenarios: readonly DrillScenario[];
+  readonly scenarios: readonly Scenario[];
   readonly onOpen: (index: number) => void;
 }
 

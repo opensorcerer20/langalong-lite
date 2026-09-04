@@ -3,14 +3,13 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { AnswerLine } from '../../src/components/AnswerLine';
-import type { Tile } from '../../src/data/drill';
-import { tile } from '../helpers/fixtures';
+import type { Tile } from '../../src/data/types';
 
 const BANK: readonly Tile[] = [
-  tile('ください', 'kudasai', 'verb'),
-  tile('は', 'wa', 'particle'),
-  tile('パン', 'pan'),
-  tile('を', 'o', 'particle'),
+  ['ください', 'kudasai'],
+  ['は', 'wa'],
+  ['パン', 'pan'],
+  ['を', 'o'],
 ];
 
 const line = (placed: number[], props: Partial<Parameters<typeof AnswerLine>[0]> = {}) =>
