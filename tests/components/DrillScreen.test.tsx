@@ -2,16 +2,32 @@
    through to the right pieces — not the drill rules, which live in appReducer
    and are tested there. */
 
-import { render, screen } from '@testing-library/react';
+import {
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
+
+import {
+  render,
+  screen,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
 
 import { DrillScreen } from '../../src/components/DrillScreen';
-import type { DrillPack, Tile } from '../../src/data/drill';
-import { initialState } from '../../src/state/appReducer';
+import type {
+  DrillPack,
+  Tile,
+} from '../../src/data/drill';
 import type { AppState } from '../../src/state/appReducer';
+import { initialState } from '../../src/state/appReducer';
 import type { Tsumiki } from '../../src/state/useTsumiki';
-import { drillItem, drillScenario, tile } from '../helpers/fixtures';
+import {
+  drillItem,
+  drillScenario,
+  tile,
+} from '../helpers/fixtures';
 
 const BANK: readonly Tile[] = [
   tile('ください', 'kudasai', 'verb'),

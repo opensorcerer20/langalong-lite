@@ -1,6 +1,15 @@
-import { render, screen } from '@testing-library/react';
+import {
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
+
+import {
+  render,
+  screen,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
 
 import { Tile } from '../../src/components/Tile';
 import { tile } from '../helpers/fixtures';

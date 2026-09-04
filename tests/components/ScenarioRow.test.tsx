@@ -1,9 +1,22 @@
-import { render, screen } from '@testing-library/react';
+import {
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
+
+import {
+  render,
+  screen,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
 
 import { ScenarioRow } from '../../src/components/ScenarioRow';
-import { drillItem, drillScenario, tile } from '../helpers/fixtures';
+import {
+  drillItem,
+  drillScenario,
+  tile,
+} from '../helpers/fixtures';
 
 const item = (promptText: string) => drillItem({ promptText, answer: [tile('パン', 'pan')] });
 

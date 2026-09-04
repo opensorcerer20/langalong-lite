@@ -2,12 +2,26 @@
    needs come in on the action, which is the point of keeping the reducer free
    of data imports. */
 
-import { describe, expect, it } from 'vitest';
+import {
+  describe,
+  expect,
+  it,
+} from 'vitest';
 
 import type { Tile } from '../../src/data/drill';
-import { appReducer, initialState, isDone } from '../../src/state/appReducer';
-import type { AppAction, AppState } from '../../src/state/appReducer';
-import { drillItem, tile } from '../helpers/fixtures';
+import type {
+  AppAction,
+  AppState,
+} from '../../src/state/appReducer';
+import {
+  appReducer,
+  initialState,
+  isDone,
+} from '../../src/state/appReducer';
+import {
+  drillItem,
+  tile,
+} from '../helpers/fixtures';
 
 const BANK: readonly Tile[] = [
   tile('ください', 'kudasai', 'verb'),

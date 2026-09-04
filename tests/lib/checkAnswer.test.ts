@@ -1,8 +1,19 @@
-import { describe, expect, it } from 'vitest';
+import {
+  describe,
+  expect,
+  it,
+} from 'vitest';
 
 import type { Tile } from '../../src/data/drill';
-import { acceptedAnswers, buildString, isCorrect } from '../../src/lib/checkAnswer';
-import { drillItem, tile } from '../helpers/fixtures';
+import {
+  acceptedAnswers,
+  buildString,
+  isCorrect,
+} from '../../src/lib/checkAnswer';
+import {
+  drillItem,
+  tile,
+} from '../helpers/fixtures';
 
 const BANK: readonly Tile[] = [
   tile('ください', 'kudasai', 'verb'),

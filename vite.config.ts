@@ -1,7 +1,11 @@
 /// <reference types="vitest/config" />
-import { defineConfig, loadEnv } from 'vite';
-import react from '@vitejs/plugin-react';
 import stylex from 'unplugin-stylex/vite';
+import {
+  defineConfig,
+  loadEnv,
+} from 'vite';
+
+import react from '@vitejs/plugin-react';
 
 /* The config is a function so it can read .env files. Vite loads this file
    before it processes .env, so process.env does not carry their values here —

@@ -1,12 +1,22 @@
-import { describe, expect, it } from 'vitest';
+import {
+  describe,
+  expect,
+  it,
+} from 'vitest';
 
 import { TILE_MULTIPLIER } from '../../src/config';
-import { LANGUAGE } from '../../src/data/languages';
 import type { Tile } from '../../src/data/drill';
+import { LANGUAGE } from '../../src/data/languages';
 import { buildBank } from '../../src/lib/buildBank';
-import { buildString, isCorrect } from '../../src/lib/checkAnswer';
+import {
+  buildString,
+  isCorrect,
+} from '../../src/lib/checkAnswer';
 import { revealIndices } from '../../src/lib/revealPlacement';
-import { drillItem, tile } from '../helpers/fixtures';
+import {
+  drillItem,
+  tile,
+} from '../helpers/fixtures';
 
 const ITEM = drillItem({
   promptText: 'One bread, please.',

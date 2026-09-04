@@ -7,10 +7,17 @@
 
    Anything true only of Japanese belongs in en2ja.test.ts, not here. */
 
-import { describe, expect, it } from 'vitest';
+import {
+  describe,
+  expect,
+  it,
+} from 'vitest';
 
 import { TILE_MULTIPLIER } from '../../src/config';
-import type { DrillPack, Tile } from '../../src/data/drill';
+import type {
+  DrillPack,
+  Tile,
+} from '../../src/data/drill';
 import { LANGUAGES } from '../../src/data/languages';
 import { buildBank } from '../../src/lib/buildBank';
 
@@ -117,14 +124,14 @@ describe.each(LANGUAGES)('$name', (language) => {
 
       it('has a grammar note — it is what the learner sees after a second miss', () => {
         expect(item.note.trim()).not.toBe('');
-      });
+    });
 
       it('has a text and a reading on every tile', () => {
         for (const tile of item.answer) {
           expect(tile.newLanguageText.trim()).not.toBe('');
           expect(tile.reading.trim()).not.toBe('');
         }
-      });
+    });
 
       /* The one that matters most. An accepted answer the bank cannot build
          would be judged correct by check() but impossible to assemble — the

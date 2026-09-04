@@ -1,10 +1,21 @@
 /* The hook, driven through act() rather than through components — these are
    about the wiring between content, config and the reducer. */
 
-import { act, renderHook } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import {
+  describe,
+  expect,
+  it,
+} from 'vitest';
 
-import { NOTE_AFTER_MISSES, REVEAL_AFTER_MISSES } from '../../src/config';
+import {
+  act,
+  renderHook,
+} from '@testing-library/react';
+
+import {
+  NOTE_AFTER_MISSES,
+  REVEAL_AFTER_MISSES,
+} from '../../src/config';
 import { LANGUAGE } from '../../src/data/languages';
 import { revealIndices } from '../../src/lib/revealPlacement';
 import { useTsumiki } from '../../src/state/useTsumiki';

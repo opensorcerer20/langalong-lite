@@ -6,8 +6,14 @@
    rules readable on their own and testable without loading a single sentence,
    and it is why useTsumiki, not this file, is the place data meets state. */
 
-import type { DrillItem, Tile } from '../data/drill';
-import { buildString, isCorrect } from '../lib/checkAnswer';
+import type {
+  DrillItem,
+  Tile,
+} from '../data/drill';
+import {
+  buildString,
+  isCorrect,
+} from '../lib/checkAnswer';
 import { revealIndices } from '../lib/revealPlacement';
 
 /** Which screen is showing. */

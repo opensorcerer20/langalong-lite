@@ -5,10 +5,17 @@
    particles its distractors depend on, and the fact that it is written without
    spaces. A second language gets a file like this one of its own. */
 
-import { describe, expect, it } from 'vitest';
+import {
+  describe,
+  expect,
+  it,
+} from 'vitest';
 
 import { EN2JA } from '../../src/data/en2ja';
-import { LANGUAGE, LANGUAGES } from '../../src/data/languages';
+import {
+  LANGUAGE,
+  LANGUAGES,
+} from '../../src/data/languages';
 
 describe('the en2ja pack', () => {
   it('is the language the app currently drills', () => {

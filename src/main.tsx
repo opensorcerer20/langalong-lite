@@ -10,20 +10,21 @@
 
    Everything else is a CSS module, imported by the component that owns it. */
 
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-
 import '../_ds/modernist-47face9e-49d1-431f-a4b3-bbfe4229952e/styles.css';
 import './styles/fonts.css';
 import './styles/global.css';
+
+import { StrictMode } from 'react';
+
+import { createRoot } from 'react-dom/client';
 
 import { App } from './components/App';
 
 const root = document.getElementById('root');
 if (!root) throw new Error('#root is missing from index.html');
 
-createRoot(root).render(
-  <StrictMode>
+  createRoot(root).render(
+    <StrictMode>
     <App />
-  </StrictMode>,
-);
+    </StrictMode>,
+  );

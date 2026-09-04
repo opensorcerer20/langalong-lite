@@ -13,14 +13,31 @@
    It is also where the config dials are applied, so no component has to know
    what "two misses" means. */
 
-import { useCallback, useMemo, useReducer } from 'react';
+import {
+  useCallback,
+  useMemo,
+  useReducer,
+} from 'react';
 
-import { NOTE_AFTER_MISSES, REVEAL_AFTER_MISSES, TILE_MULTIPLIER } from '../config';
+import {
+  NOTE_AFTER_MISSES,
+  REVEAL_AFTER_MISSES,
+  TILE_MULTIPLIER,
+} from '../config';
+import type {
+  DrillItem,
+  DrillPack,
+  DrillScenario,
+  Tile,
+} from '../data/drill';
 import { LANGUAGE } from '../data/languages';
-import type { DrillItem, DrillPack, DrillScenario, Tile } from '../data/drill';
 import { buildBank } from '../lib/buildBank';
-import { appReducer, initialState, isDone } from './appReducer';
 import type { AppState } from './appReducer';
+import {
+  appReducer,
+  initialState,
+  isDone,
+} from './appReducer';
 
 export interface Tsumiki {
   readonly state: AppState;

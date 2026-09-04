@@ -5,14 +5,25 @@
    of all 18 banks, so any change to the draw stride or the shuffle arithmetic
    shows up here rather than as a silently different app. */
 
-import { describe, expect, it } from 'vitest';
+import {
+  describe,
+  expect,
+  it,
+} from 'vitest';
 
 import { TILE_MULTIPLIER } from '../../src/config';
-import { LANGUAGE } from '../../src/data/languages';
 import type { DrillItem } from '../../src/data/drill';
-import { MIN_BANK_TILES, buildBank } from '../../src/lib/buildBank';
+import { LANGUAGE } from '../../src/data/languages';
+import {
+  buildBank,
+  MIN_BANK_TILES,
+} from '../../src/lib/buildBank';
 import PROTOTYPE_BANKS from '../fixtures/prototype-banks.json';
-import { drillItem, textsOf as texts, tile } from '../helpers/fixtures';
+import {
+  drillItem,
+  textsOf as texts,
+  tile,
+} from '../helpers/fixtures';
 
 describe('buildBank — parity with the prototype', () => {
   it.each(LANGUAGE.scenarios)('reproduces every $name bank tile for tile', (scenario) => {

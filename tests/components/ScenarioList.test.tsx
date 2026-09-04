@@ -1,9 +1,22 @@
-import { render, screen } from '@testing-library/react';
+import {
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
+
+import {
+  render,
+  screen,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
 
 import { ScenarioList } from '../../src/components/ScenarioList';
-import { drillItem, drillScenario, tile } from '../helpers/fixtures';
+import {
+  drillItem,
+  drillScenario,
+  tile,
+} from '../helpers/fixtures';
 
 const scenario = (name: string, kicker: string) =>
   drillScenario({
