@@ -18,21 +18,17 @@
 export type Tile = readonly [text: string, reading: string];
 
 /**
- * How a verb inflects, which is what decides how a pattern is formed from it.
- *
- * The three names are Japanese grammar's, but the concept is not: most
- * languages sort their verbs into conjugation classes, and a pack that needs
- * different names declares different ones. Nothing outside a pack reads the
- * values — they are only ever matched against each other.
- */
-export type VerbGroup = 'godan' | 'ichidan' | 'irregular';
-
-/**
  * One function word the language marks grammatical roles with.
  *
  * The tile itself is already in the grammar pool; this adds what the pool
- * cannot express — which particles are worth contrasting against which, so a
- * drill can offer a genuinely confusable wrong answer rather than a random one.
+ * cannot express — a durable identity to store progress against, and a gloss
+ * to explain it with.
+ *
+ * A `confusedWith` field listing the particles worth contrasting against this
+ * one was declared here and has been removed. Nothing read it but the test
+ * enforcing its symmetry, it was authored for a particle exercise that does not
+ * exist, and that symmetry rule made adding a particle harder than it should
+ * be. The particle drill can declare what it actually needs when it is built.
  */
 export interface Particle {
   /**
@@ -49,24 +45,22 @@ export interface Particle {
   readonly tile: Tile;
   /** What it does, in one short phrase. Shown as the answer's explanation. */
   readonly gloss: string;
-  /**
-   * Particle ids commonly confused with this one — the distractor set.
-   *
-   * Declared rather than derived: which particles compete is a fact about the
-   * language and about learners, not something the tile texts imply. Meant to
-   * be symmetrical (if は lists が, が lists は); the content tests check it.
-   */
-  readonly confusedWith: readonly string[];
 }
 
-/** One inflected form a verb can be drilled into. */
+/**
+ * One inflected form a verb can be drilled into.
+ *
+ * A `verbGroups` field naming which conjugation classes the pattern applied to
+ * was declared here and has been removed, along with the `VerbGroup` union it
+ * used. Every Japanese pattern listed all three, and nothing read the values.
+ * Verb data proper — dictionary forms, groups, the tiles each form is built
+ * from — arrives with the conjugation drill, and can declare its own.
+ */
 export interface ConjugationPattern {
   /** Durable identity, and a storage key segment: `ja:conjugation:te-form`. */
   readonly id: string;
   /** The name a learner would recognise: "te-form", "past plain". */
   readonly name: string;
-  /** Which verb groups this pattern applies to. */
-  readonly verbGroups: readonly VerbGroup[];
   /** How the form is built, shown when the learner gets it wrong. */
   readonly note: string;
 }
