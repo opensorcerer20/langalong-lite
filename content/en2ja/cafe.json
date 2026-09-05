@@ -1,0 +1,42 @@
+[
+  {
+    "scenario": "cafe",
+    "question": "One coffee, please.",
+    "answer": [["コーヒー", "koohii", "noun"], ["を", "o", "particle"], ["ください", "kudasai", "verb"]],
+    "alts": [[["コーヒー", "koohii", "noun"], ["を", "o", "particle"], ["お願いします", "onegaishimasu", "verb"]]],
+    "note": "を marks the direct object — the thing you are ordering. Same frame as the bakery: ＸをＹください.",
+    "tags": { "particles": ["を"] }
+  },
+  {
+    "scenario": "cafe",
+    "question": "Is this coffee hot?",
+    "answer": [["この", "kono", "demonstrative"], ["コーヒー", "koohii", "noun"], ["は", "wa", "particle"], ["熱い", "atsui", "adjective"], ["です", "desu", "ending"], ["か", "ka", "particle"]],
+    "alts": [],
+    "note": "この needs a noun after it. 熱い is already an adjective — です only adds politeness.",
+    "tags": { "particles": ["は"] }
+  },
+  {
+    "scenario": "cafe",
+    "question": "I want to drink tea.",
+    "answer": [["紅茶", "koucha", "noun"], ["が", "ga", "particle"], ["飲み", "nomi", "verb"], ["たい", "tai", "ending"], ["です", "desu", "ending"]],
+    "alts": [],
+    "note": "〜たい takes が for its object, not を. Attach たい to the verb stem: 飲み + たい.",
+    "tags": { "particles": ["が"], "conjugations": ["たい"] }
+  },
+  {
+    "scenario": "cafe",
+    "question": "Do you have milk?",
+    "answer": [["ミルク", "miruku", "noun"], ["は", "wa", "particle"], ["あります", "arimasu", "verb"], ["か", "ka", "particle"]],
+    "alts": [],
+    "note": "For existence questions the item is the topic, so は. か turns the sentence into a question.",
+    "tags": { "particles": ["は"] }
+  },
+  {
+    "scenario": "cafe",
+    "question": "Where is the restroom?",
+    "answer": [["トイレ", "toire", "noun"], ["は", "wa", "particle"], ["どこ", "doko", "question"], ["です", "desu", "ending"], ["か", "ka", "particle"]],
+    "alts": [],
+    "note": "どこ stays where the answer would go — Japanese does not move question words to the front.",
+    "tags": { "particles": ["は"] }
+  }
+]

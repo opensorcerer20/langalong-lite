@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "import": "vite-node scripts/importContent.ts"
   },
   "dependencies": {
     "@stylexjs/stylex": "0.18.3",
@@ -29,6 +30,7 @@
     "typescript": "^5.7.2",
     "unplugin-stylex": "^0.6.3",
     "vite": "^7.0.0",
-    "vitest": "^3.0.0"
+    "vitest": "^3.0.0",
+    "zod": "^4.5.4"
   }
 }
