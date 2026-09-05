@@ -5,11 +5,17 @@
    what keeps them language-agnostic, and it is worth preserving: a component
    that reaches in here for a piece of Japanese has broken the arrangement. */
 
-/* `./ja` resolves to ja.json, not to ja/index.ts — a file shadows a directory
-   of the same name. Explicit only while the conversion has both; the directory
-   goes at step 9 and this becomes an import of the JSON. */
-import { JA } from './ja/index';
+import JA_FILE from './ja.json';
+import { loadPack } from './loadPack';
 import type { LanguagePack } from './types';
+
+/**
+ * The Japanese pack, expanded from its authored file.
+ *
+ * At module scope on purpose: a pack that will not load is a broken build, not
+ * a broken drill, so it fails at import.
+ */
+export const JA: LanguagePack = loadPack(JA_FILE);
 
 /** Every pack the app ships. Content tests run over all of them. */
 export const LANGUAGES: readonly LanguagePack[] = [JA];

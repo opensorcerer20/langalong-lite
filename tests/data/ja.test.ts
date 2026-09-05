@@ -7,9 +7,7 @@
 
 import { describe, expect, it } from 'vitest';
 
-/* Explicit while ja.json and ja/ both exist — the file shadows the directory. */
-import { JA } from '../../src/data/ja/index';
-import { LANGUAGE, LANGUAGES } from '../../src/data/languages';
+import { JA, LANGUAGE, LANGUAGES } from '../../src/data/languages';
 
 describe('the ja pack', () => {
   it('is the language the app currently drills', () => {
