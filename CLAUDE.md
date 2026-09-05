@@ -97,3 +97,8 @@ This applies to explanations of schemas, API responses, state shape, config stru
 component props, etc. — anywhere data relationships are being described.
 
 When in doubt, default to a code/diagram representation even for simple structures.
+
+## Coding conventions
+- Don't use unicode characters like ’ when it's more typical to use '
+- Try to avoid needing to escape ' or " unless there's a strong reason to do so.
+
