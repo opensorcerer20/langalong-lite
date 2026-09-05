@@ -8,7 +8,12 @@
    would pin the content to a copy of itself — the exact thing this roadmap is
    removing. It goes when src/data/ja/ does.
 
-   Not yet covered: scenarios. Steps 7 and 8 add them. */
+   One field is deliberately *not* asserted equal: a situation's `words`. It is
+   derived now — the content tiles of its own answers, plus listed extras — and
+   the hand-written lists it replaces were not always complete. See the tests at
+   the bottom for what is asserted instead.
+
+   Covered so far: the pack level, and situation 0. Step 8 adds situation 1. */
 
 import { describe, expect, it } from 'vitest';
 
@@ -47,12 +52,60 @@ describe('ja.json reproduces the ja pack', () => {
      a reading was written at each occurrence. Every text the pack uses has to
      be in it, or loadPack would have thrown above. This checks the other
      direction: an entry nothing uses is dead weight in a file meant to stay
-     hand-editable. Scenario vocabulary arrives in steps 7 and 8, so for now the
-     pack's texts are exactly the grammar pool's. */
+     hand-editable. */
   it('carries no lexicon entry the pack does not use', () => {
-    const used = new Set(loaded.grammar.map((tile) => tile[0]));
+    const used = new Set([
+      ...loaded.grammar.map((tile) => tile[0]),
+      ...loaded.scenarios.flatMap((scenario) => [
+        ...scenario.words.map((tile) => tile[0]),
+        ...scenario.items.flatMap((item) => item.ans.map((tile) => tile[0])),
+      ]),
+    ]);
     const unused = Object.keys(RAW.lexicon).filter((text) => !used.has(text));
 
     expect(unused, `unused lexicon entries: ${unused.join(', ')}`).toEqual([]);
+  });
+});
+
+/* Situations converted so far, paired with their counterpart in the .ts pack.
+   Step 8 appends the second entry. */
+const CONVERTED = [0];
+
+describe.each(CONVERTED)('ja.json reproduces situation %i', (index) => {
+  const from = loaded.scenarios[index]!;
+  const to = JA.scenarios[index]!;
+
+  it('keeps its id, name, blurb and set number', () => {
+    expect(from.id).toBe(to.id);
+    expect(from.name).toBe(to.name);
+    expect(from.blurb).toBe(to.blurb);
+    /* Derived from position now; the .ts pack wrote it out. */
+    expect(from.kicker).toBe(to.kicker);
+  });
+
+  it('reproduces every sentence exactly — prompt, tiles, alternates, note, tags', () => {
+    expect(from.items).toEqual(to.items);
+  });
+
+  /* `words` is the one field allowed to differ, and it differs upward: the
+     derived list is every content tile the situation's answers use, plus the
+     extras. A hand-written list could omit a word its own sentences answered
+     with — and did — leaving that tile unable to appear as a distractor
+     anywhere else in the set. */
+  it('keeps every word the hand-written list had', () => {
+    const derived = from.words.map((tile) => tile[0]);
+    const written = to.words.map((tile) => tile[0]);
+
+    expect(derived).toEqual(expect.arrayContaining(written));
+  });
+
+  it('adds only words the situation’s own answers use', () => {
+    const written = new Set(to.words.map((tile) => tile[0]));
+    const inAnswers = new Set(from.items.flatMap((item) => item.ans.map((tile) => tile[0])));
+    const added = from.words.map((tile) => tile[0]).filter((text) => !written.has(text));
+
+    for (const text of added) {
+      expect(inAnswers.has(text), `"${text}" is new but no answer uses it`).toBe(true);
+    }
   });
 });
