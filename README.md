@@ -51,7 +51,7 @@ npm run dev
 | **React 19** + **TypeScript 5.7** | The app |
 | **Vite 7** | Dev server and build |
 | **StyleX 0.18** | Styles, colocated per component and compiled away at build time |
-| **Vitest** + **Testing Library** | 297 tests |
+| **Vitest** + **Testing Library** | Unit, component and storage tests |
 
 The app is organised so each piece can be read on its own: the language content is inert data that imports nothing, the drill rules are pure functions that import no content, and the components are presentational — one file each, styles included. The Japanese lives behind a `LanguagePack` in `src/data/ja/`, so a second language is a folder plus a registry entry rather than a rewrite. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) has the dependency rule and the StyleX gotchas.
 
@@ -87,7 +87,7 @@ The app is organised so each piece can be read on its own: the language content 
 npm test
 ```
 
-297 tests, across every component and module. Two are load-bearing: `tests/lib/buildBank.test.ts` checks the deterministic tile bank against all 18 banks as the original prototype generated them, and `tests/components/App.test.tsx` plays real drills through the real content. Detail in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#tests).
+Across every component and module. Two are load-bearing: `tests/data/languages.test.ts` runs the content-integrity checks over every language pack, and `tests/components/App.test.tsx` plays real drills through the real content. Detail in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#tests).
 
 ## Adding content
 

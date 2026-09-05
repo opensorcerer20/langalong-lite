@@ -63,9 +63,10 @@ A particle also has to appear in the pack's `grammar` pool, with the identical t
 }
 ```
 
-Two rules the tests enforce, both worth understanding before you fight them:
+A particle whose tile is not yet in `grammar.ts` needs adding there too — the pool is what feeds distractors into the sentence drill, so a particle missing from it is one the learner is never offered as a wrong answer. Adding, removing or reordering a pool entry reshuffles the generated banks, which is harmless: banks are generated per render and never stored.
 
-- **Do not add the tile to `grammar.ts` to match.** The grammar pool feeds distractors into the sentence drill by index, and `tests/lib/buildBank.test.ts` pins all 18 generated banks against the banks the original prototype produced. Adding, removing or reordering one entry reshuffles every bank in the app. A particle whose tile is not already in the pool needs that fixture regenerated deliberately, not incidentally.
+One rule the tests enforce, worth understanding before you fight it:
+
 - **`confusedWith` must be symmetrical.** If は lists が, が lists は. An asymmetric pair means one particle offers the other as a distractor and never the reverse, which is not a rule anyone writes on purpose. An empty list is fine and means "nothing in this pack competes with it" — か is sentence-final, so nothing sits in its slot.
 
 A conjugation pattern is simpler: an id, a display `name`, the `verbGroups` it applies to, and a `note` explaining how the form is built. Only add one a sentence actually teaches. A pattern nothing is tagged with is a row that can never be scored, and it would read later as a gap in the learner's knowledge rather than a gap in the content.

@@ -1,9 +1,13 @@
-/* The bank generator, including a parity check against the prototype.
+/* The bank generator.
 
-   prototype-banks.json was produced by running the original bankFor() in
-   prototype/app.js over every item in both sets. It pins the exact tile order
-   of all 18 banks, so any change to the draw stride or the shuffle arithmetic
-   shows up here rather than as a silently different app. */
+   A fixture pinning all 18 banks tile for tile against the prototype's
+   bankFor() used to sit at the top of this file. It was removed deliberately:
+   it asserted fidelity to `prototype/`, which is frozen and no longer the
+   product, and it failed on every content change — a new sentence, a new
+   vocabulary word or a new situation all reshuffle banks by design. What
+   remains is the generator's actual contract, which content growth does not
+   disturb: the same item and index give the same bank, every answer tile is in
+   it, no text repeats, and it is oversupplied by the multiplier. */
 
 import { describe, expect, it } from 'vitest';
 
@@ -11,27 +15,8 @@ import { TILE_MULTIPLIER } from '../../src/config';
 import { LANGUAGE } from '../../src/data/languages';
 import type { SentenceItem, Tile } from '../../src/data/types';
 import { MIN_BANK_TILES, buildBank } from '../../src/lib/buildBank';
-import PROTOTYPE_BANKS from '../fixtures/prototype-banks.json';
 
 const texts = (tiles: readonly Tile[]) => tiles.map((t) => t[0]);
-
-describe('buildBank — parity with the prototype', () => {
-  it.each(LANGUAGE.scenarios)('reproduces every $name bank tile for tile', (scenario) => {
-    const expected = (PROTOTYPE_BANKS as Record<string, string[][]>)[scenario.name];
-    expect(expected, `no fixture for "${scenario.name}"`).toBeDefined();
-
-    scenario.items.forEach((item, index) => {
-      const bank = buildBank(
-        item,
-        index,
-        { grammar: LANGUAGE.grammar, words: scenario.words },
-        TILE_MULTIPLIER,
-        LANGUAGE.joiner,
-      );
-      expect(texts(bank), `${scenario.name} item ${index}`).toEqual(expected?.[index]);
-    });
-  });
-});
 
 describe('buildBank', () => {
   const scenario = LANGUAGE.scenarios[0]!;

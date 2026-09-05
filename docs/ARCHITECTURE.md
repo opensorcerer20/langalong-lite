@@ -106,7 +106,7 @@ Values still come from the design system: `var(--color-accent)` and friends are 
 | `src/data/types.ts` | `Tile`, `SentenceItem`, `Scenario`, `Particle`, `ConjugationPattern`, `LanguagePack` — the shapes, shared by every pack |
 | `src/data/languages.ts` | The pack registry, and which one the app is drilling |
 | `src/data/ja/index.ts` | The Japanese pack. The only file outside `ja/` that names Japanese |
-| `src/data/ja/grammar.ts` | Japanese's 25 shared particles, endings and question words distractors draw on. **Contents and order are pinned by the bank fixtures** |
+| `src/data/ja/grammar.ts` | Japanese's shared particles, endings and question words distractors draw on |
 | `src/data/ja/particles.ts` | The same particles as declared things: an id to store progress against, and which particles are worth confusing with which |
 | `src/data/ja/conjugations.ts` | The inflected forms a sentence can be tagged as teaching |
 | `src/data/ja/bakery.ts`, `src/data/ja/station.ts` | One situation's sentences and vocabulary each |
@@ -129,7 +129,6 @@ Values still come from the design system: `var(--color-accent)` and friends are 
 | `src/styles/global.css` | The page ground — `html`, `body`, `button`. No element owns these, so they stay CSS |
 | `src/styles/fonts.css` | The two `@font-face` rules |
 | `tests/` | One file per component and per module, mirroring `src/` |
-| `tests/fixtures/prototype-banks.json` | All 18 tile banks as the prototype generated them |
 | `fonts/`, `icons/` | Vendored Archivo (latin) and Noto Sans JP, subset to the 102 kana and kanji in use. Both variable, wght 100–900, both OFL 1.1 with the license text alongside. Pulled in through the bundler, which is why there is no `public/` |
 | `_ds/modernist-…/` | The Modernist design system. `styles.css` is imported unmodified and is the source of every color, space and radius token |
 | `DESIGN.md` | The design document the app was built from |
@@ -141,11 +140,11 @@ Values still come from the design system: `var(--color-accent)` and friends are 
 npm test
 ```
 
-297 tests. Most are ordinary unit tests, but five are worth knowing about:
+Most are ordinary unit tests, but four are worth knowing about:
 
 - **`tests/storage/progressStore.test.ts`** is one contract suite run over both `ProgressStore` implementations. The in-memory store is not only a test double — it is what a learner actually gets when IndexedDB will not open — so the two behaving differently would be a real bug. IndexedDB itself is polyfilled with `fake-indexeddb` rather than mocked, because upgrade paths, transaction lifetimes and key ranges are exactly where its bugs live.
 - **`tests/storage/drillIntegration.test.tsx`** plays a real drill through the real components into a real database and reads the rows back, which is the only test that would catch the two halves being wired together wrongly.
 
-- **`tests/lib/buildBank.test.ts`** checks the generated tile bank against `tests/fixtures/prototype-banks.json`, which holds all 18 banks exactly as the original `app.js` produced them. The bank is deterministic — no RNG, just arithmetic on the item's index — so any change to the draw stride or the shuffle shows up here as a diff rather than as a silently different app.
+- **`tests/lib/buildBank.test.ts`** tests the generator by its properties rather than against a recorded output: the same item and index give the same bank, every answer tile is present, no text repeats, an alternate's missing tiles are seeded. It used to pin all 18 banks tile for tile against a fixture of what the prototype produced; that was removed, because it asserted fidelity to frozen code and failed on every content change — adding a sentence or a vocabulary word reshuffles banks by design.
 - **`tests/components/App.test.tsx`** plays real drills through the real content: the miss ladder, the reveal forfeiting first-try credit, finishing a set and reading the score.
 - **`tests/data/languages.test.ts`** runs the content-integrity checks over every pack in `LANGUAGES`, so a language added later inherits the whole net without writing it again. What is true of one language only — Japanese's set names, its particles, its empty joiner — lives in `tests/data/ja.test.ts` instead. Two of these checks guard arrangements that would otherwise drift silently: that every declared particle carries the same tile the grammar pool holds, and that `confusedWith` is symmetrical.
