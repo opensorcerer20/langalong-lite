@@ -91,7 +91,7 @@ Across every component and module. Two are load-bearing: `tests/data/languages.t
 
 ## Adding content
 
-A sentence is an object with the English prompt, the canonical answer as `[text, reading]` tiles, optional accepted alternates, a required grammar note, and the grammar points it teaches:
+A sentence is an object with the English prompt, the canonical answer as `[text, reading]` tiles, optional accepted alternates, an optional grammar note, and the grammar points it teaches:
 
 ```ts
 {
@@ -103,7 +103,7 @@ A sentence is an object with the English prompt, the canonical answer as `[text,
 }
 ```
 
-Push it onto the items array in `src/data/ja/bakery.ts` or `src/data/ja/station.ts`; `npm test` verifies the note exists, the tags resolve, the tiles are well formed, and every alternate is actually buildable from the bank. `tags` is what the sentence *teaches* rather than what it contains, which is why it is authored rather than inferred. A new situation is a file beside `bakery.ts` plus an entry in `JA_SCENARIOS`; a new language is a folder beside `ja/` plus an entry in `LANGUAGES`. Full guide, including the difficulty dials and regenerating the font subset: [docs/AUTHORING.md](docs/AUTHORING.md).
+Push it onto the items array in `src/data/ja/bakery.ts` or `src/data/ja/station.ts`; `npm test` verifies the tags resolve, the tiles are well formed, and every alternate is actually buildable from the bank. `tags` is what the sentence *teaches* rather than what it contains, which is why it is authored rather than inferred. A new situation is a file beside `bakery.ts` plus an entry in `JA_SCENARIOS`; a new language is a folder beside `ja/` plus an entry in `LANGUAGES`. Full guide, including the difficulty dials and regenerating the font subset: [docs/AUTHORING.md](docs/AUTHORING.md).
 
 ## Credits
 

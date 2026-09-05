@@ -64,7 +64,8 @@ describe('App', () => {
     render(<App language={LANGUAGE} />);
     await user.click(screen.getByText('Bakery'));
 
-    const note = BAKERY.items[0]!.note;
+    /* This sentence teaches を and has a note; the ladder is what it is for. */
+    const note = BAKERY.items[0]!.note!;
     const wrongTile = () =>
       bankTiles().find((tile) => !tile.hasAttribute('data-used'))!;
 

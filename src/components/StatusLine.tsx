@@ -10,18 +10,24 @@ import type { DrillStatus } from '../state/appReducer';
 
 export interface StatusLineProps {
   readonly status: DrillStatus;
-  /** Misses on the current item — the second one changes the wording. */
-  readonly misses: number;
-  /** Misses at which the grammar note appears. See NOTE_AFTER_MISSES. */
-  readonly noteAfterMisses: number;
+  /**
+   * Whether the grammar note is on screen, which is the only thing the wrong
+   * message needs to know.
+   *
+   * The miss count and the note threshold were passed in separately and
+   * compared here, which meant this line worked out for itself whether the note
+   * was showing — and got it wrong for an item that has no note to show,
+   * promising help that was not there. The caller already knows the answer.
+   */
+  readonly noteOnScreen: boolean;
 }
 
-export function StatusLine({ status, misses, noteAfterMisses }: StatusLineProps) {
+export function StatusLine({ status, noteOnScreen }: StatusLineProps) {
   const text =
     status === 'wrong'
       ? /* Once the note is on screen, point at it rather than repeating
            "try again" with no new information. */
-        misses >= noteAfterMisses
+        noteOnScreen
         ? 'Not yet — read the note'
         : 'Not quite. Try again.'
       : MESSAGES[status];

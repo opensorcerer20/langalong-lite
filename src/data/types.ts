@@ -106,8 +106,15 @@ export interface SentenceItem {
    * supply, so every accepted answer is always buildable.
    */
   readonly alts?: readonly string[];
-  /** The grammar explanation shown after a second miss. Always required. */
-  readonly note: string;
+  /**
+   * The grammar explanation shown after a second miss.
+   *
+   * Optional. A full sentence teaching a particle or a form earns one; a short
+   * practice phrase — "Two, please." — usually has nothing to explain, and
+   * demanding a note for it produces filler. Absent, no note appears and the
+   * status line stops promising one.
+   */
+  readonly note?: string;
   /** The grammar points this sentence was written to teach. See SentenceTags. */
   readonly tags: SentenceTags;
 }

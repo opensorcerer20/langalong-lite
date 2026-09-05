@@ -113,9 +113,13 @@ describe.each(LANGUAGES)('$name', (language) => {
     }
   });
 
-  it('gives every sentence a grammar note — it is what a second miss shows', () => {
+  /* A note is optional — a short practice phrase usually has nothing to
+     explain — but an empty string is not the way to say so. Absent means "no
+     note"; "" would put a blank panel on screen after a second miss. */
+  it('leaves a sentence’s note absent rather than empty', () => {
     for (const { item, where } of everySentence) {
-      expect(item.note.trim(), `${where} has no note`).not.toBe('');
+      if (item.note === undefined) continue;
+      expect(item.note.trim(), `${where} has an empty note — omit it instead`).not.toBe('');
     }
   });
 
