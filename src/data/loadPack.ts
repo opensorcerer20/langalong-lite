@@ -20,11 +20,20 @@
    instead — fetched, or out of IndexedDB — it is untrusted input and zod is the
    right answer.
 
-   Pure, imports no content, same rule as lib/.
+   Pure, and imports no content — it is handed a parsed file. It does reach into
+   lib/ for getVocabIn, which is a new edge but not a cycle: lib/ imports only
+   types from here, and never content. */
 
-   Part 1 of 2: the authored shapes and text → tile. `loadPack` itself is next. */
-
-import type { Tile } from './types';
+import { getVocabIn } from '../lib/tags';
+import type {
+  ConjugationPattern,
+  LanguagePack,
+  Particle,
+  Scenario,
+  SentenceItem,
+  SentenceTags,
+  Tile,
+} from './types';
 
 /** What separates one tile from the next inside an authored answer. */
 export const TILE_SEPARATOR = '|';
@@ -154,4 +163,136 @@ export function tileList(
   where: string,
 ): Tile[] {
   return texts.map((text) => tileFor(lexicon, text, where));
+}
+
+/* ── The derivations ─────────────────────────────────────────────────────── */
+
+/**
+ * `["o", "tai"]` → `{ particles: ["o"], conjugations: ["tai"] }`.
+ *
+ * One flat list is authored because an author thinks "this teaches を", not
+ * "を belongs in the particles bucket". Which bucket follows from the id.
+ */
+function resolveTeaches(
+  teaches: readonly string[],
+  particleIds: ReadonlySet<string>,
+  patternIds: ReadonlySet<string>,
+  where: string,
+): SentenceTags {
+  const particles: string[] = [];
+  const conjugations: string[] = [];
+
+  for (const id of teaches) {
+    if (particleIds.has(id)) particles.push(id);
+    else if (patternIds.has(id)) conjugations.push(id);
+    else throw new Error(`${where} — teaches "${id}", which the pack declares nowhere`);
+  }
+
+  return { particles, conjugations };
+}
+
+/**
+ * A situation's distractor vocabulary: the content words its own answers use,
+ * then whatever extras it lists.
+ *
+ * Derived because the answers already contain them — asking for them again is
+ * transcription. `words` in the pack file is only for what no answer supplies:
+ * the spare counters and near-miss nouns that make a wrong tile plausible.
+ *
+ * Deduped by text, grammar-pool tiles excluded, so the distractor pool never
+ * offers the same text twice. Deduping silently rather than rejecting a
+ * redundant extra is deliberate: a new sentence must never turn an existing
+ * `words` entry into an error.
+ */
+function deriveWords(
+  items: readonly SentenceItem[],
+  extras: readonly Tile[],
+  grammar: readonly Tile[],
+): Tile[] {
+  const words: Tile[] = [];
+  const seen = new Set<string>(grammar.map((tile) => tile[0]));
+
+  for (const tile of [...items.flatMap((item) => getVocabIn(item, grammar)), ...extras]) {
+    if (seen.has(tile[0])) continue;
+    seen.add(tile[0]);
+    words.push(tile);
+  }
+
+  return words;
+}
+
+/** `0` → `Set 01`. Position is the number, so reordering renumbers. */
+function kickerFor(index: number): string {
+  return `Set ${String(index + 1).padStart(2, '0')}`;
+}
+
+/* ── Assembling the pack ─────────────────────────────────────────────────── */
+
+/**
+ * Expand an authored pack file into the pack the app drills.
+ *
+ * Throws on anything it cannot resolve. Called at module scope, so a broken
+ * pack fails at import rather than mid-drill.
+ */
+export function loadPack(file: PackFile): LanguagePack {
+  const { lexicon } = file;
+  const grammar = tileList(lexicon, file.grammar, 'the grammar pool');
+
+  const particles: Particle[] = Object.entries(file.particles).map(([id, entry]) => ({
+    id,
+    tile: tileFor(lexicon, entry.tile, `particle "${id}"`),
+    gloss: entry.gloss,
+  }));
+
+  const conjugations: ConjugationPattern[] = Object.entries(file.conjugations).map(
+    ([id, entry]) => ({ id, name: entry.name, note: entry.note }),
+  );
+
+  const particleIds = new Set(particles.map((particle) => particle.id));
+  const patternIds = new Set(conjugations.map((pattern) => pattern.id));
+
+  /* `teaches` resolves an id by which registry holds it, so one id in both
+     would silently land in whichever is checked first. */
+  for (const id of patternIds) {
+    if (particleIds.has(id)) {
+      throw new Error(`"${id}" is declared as both a particle and a conjugation pattern`);
+    }
+  }
+
+  const scenarios: Scenario[] = file.scenarios.map((entry, index) => {
+    const items: SentenceItem[] = entry.items.map((item) => {
+      const where = `${entry.id} ${item.id}`;
+
+      return {
+        id: item.id,
+        en: item.en,
+        ans: tilesFor(lexicon, item.ans, where),
+        /* Spread rather than assigned: under exactOptionalPropertyTypes an
+           absent key and a present `undefined` are different things. */
+        ...(item.alts === undefined ? {} : { alts: item.alts }),
+        ...(item.note === undefined ? {} : { note: item.note }),
+        tags: resolveTeaches(item.teaches ?? [], particleIds, patternIds, where),
+      };
+    });
+
+    return {
+      id: entry.id,
+      name: entry.name,
+      kicker: kickerFor(index),
+      blurb: entry.blurb,
+      items,
+      words: deriveWords(items, tileList(lexicon, entry.words ?? [], `${entry.id} words`), grammar),
+    };
+  });
+
+  return {
+    code: file.code,
+    name: file.name,
+    joiner: file.joiner,
+    fontStack: file.fontStack,
+    grammar,
+    particles,
+    conjugations,
+    scenarios,
+  };
 }
