@@ -2,7 +2,26 @@
 
 [← README](../README.md)
 
-Changing the difficulty, adding sentences and situations, adding a language, and regenerating the Japanese font subset. Everything here is content and configuration — none of it requires touching the drill logic.
+All content lives in one file per language — `src/data/ja.json`. Adding sentences, situations, particles and patterns means editing that file and nothing else. `src/data/loadPack.ts` expands it into the pack the app drills.
+
+## The shape
+
+```
+ja.json
+ ├─ code, name, joiner, fontStack
+ ├─ lexicon        { text → reading }     every reading, written once
+ ├─ grammar        [ text, … ]            shared distractor pool
+ ├─ particles      { id → { tile, gloss } }
+ ├─ conjugations   { id → { name, note } }
+ └─ scenarios[]
+     ├─ id, name, blurb
+     ├─ words[]     extra distractors only — answer vocabulary is derived
+     └─ items[]
+         ├─ id, en, ans
+         └─ alts?, note?, teaches?
+```
+
+**The lexicon is the rule that makes the rest work.** A reading is written once there; everywhere else a tile is named by its text alone. So `パン` cannot be `pan` in one place and `pann` in another — there is only one place.
 
 ## Difficulty and display
 
@@ -17,88 +36,85 @@ export const SHOW_READING = true;      /* the reading beneath the text on every 
 
 ## Adding a sentence
 
-Push an object onto the items array in `src/data/ja/bakery.ts` or `src/data/ja/station.ts`:
+Append to a situation's `items`:
 
-```ts
+```json
 {
-  id: '09',
-  en: 'Please give me a bag.',
-  ans: [['袋', 'fukuro'], ['を', 'o'], ['ください', 'kudasai']],
-  alts: ['袋をお願いします'],
-  note: 'Same frame as the first sentence. Once ＸをＹください is automatic, only the noun changes.',
-  tags: { particles: ['o'], conjugations: [] },
+  "id": "11",
+  "en": "Please give me a bag.",
+  "ans": "袋|を|ください",
+  "alts": ["袋をお願いします"],
+  "note": "Same frame as the first sentence. Once ＸをＹください is automatic, only the noun changes.",
+  "teaches": ["o"]
 }
 ```
 
-`id` only has to be unique within its situation — take the next number. **Once it has shipped, never change it.** A learner's history is stored against it, so editing one orphans everything recorded about that sentence. Rewording `en`, correcting `ans`, adding an `alt` are all free; renumbering is not. Ids may be non-contiguous, and a deleted sentence's id should be retired rather than reused.
+A short practice phrase needs only three fields:
 
-`ans` is the canonical answer as `[text, reading]` tiles — particles split out, conjugation endings as their own tiles (食べ + たい). `alts` is optional and holds other accepted answers as plain strings; the bank generator segments each one and seeds any tile the canonical answer doesn't already supply, so every accepted answer is always buildable. `note` is optional — it is what the learner sees after a second miss. A sentence teaching a particle or a form earns one; a short practice phrase usually has nothing to explain, and omitting it is better than writing filler. Without one, no note appears and the status line says "Not quite. Try again." rather than pointing at help that is not there. Omit the field entirely rather than giving it an empty string.
+```json
+{ "id": "12", "en": "Two, please.", "ans": "二つ|ください" }
+```
 
-`tags` is required, and is what the sentence **teaches** rather than what it contains. Almost every sentence in the app has です in it and almost none are about です, so this cannot be inferred from the tiles — the `note`, where you wrote one, is the best guide to what belongs here. Ids come from `src/data/ja/particles.ts` and `src/data/ja/conjugations.ts`; either list may be empty. Progress is recorded against these, so a sentence tagged `['o']` contributes to the learner's record for を, and remediation will eventually read them to say which grammar point someone keeps missing. A tag naming a particle the sentence neither answers with nor accepts as an alternate is rejected by the tests.
+| Field | |
+| --- | --- |
+| `id` | Unique within its situation. **Permanent once shipped** — history is keyed on it, so editing one orphans everything recorded about that sentence. Ids may be non-contiguous; retire a deleted one rather than reusing it. Rewording `en`, fixing `ans` or adding an `alt` are all free. |
+| `en` | The English prompt. |
+| `ans` | The canonical answer, `\|` between tiles. Particles split out, conjugation endings as their own tile: `食べ\|たい`. Spaces around the separator are ignored, so `"パン \| を"` is fine. |
+| `alts` | Optional. Other accepted answers, written whole. The bank segments each one and seeds any tile the canonical answer lacks, so every accepted answer is always buildable. |
+| `note` | Optional. Shown after a second miss. A sentence teaching a particle or a form earns one; a short phrase usually has nothing to explain, and filler is worse than nothing. Omit the field — never give it `""`. |
+| `teaches` | Optional. What the sentence **teaches**, not what it contains — almost every sentence has です in it and almost none are about です. Particle and pattern ids in one flat list; the loader sorts them into the right buckets. |
 
-Vocabulary is *not* tagged — which words a sentence uses genuinely does follow from its tiles, so it is derived by `vocabIn` in `src/lib/tags.ts`. Listing them again would be transcription with an opportunity for drift attached.
+**Every text in `ans` must be in the `lexicon`.** A missing one fails the build with the sentence named: `bakery 03 — "メロンパン" is not in the lexicon`.
 
-One thing to watch when adding vocabulary: **a given tile text must read the same way everywhere it appears** in the pack. Tiles are keyed on their text, so 二つ spelled `futatsu` in one file and `hutatsu` in another would be one word to the drill and two to the learner's history.
-
-`npm test` checks all of this: that every item has a unique id and tags that resolve, that a note, where present, is not blank, that every tile is a well-formed pair, that a text is never read two ways, and that every alternate is actually segmentable from the vocabulary in play. An alternate the tiles cannot spell is the failure mode worth guarding against — it would be accepted by the checker but impossible to build.
+`npm test` checks the rest: ids unique and `:`-free, tags that resolve, tiles well formed, notes not blank, and every alternate actually segmentable from the tiles in play. That last one is the failure worth guarding — an alternate the bank cannot spell would be accepted by the checker and impossible to build.
 
 ## Adding a situation
 
-Write its items and words in a file beside `bakery.ts`, then add an entry to `JA_SCENARIOS` in `src/data/ja/scenarios.ts`. Nothing else changes. Distractors are drawn from the pack's `grammar` plus that situation's own `words`, so a wrong tile is always plausible within the scene.
+Append to `scenarios`. Only `id`, `name`, `blurb` and `items` are required:
 
-Give it an `id` — lowercase, no colon, unique in the pack, and permanent for the same reason a sentence's is. It is only ever seen in a storage key, so it is free to differ from `name`; `kicker` and `blurb` stay display copy.
-
-## Adding a particle or a conjugation pattern
-
-Both are lists of declared things, in `src/data/ja/particles.ts` and `src/data/ja/conjugations.ts`. A sentence's `tags` point at their ids, and progress is stored against them — `ja:particle:o`, `ja:conjugation:tai` — so **an id is permanent once shipped**, exactly like a sentence's.
-
-A particle also has to appear in the pack's `grammar` pool, with the identical tile:
-
-```ts
+```json
 {
-  id: 'ni',
-  tile: ['に', 'ni'],
-  gloss: 'marks a destination, a point in time, or where something is',
+  "id": "cafe",
+  "name": "Café",
+  "blurb": "Ordering, sizes, sitting in or taking away.",
+  "words": ["お冷や", "テイクアウト"],
+  "items": []
 }
 ```
 
-A particle whose tile is not yet in `grammar.ts` needs adding there too — the pool is what feeds distractors into the sentence drill, so a particle missing from it is one the learner is never offered as a wrong answer. Adding, removing or reordering a pool entry reshuffles the generated banks, which is harmless: banks are generated per render and never stored.
+`id` is lowercase, `:`-free, unique in the pack, and permanent for the same reason a sentence's is. It is only ever seen in a storage key, so it is free to differ from `name`.
 
-A conjugation pattern is simpler still: an id, a display `name`, and a `note` explaining how the form is built. Only add one a sentence actually teaches. A pattern nothing is tagged with is a row that can never be scored, and it would read later as a gap in the learner's knowledge rather than a gap in the content.
+**`words` is for extras only.** Distractors come from the pack's `grammar` plus the situation's vocabulary, and that vocabulary is *derived from the situation's own answers*. List only what no answer supplies — the spare counters and near-miss nouns that make a wrong tile plausible in the scene. A word already covered is dropped silently, so a new sentence never turns an existing entry into an error.
+
+There is no `kicker` field. `Set 01`, `Set 02` … follow from list position, so reordering renumbers.
+
+## Adding a particle or a conjugation pattern
+
+Both are objects keyed by id. **An id is permanent once shipped** — progress is stored against `ja:particle:o` and `ja:conjugation:tai`.
+
+```json
+"particles":    { "ni":  { "tile": "に", "gloss": "marks a destination, a point in time, or where something is" } },
+"conjugations": { "tai": { "name": "want to", "note": "Attach たい to the verb stem: 食べ + たい." } }
+```
+
+A particle's `tile` must also be in the `grammar` pool — the pool is what feeds distractors into the drill, so a particle missing from it is never offered as a wrong answer. Adding or reordering a pool entry reshuffles the generated banks, which is harmless: banks are generated per render and never stored.
+
+Only add a pattern a sentence actually teaches. A pattern nothing is tagged with is a row that can never be scored, and it reads later as a gap in the learner's knowledge rather than a gap in the content.
 
 ## Adding a language
 
-A language is a folder beside `ja/` and one line in the registry. Nothing in `lib/`, `state/` or `components/` changes — none of them knows what language is loaded.
+A language is one JSON file plus one line in the registry. Nothing in `lib/`, `state/` or `components/` changes — none of them knows what language is loaded.
 
-1. **`src/data/<code>/`** — the content: a grammar pool, a particle list, a conjugation-pattern list, one file per situation, and a scenario list, exactly as `ja/` is arranged.
-2. **`src/data/<code>/index.ts`** — the pack:
+1. **`src/data/<code>.json`** — the content, in the shape above.
+2. **`src/data/languages.ts`** — `loadPack` it, add it to `LANGUAGES`, and point `LANGUAGE` at it to drill it.
+3. **`tests/data/<code>.test.ts`** — whatever is true of that language alone, following `ja.test.ts`. The integrity checks in `languages.test.ts` pick the new pack up automatically.
 
-```ts
-export const ES: LanguagePack = {
-  /* Also the first segment of every storage key this pack's progress is kept
-     under, so it is fixed once shipped. */
-  code: 'es',
-  name: 'Spanish',
-  joiner: ' ',
-  fontStack: 'var(--font-body)',
-  grammar: ES_GRAMMAR,
-  particles: ES_PARTICLES,
-  conjugations: ES_CONJUGATIONS,
-  scenarios: ES_SCENARIOS,
-};
-```
+Two fields are worth getting right, because they are what the rest of the app cannot work out for itself:
 
-3. **`src/data/languages.ts`** — add it to `LANGUAGES`, and point `LANGUAGE` at it to drill it.
-4. **`tests/data/<code>.test.ts`** — whatever is true of that language alone, following `ja.test.ts`. The shape and integrity checks in `languages.test.ts` pick the new pack up automatically.
+- **`joiner`** — `""` for a language written without spaces, `" "` for one written with them. It decides how tiles are joined into the sentence that gets judged, and how an `alts` string is segmented back into tiles. Wrong, and correct answers are marked wrong.
+- **`fontStack`** — the face target-language text is drawn in, reaching `Tile` through the `--font-target` custom property. A latin-script language can use `var(--font-body)` and add no font at all; another script wants an `@font-face` in `src/styles/fonts.css` and its family named here.
 
-**Scenarios belong to the language.** Start from whatever situations are worth drilling in it — there is no obligation to mirror Japanese's bakery and train station, and a language spoken where nobody takes trains has no business with a train station set. The scenario list is a field on the pack precisely so each language can differ.
-
-Two fields are worth getting right, because they are the things the rest of the app cannot work out for itself:
-
-- **`joiner`** — `''` for a language written without spaces, `' '` for one written with them. It decides how tiles are joined into the sentence that gets judged, and how an `alts` string is segmented back into tiles. Wrong, and correct answers are marked wrong.
-- **`fontStack`** — the face target-language text is drawn in, reaching `Tile` through the `--font-target` custom property. A language in latin script can use `var(--font-body)` and add no font at all; one in another script wants an `@font-face` in `src/styles/fonts.css` and its family named here.
-
-`particles` and `conjugations` may start empty — a pack drills perfectly well with neither, since sentence tags are allowed to be empty lists. They are what the grammar exercises will read, so a language whose difficulty sits somewhere other than particles is free to leave one of them at `[]` and fill the other.
+**Situations belong to the language.** Start from whatever is worth drilling in it — there is no obligation to mirror Japanese's bakery and train station. `particles` and `conjugations` may start as `{}`; a language whose difficulty sits elsewhere is free to leave one empty and fill the other.
 
 Grammar notes, prompts and every other piece of UI copy stay in English — the app teaches an English speaker, whatever the target language is.
 
