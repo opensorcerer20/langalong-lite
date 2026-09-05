@@ -95,4 +95,35 @@ export const EN2JA_SCENARIOS: readonly StoredScenario[] = [
       'verb:降り',
     ],
   },
+  /* Imported from content/en2ja/cafe.json. Its exercises and its four new tiles
+     are generated; this entry is not, because name/kicker/blurb/vocab have
+     nowhere to live in the authored shape. */
+  {
+    id: 'cafe',
+    name: 'Cafe',
+    library: 'en2ja',
+    kicker: 'Set 03',
+    blurb: 'Ordering drinks, asking what is in them, finding the restroom.',
+    vocab: [
+      'noun:コーヒー',
+      'noun:紅茶',
+      'noun:ミルク',
+      'noun:ケーキ',
+      'noun:トイレ',
+      'noun:カード',
+      'noun:現金',
+      'noun:おすすめ',
+      'adjective:熱い',
+      'adjective:冷たい',
+      'adjective:甘い',
+      'adjective:おいしい',
+      'demonstrative:これ',
+      'demonstrative:この',
+      'counter:一つ',
+      'counter:二つ',
+      'verb:飲み',
+      'verb:食べ',
+      'question:いくら',
+    ],
+  },
 ];

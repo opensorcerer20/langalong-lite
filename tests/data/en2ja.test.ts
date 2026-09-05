@@ -31,13 +31,13 @@ describe('the en2ja pack', () => {
     expect(EN2JA.fontStack).toContain('Noto Sans JP');
   });
 
-  it('ships the two situations in set order', () => {
-    expect(EN2JA.scenarios.map((s) => s.name)).toEqual(['Bakery', 'Train station']);
-    expect(EN2JA.scenarios.map((s) => s.kicker)).toEqual(['Set 01', 'Set 02']);
+  it('ships the situations in set order', () => {
+    expect(EN2JA.scenarios.map((s) => s.name)).toEqual(['Bakery', 'Train station', 'Cafe']);
+    expect(EN2JA.scenarios.map((s) => s.kicker)).toEqual(['Set 01', 'Set 02', 'Set 03']);
   });
 
-  it('ships 10 bakery and 8 station sentences', () => {
-    expect(EN2JA.scenarios.map((s) => s.items.length)).toEqual([10, 8]);
+  it('ships expected number of sentences for scenarios', () => {
+    expect(EN2JA.scenarios.map((s) => s.items.length)).toEqual([10, 8, 5]);
   });
 
   it('carries the near-miss particles the distractors rely on', () => {

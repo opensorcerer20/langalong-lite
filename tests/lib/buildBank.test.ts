@@ -25,10 +25,19 @@ import {
   tile,
 } from '../helpers/fixtures';
 
+/* Driven off the fixture rather than off LANGUAGE.scenarios, because parity is
+   a claim about the sets the prototype shipped — a situation added since then
+   has nothing to be at parity with. Every pinned set must still have a scenario
+   reproducing it; a set the prototype never had is simply not this test's
+   business. */
 describe('buildBank — parity with the prototype', () => {
-  it.each(LANGUAGE.scenarios)('reproduces every $name bank tile for tile', (scenario) => {
-    const expected = (PROTOTYPE_BANKS as Record<string, string[][]>)[scenario.name];
-    expect(expected, `no fixture for "${scenario.name}"`).toBeDefined();
+  const fixtures = PROTOTYPE_BANKS as Record<string, string[][]>;
+
+  it.each(Object.keys(fixtures))('reproduces every %s bank tile for tile', (name) => {
+    const expected = fixtures[name];
+    const scenario = LANGUAGE.scenarios.find((s) => s.name === name);
+    expect(scenario, `the pack no longer ships a situation named "${name}"`).toBeDefined();
+    if (!scenario) return;
 
     scenario.items.forEach((item, index) => {
       const bank = buildBank(
@@ -37,7 +46,7 @@ describe('buildBank — parity with the prototype', () => {
         { grammar: LANGUAGE.grammar, words: scenario.words },
         TILE_MULTIPLIER,
       );
-      expect(texts(bank), `${scenario.name} item ${index}`).toEqual(expected?.[index]);
+      expect(texts(bank), `${name} item ${index}`).toEqual(expected?.[index]);
     });
   });
 });

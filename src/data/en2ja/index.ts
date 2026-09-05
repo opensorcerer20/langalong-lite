@@ -2,23 +2,31 @@
 
    Which file supplies which part of the store:
 
-     tiles.ts          ──► EN2JA_CONTENT.tiles           every tile, deduped
+     tiles.ts          ──► EN2JA_CONTENT.tiles           hand-authored tiles
      tiles.ts          ──► EN2JA_CONTENT.grammarTileIds  shared pool, as ids
      scenarios.ts      ──► EN2JA_CONTENT.scenarios       + kicker/blurb/vocab
      exercises/*.ts    ──► EN2JA_CONTENT.exercises       concatenated in
                                                          home-screen set order
+     _generated/*.ts   ──► both of the above             written by `npm run
+                                                         import` from content/
 
    Then one more step, which is the only thing this file does that the others
    do not:
 
      EN2JA_CONTENT (ids)  ─ resolveLibrary ─►  EN2JA (tiles)
 
-   Adding a situation: a file under exercises/, an entry in scenarios.ts, its
-   tiles in tiles.ts. Nothing here changes but the import list. */
+   Adding a situation the imported way: a JSON file in content/en2ja/, then
+   `npm run import`, then an entry in scenarios.ts for the copy and vocabulary
+   the authored shape has nowhere to put. Nothing here changes at all.
+
+   Adding one by hand: a file under exercises/, an entry in scenarios.ts, its
+   tiles in tiles.ts, and one more line in the import list below. */
 
 import type { DrillLanguage, DrillPack } from '../drill';
 import { resolveLibrary } from '../resolve';
 import type { ContentStore } from '../schema';
+import { GENERATED_EXERCISES } from './_generated/exercises';
+import { GENERATED_TILES } from './_generated/tiles';
 import { BAKERY_EXERCISES } from './exercises/bakery';
 import { STATION_EXERCISES } from './exercises/station';
 import { EN2JA_SCENARIOS } from './scenarios';
@@ -27,8 +35,11 @@ import { EN2JA_GRAMMAR_TILE_IDS, EN2JA_TILES } from './tiles';
 export const EN2JA_CONTENT: ContentStore = {
   library: 'en2ja',
   scenarios: EN2JA_SCENARIOS,
-  tiles: EN2JA_TILES,
-  exercises: [...BAKERY_EXERCISES, ...STATION_EXERCISES],
+  /* The two tile sources never overlap: the import script skips any tile
+     already in EN2JA_TILES, so concatenating them cannot produce the duplicate
+     id resolveLibrary throws on. */
+  tiles: [...EN2JA_TILES, ...GENERATED_TILES],
+  exercises: [...BAKERY_EXERCISES, ...STATION_EXERCISES, ...GENERATED_EXERCISES],
   grammarTileIds: EN2JA_GRAMMAR_TILE_IDS,
 };
 
