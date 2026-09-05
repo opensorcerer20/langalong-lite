@@ -5,7 +5,10 @@
    what keeps them language-agnostic, and it is worth preserving: a component
    that reaches in here for a piece of Japanese has broken the arrangement. */
 
-import { JA } from './ja';
+/* `./ja` resolves to ja.json, not to ja/index.ts — a file shadows a directory
+   of the same name. Explicit only while the conversion has both; the directory
+   goes at step 9 and this becomes an import of the JSON. */
+import { JA } from './ja/index';
 import type { LanguagePack } from './types';
 
 /** Every pack the app ships. Content tests run over all of them. */
