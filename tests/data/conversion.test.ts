@@ -13,7 +13,7 @@
    the hand-written lists it replaces were not always complete. See the tests at
    the bottom for what is asserted instead.
 
-   Covered so far: the pack level, and situation 0. Step 8 adds situation 1. */
+   The whole pack is covered now — every field of every situation. */
 
 import { describe, expect, it } from 'vitest';
 
@@ -67,9 +67,8 @@ describe('ja.json reproduces the ja pack', () => {
   });
 });
 
-/* Situations converted so far, paired with their counterpart in the .ts pack.
-   Step 8 appends the second entry. */
-const CONVERTED = [0];
+/* Every situation, paired with its counterpart in the .ts pack. */
+const CONVERTED = [0, 1];
 
 describe.each(CONVERTED)('ja.json reproduces situation %i', (index) => {
   const from = loaded.scenarios[index]!;
