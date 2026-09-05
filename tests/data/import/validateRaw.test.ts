@@ -115,7 +115,7 @@ describe('parseEntries', () => {
     { name: 'a missing scenario', overrides: { scenario: undefined }, pattern: /"scenario" must be a string/ },
     { name: 'an empty answer', overrides: { answer: [] }, pattern: /at least one tile/ },
     { name: 'an answer that is not an array', overrides: { answer: 'パンをください' }, pattern: /"answer" must be an array/ },
-    { name: 'an empty alternate', overrides: { alts: [[]] }, pattern: /alts\[0\] must have at least one tile/ },
+    { name: 'an empty alternate', overrides: { alts: [[]] }, pattern: /alts\[0\]: must have at least one tile/ },
   ])('rejects $name', ({ overrides, pattern }) => {
     expect(() => parseEntries(entry(overrides), 'bakery.json')).toThrow(pattern);
   });
