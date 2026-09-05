@@ -51,7 +51,7 @@ npm run dev
 | **React 19** + **TypeScript 5.7** | The app |
 | **Vite 7** | Dev server and build |
 | **StyleX 0.18** | Styles, colocated per component and compiled away at build time |
-| **Vitest** + **Testing Library** | 287 tests |
+| **Vitest** + **Testing Library** | 297 tests |
 
 The app is organised so each piece can be read on its own: the language content is inert data that imports nothing, the drill rules are pure functions that import no content, and the components are presentational — one file each, styles included. The Japanese lives behind a `LanguagePack` in `src/data/ja/`, so a second language is a folder plus a registry entry rather than a rewrite. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) has the dependency rule and the StyleX gotchas.
 
@@ -71,8 +71,9 @@ The app is organised so each piece can be read on its own: the language content 
 | Path | What it is |
 | --- | --- |
 | `src/data/` | The language packs. Content and types, no functions. The Japanese is in `src/data/ja/` |
-| `src/lib/` | Bank generation, segmentation, answer checking. Pure, and never imports `data/` |
-| `src/state/` | The reducer holding every drill rule, and the hook that joins it to content |
+| `src/lib/` | Bank generation, segmentation, answer checking, storage keys, progress roll-up. Pure, and never imports `data/` |
+| `src/storage/` | Progress in IndexedDB, behind interfaces. The only layer with side effects |
+| `src/state/` | The reducer holding every drill rule, and the hook that joins it to content and storage |
 | `src/components/` | One component and its StyleX styles per file |
 | `src/config.ts` | The four difficulty and display dials |
 | `tests/` | One file per component and per module, mirroring `src/` |
@@ -86,11 +87,11 @@ The app is organised so each piece can be read on its own: the language content 
 npm test
 ```
 
-287 tests, across every component and module. Two are load-bearing: `tests/lib/buildBank.test.ts` checks the deterministic tile bank against all 18 banks as the original prototype generated them, and `tests/components/App.test.tsx` plays real drills through the real content. Detail in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#tests).
+297 tests, across every component and module. Two are load-bearing: `tests/lib/buildBank.test.ts` checks the deterministic tile bank against all 18 banks as the original prototype generated them, and `tests/components/App.test.tsx` plays real drills through the real content. Detail in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#tests).
 
 ## Adding content
 
-A sentence is an object with the English prompt, the canonical answer as `[text, reading]` tiles, optional accepted alternates, and a required grammar note:
+A sentence is an object with the English prompt, the canonical answer as `[text, reading]` tiles, optional accepted alternates, a required grammar note, and the grammar points it teaches:
 
 ```ts
 {
@@ -98,10 +99,11 @@ A sentence is an object with the English prompt, the canonical answer as `[text,
   ans: [['袋', 'fukuro'], ['を', 'o'], ['ください', 'kudasai']],
   alts: ['袋をお願いします'],
   note: 'Same frame as the first sentence. Once ＸをＹください is automatic, only the noun changes.',
+  tags: { particles: ['o'], conjugations: [] },
 }
 ```
 
-Push it onto the items array in `src/data/ja/bakery.ts` or `src/data/ja/station.ts`; `npm test` verifies the note exists, the tiles are well formed, and every alternate is actually buildable from the bank. A new situation is a file beside `bakery.ts` plus an entry in `JA_SCENARIOS`; a new language is a folder beside `ja/` plus an entry in `LANGUAGES`. Full guide, including the difficulty dials and regenerating the font subset: [docs/AUTHORING.md](docs/AUTHORING.md).
+Push it onto the items array in `src/data/ja/bakery.ts` or `src/data/ja/station.ts`; `npm test` verifies the note exists, the tags resolve, the tiles are well formed, and every alternate is actually buildable from the bank. `tags` is what the sentence *teaches* rather than what it contains, which is why it is authored rather than inferred. A new situation is a file beside `bakery.ts` plus an entry in `JA_SCENARIOS`; a new language is a folder beside `ja/` plus an entry in `LANGUAGES`. Full guide, including the difficulty dials and regenerating the font subset: [docs/AUTHORING.md](docs/AUTHORING.md).
 
 ## Credits
 

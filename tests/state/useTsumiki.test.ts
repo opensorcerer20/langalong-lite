@@ -1,27 +1,16 @@
 /* The hook, driven through act() rather than through components — these are
    about the wiring between content, config and the reducer. */
 
-import {
-  describe,
-  expect,
-  it,
-} from 'vitest';
+import { act, renderHook } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 
-import {
-  act,
-  renderHook,
-} from '@testing-library/react';
-
-import {
-  NOTE_AFTER_MISSES,
-  REVEAL_AFTER_MISSES,
-} from '../../src/config';
+import { NOTE_AFTER_MISSES, REVEAL_AFTER_MISSES } from '../../src/config';
 import { LANGUAGE } from '../../src/data/languages';
 import { revealIndices } from '../../src/lib/revealPlacement';
 import { useTsumiki } from '../../src/state/useTsumiki';
 
 const open = (scenario = 0) => {
-  const view = renderHook(() => useTsumiki());
+  const view = renderHook(() => useTsumiki(LANGUAGE));
   act(() => view.result.current.openScenario(scenario));
   return view;
 };
@@ -42,7 +31,7 @@ const guessWrong = (view: ReturnType<typeof open>) => {
 
 describe('useTsumiki', () => {
   it('starts on the home screen with every scenario available', () => {
-    const { result } = renderHook(() => useTsumiki());
+    const { result } = renderHook(() => useTsumiki(LANGUAGE));
     expect(result.current.state.screen).toBe('home');
     expect(result.current.scenarios).toEqual(LANGUAGE.scenarios);
   });
@@ -73,9 +62,9 @@ describe('useTsumiki', () => {
 
   it('holds every tile the current answer needs', () => {
     const { result } = open();
-    const texts = result.current.bank.map((t) => t.newLanguageText);
-    for (const answerTile of result.current.item.answer) {
-      expect(texts).toContain(answerTile.newLanguageText);
+    const texts = result.current.bank.map((t) => t[0]);
+    for (const tile of result.current.item.ans) {
+      expect(texts).toContain(tile[0]);
     }
   });
 
@@ -91,8 +80,8 @@ describe('useTsumiki', () => {
     const view = open();
     act(() => view.result.current.reveal());
     const { bank, state, item } = view.result.current;
-    expect(state.placed.map((i) => bank[i]?.newLanguageText).join('')).toBe(
-      item.answer.map((t) => t.newLanguageText).join(''),
+    expect(state.placed.map((i) => bank[i]?.[0]).join('')).toBe(
+      item.ans.map((t) => t[0]).join(''),
     );
   });
 

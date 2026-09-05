@@ -1,21 +1,13 @@
-import {
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest';
-
-import {
-  render,
-  screen,
-} from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
 
 import { Header } from '../../src/components/Header';
 
 describe('Header', () => {
-  it('shows the wordmark, the label and the streak', () => {
+  it('is a banner showing the wordmark, the label and the streak', () => {
     render(<Header label="Bakery · 01" streak="Day 12" />);
+    expect(screen.getByRole('banner')).toBeInTheDocument();
     expect(screen.getByText('TSUMIKI')).toBeInTheDocument();
     expect(screen.getByText('Bakery · 01')).toBeInTheDocument();
     expect(screen.getByText('Day 12')).toBeInTheDocument();
@@ -32,10 +24,5 @@ describe('Header', () => {
     render(<Header label="Bakery · 01" streak="Day 12" onBack={onBack} />);
     await userEvent.click(screen.getByRole('button', { name: /all/i }));
     expect(onBack).toHaveBeenCalledOnce();
-  });
-
-  it('is a banner landmark', () => {
-    render(<Header label="Bakery · 01" streak="Day 12" />);
-    expect(screen.getByRole('banner')).toBeInTheDocument();
   });
 });

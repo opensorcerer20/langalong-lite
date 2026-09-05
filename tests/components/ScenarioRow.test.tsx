@@ -1,32 +1,26 @@
-import {
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest';
-
-import {
-  render,
-  screen,
-} from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
 
 import { ScenarioRow } from '../../src/components/ScenarioRow';
-import {
-  drillItem,
-  drillScenario,
-  tile,
-} from '../helpers/fixtures';
+import type { Scenario, SentenceItem } from '../../src/data/types';
 
-const item = (promptText: string) => drillItem({ promptText, answer: [tile('パン', 'pan')] });
+const item = (id: string, en: string): SentenceItem => ({
+  id,
+  en,
+  ans: [['パン', 'pan']],
+  note: 'A note.',
+  tags: { particles: [], conjugations: [] },
+});
 
-const BAKERY = drillScenario({
+const BAKERY: Scenario = {
   id: 'bakery',
   name: 'Bakery',
+  kicker: 'Set 01',
   blurb: 'Asking for items, counting them, paying at the counter.',
-  items: [item('One bread, please.'), item('How much is this?')],
-  words: [tile('パン', 'pan')],
-});
+  items: [item('01', 'One bread, please.'), item('02', 'How much is this?')],
+  words: [['パン', 'pan']],
+};
 
 describe('ScenarioRow', () => {
   it('shows the set number, name and blurb', () => {
@@ -42,7 +36,7 @@ describe('ScenarioRow', () => {
   });
 
   it('does not say "1 sentences"', () => {
-    const single = { ...BAKERY, items: [item('One bread, please.')] };
+    const single: Scenario = { ...BAKERY, items: [item('01', 'One bread, please.')] };
     render(<ScenarioRow scenario={single} onOpen={() => {}} />);
     expect(screen.getByText('1 sentence')).toBeInTheDocument();
   });

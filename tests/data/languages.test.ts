@@ -5,40 +5,18 @@
    that cannot be completed. Driving them off LANGUAGES rather than off one
    language means a pack added later inherits the whole net for free.
 
-   Anything true only of Japanese belongs in en2ja.test.ts, not here. */
+   One test per invariant, looping over the content — not one test per sentence.
+   A pack is a few hundred sentences eventually, and a describe.each over the
+   items would report that as a few hundred tests all making the same check.
+   What a failure has to tell you is which sentence broke, and that is what the
+   assertion message carries; see `where` below.
 
-import {
-  describe,
-  expect,
-  it,
-} from 'vitest';
+   Anything true only of Japanese belongs in ja.test.ts, not here. */
 
-import { TILE_MULTIPLIER } from '../../src/config';
-import type {
-  DrillPack,
-  Tile,
-} from '../../src/data/drill';
+import { describe, expect, it } from 'vitest';
+
 import { LANGUAGES } from '../../src/data/languages';
-import { buildBank } from '../../src/lib/buildBank';
-
-/**
- * Every tile a pack can put in front of a learner, from all four places one
- * can reach the drill:
- *
- *   pack.grammar[]                       shared distractor pool
- *   scenario.words[]                     per-situation distractors
- *   item.answer[]                        canonical answers
- *   item.alternates[][]                  accepted alternates
- */
-function everyTile(language: DrillPack): Tile[] {
-  return [
-    ...language.grammar,
-    ...language.scenarios.flatMap((scenario) => [
-      ...scenario.words,
-      ...scenario.items.flatMap((item) => [...item.answer, ...item.alternates.flat()]),
-    ]),
-  ];
-}
+import { segmentLongestFirst } from '../../src/lib/segment';
 
 describe('LANGUAGES', () => {
   it('ships at least one pack — the app has nothing to drill otherwise', () => {
@@ -52,6 +30,17 @@ describe('LANGUAGES', () => {
 });
 
 describe.each(LANGUAGES)('$name', (language) => {
+  /* Every sentence in the pack, each paired with the situation it came from and
+     a label naming both — the id and the prompt, so the label still identifies
+     the sentence when the failure is that one of those two is missing. */
+  const everySentence = language.scenarios.flatMap((scenario) =>
+    scenario.items.map((item) => ({
+      scenario,
+      item,
+      where: `${scenario.name} · ${item.id} "${item.en}"`,
+    })),
+  );
+
   it('declares a code, a name and a font stack', () => {
     expect(language.code.trim()).not.toBe('');
     expect(language.name.trim()).not.toBe('');
@@ -64,103 +53,226 @@ describe.each(LANGUAGES)('$name', (language) => {
   });
 
   it('holds no duplicate in the grammar pool — a repeat wastes a distractor slot', () => {
-    const ids = language.grammar.map((t) => t.id);
-    expect(new Set(ids).size).toBe(ids.length);
+    const texts = language.grammar.map((t) => t[0]);
+    expect(new Set(texts).size).toBe(texts.length);
   });
 
-  /* The three checks below are the tile registry's own integrity, seen from
-     the resolved side. They matter because a tile's id is what buildBank
-     deduplicates on and what revealPlacement matches on — so an id that does
-     not say what the tile is, or two tiles that look alike but are not, break
-     the drill in ways no other test would notice. */
+  /* Progress is stored against a composed key, and parseKey splits it on the
+     separator. An id containing one would read back as a different scenario. */
+  it('gives every situation an id, unique within the pack and free of ":"', () => {
+    const ids = language.scenarios.map((s) => s.id);
+    for (const scenario of language.scenarios) {
+      expect(scenario.id.trim(), `"${scenario.name}" has no id`).not.toBe('');
+      expect(scenario.id, `"${scenario.name}" — ":" is the storage key separator`).not.toContain(
+        ':',
+      );
+    }
+    expect(new Set(ids).size, 'two situations share an id').toBe(ids.length);
+  });
 
-  it('gives every tile an id that matches its own type and text', () => {
-    for (const tile of everyTile(language)) {
-      expect(tile.id, `${tile.newLanguageText} carries an id that is not its own`).toBe(
-        `${tile.type}:${tile.newLanguageText}`,
+  it('gives every situation a blurb and its own vocabulary', () => {
+    for (const scenario of language.scenarios) {
+      expect(scenario.blurb, `"${scenario.name}" has no blurb`).not.toBe('');
+      expect(scenario.words.length, `"${scenario.name}" has no vocabulary`).toBeGreaterThan(0);
+    }
+  });
+
+  it('gives every sentence an id, unique within its situation and free of ":"', () => {
+    for (const scenario of language.scenarios) {
+      const ids = scenario.items.map((item) => item.id);
+      for (const item of scenario.items) {
+        const where = `${scenario.name} "${item.en}"`;
+        expect(item.id.trim(), `${where} has no id`).not.toBe('');
+        expect(item.id, `${where} — ":" is the storage key separator`).not.toContain(':');
+      }
+      expect(new Set(ids).size, `"${scenario.name}" repeats a sentence id`).toBe(ids.length);
+    }
+  });
+
+  /* The invariant the tile-level history depends on. Two tiles sharing text but
+     spelling the reading differently would collapse into one row, and the
+     learner's record for パン would silently be a record of two things. */
+  it('reads a given tile text exactly one way, everywhere it appears', () => {
+    const readings = new Map<string, string>();
+    const everyTile = [
+      ...language.grammar,
+      ...language.scenarios.flatMap((s) => [...s.words, ...s.items.flatMap((i) => i.ans)]),
+    ];
+
+    for (const [text, reading] of everyTile) {
+      const seen = readings.get(text);
+      if (seen === undefined) readings.set(text, reading);
+      else expect(reading, `"${text}" is read both "${seen}" and "${reading}"`).toBe(seen);
+    }
+  });
+
+  it('gives every sentence an English prompt and at least two tiles', () => {
+    for (const { item, where } of everySentence) {
+      expect(item.en, `${where} has no prompt`).not.toBe('');
+      expect(item.ans.length, `${where} is a single tile`).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  it('gives every sentence a grammar note — it is what a second miss shows', () => {
+    for (const { item, where } of everySentence) {
+      expect(item.note.trim(), `${where} has no note`).not.toBe('');
+    }
+  });
+
+  it('has a text and a reading on every answer tile', () => {
+    for (const { item, where } of everySentence) {
+      for (const tile of item.ans) {
+        expect(tile, `${where} has a malformed tile`).toHaveLength(2);
+        expect(tile[0].trim(), `${where} has a tile with no text`).not.toBe('');
+        expect(tile[1].trim(), `${where} — "${tile[0]}" has no reading`).not.toBe('');
+      }
+    }
+  });
+
+  /* The one that matters most. An alternate the vocabulary cannot spell would be
+     accepted by check() but impossible to build from the bank — the drill would
+     look broken with no way to tell why. */
+  it('can build every alternate from tiles in play', () => {
+    for (const { scenario, item, where } of everySentence) {
+      const vocab = [...item.ans, ...language.grammar, ...scenario.words];
+      for (const alt of item.alts ?? []) {
+        const { tiles, rest } = segmentLongestFirst(alt, vocab, language.joiner);
+        expect(rest, `${where} — "${alt}" left "${rest}" unsegmented`).toBe('');
+        expect(tiles.map((t) => t[0]).join(language.joiner), `${where} — "${alt}"`).toBe(alt);
+      }
+    }
+  });
+
+  describe('particles and conjugation patterns', () => {
+    const particleIds = new Set(language.particles.map((p) => p.id));
+    const patternIds = new Set(language.conjugations.map((c) => c.id));
+
+    /* Same rule as a scenario or sentence id, for the same reason: these are
+       storage key segments, so a change orphans everything recorded under the
+       old one and a ":" would read back as a different key entirely. */
+    it('gives every particle and pattern an id, unique and free of ":"', () => {
+      for (const particle of language.particles) {
+        expect(particle.id.trim(), `a particle has no id`).not.toBe('');
+        expect(particle.id, `particle "${particle.id}" — ":" is the key separator`).not.toContain(':');
+        expect(particle.gloss.trim(), `particle "${particle.id}" has no gloss`).not.toBe('');
+      }
+      expect(particleIds.size, 'two particles share an id').toBe(language.particles.length);
+
+      for (const pattern of language.conjugations) {
+        expect(pattern.id.trim(), 'a conjugation pattern has no id').not.toBe('');
+        expect(pattern.id, `pattern "${pattern.id}" — ":" is the key separator`).not.toContain(':');
+        expect(pattern.name.trim(), `pattern "${pattern.id}" has no name`).not.toBe('');
+        expect(pattern.note.trim(), `pattern "${pattern.id}" has no note`).not.toBe('');
+        expect(pattern.verbGroups.length, `pattern "${pattern.id}" applies to no verb group`)
+          .toBeGreaterThan(0);
+      }
+      expect(patternIds.size, 'two patterns share an id').toBe(language.conjugations.length);
+    });
+
+    /* The two lists overlap by design and must not drift. The grammar pool is
+       what the sentence drill draws distractors from and its order is pinned by
+       the bank fixtures, so particles.ts re-declares its tiles rather than the
+       pool being derived from it — which is exactly the arrangement that lets
+       them fall out of step, hence this. */
+    it('declares every particle with the same tile the grammar pool holds', () => {
+      const pool = new Map(language.grammar.map((tile) => [tile[0], tile[1]]));
+
+      for (const { id, tile } of language.particles) {
+        const [text, reading] = tile;
+        expect(pool.has(text), `particle "${id}" (${text}) is not in the grammar pool`).toBe(true);
+        expect(pool.get(text), `particle "${id}" (${text}) is read two ways`).toBe(reading);
+      }
+    });
+
+    it('points confusedWith at declared particles, never at itself', () => {
+      for (const particle of language.particles) {
+        for (const other of particle.confusedWith) {
+          expect(particleIds.has(other), `particle "${particle.id}" is confused with unknown "${other}"`)
+            .toBe(true);
+          expect(other, `particle "${particle.id}" is confused with itself`).not.toBe(particle.id);
+        }
+        expect(
+          new Set(particle.confusedWith).size,
+          `particle "${particle.id}" repeats a confusion`,
+        ).toBe(particle.confusedWith.length);
+      }
+    });
+
+    /* Confusability runs both ways or it is not confusability. An asymmetric
+       pair would mean は offers が as a distractor while が never offers は,
+       which is not a rule anyone would write on purpose. */
+    it('keeps confusedWith symmetrical', () => {
+      const declared = new Map(language.particles.map((p) => [p.id, new Set(p.confusedWith)]));
+
+      for (const particle of language.particles) {
+        for (const other of particle.confusedWith) {
+          expect(
+            declared.get(other)?.has(particle.id),
+            `"${particle.id}" lists "${other}" but "${other}" does not list "${particle.id}"`,
+          ).toBe(true);
+        }
+      }
+    });
+  });
+
+  /* Tags are what a later exercise selects on and what remediation reports
+     against, so a tag naming something that does not exist is a drill that
+     silently has nothing in it. */
+  it('tags every sentence with particles and patterns the pack declares', () => {
+    const particleIds = new Set(language.particles.map((p) => p.id));
+    const patternIds = new Set(language.conjugations.map((c) => c.id));
+
+    for (const { item, where } of everySentence) {
+      for (const id of item.tags.particles) {
+        expect(particleIds.has(id), `${where} is tagged with unknown particle "${id}"`).toBe(true);
+      }
+      for (const id of item.tags.conjugations) {
+        expect(patternIds.has(id), `${where} is tagged with unknown pattern "${id}"`).toBe(true);
+      }
+      expect(new Set(item.tags.particles).size, `${where} repeats a particle tag`).toBe(
+        item.tags.particles.length,
+      );
+      expect(new Set(item.tags.conjugations).size, `${where} repeats a pattern tag`).toBe(
+        item.tags.conjugations.length,
       );
     }
   });
 
-  /* The lint the content architecture doc recommends. Two tiles reading alike
-     but typed differently would be two ids, so the bank could hold both and
-     show the learner what looks like the same tile twice — and "Show me the
-     answer" would then have to pick between them by id, invisibly. */
-  it('never gives one piece of text two different types', () => {
-    const typesByText = new Map<string, Set<string>>();
-    for (const tile of everyTile(language)) {
-      const seen = typesByText.get(tile.newLanguageText) ?? new Set<string>();
-      seen.add(tile.type);
-      typesByText.set(tile.newLanguageText, seen);
-    }
-    for (const [text, types] of typesByText) {
-      expect([...types], `"${text}" is typed ${[...types].join(' and ')}`).toHaveLength(1);
+  /* A tagged particle the sentence does not contain would be a claim about
+     grammar the learner never sees — and, once it is recorded, a row saying
+     they got に right in a sentence with no に in it. The reverse is fine and
+     expected: every sentence contains です and almost none are about it.
+
+     An accepted alternate counts. Station 08 is tagged へ and answers with に,
+     because the pair is the whole point of the sentence and either is correct;
+     the bank seeds へ from the alternate, so the learner really can be shown
+     it. Alternates are plain strings with no tile structure, so this is a
+     substring test rather than a tile lookup — loose enough to admit a false
+     positive, which is the right way round for a check whose job is to catch a
+     tag naming grammar that is simply not there. */
+  it('tags a sentence only with particles it actually puts in front of the learner', () => {
+    const textOf = new Map(language.particles.map((p) => [p.id, p.tile[0]]));
+
+    for (const { item, where } of everySentence) {
+      const answer = new Set(item.ans.map((tile) => tile[0]));
+
+      for (const id of item.tags.particles) {
+        const text = textOf.get(id) ?? '';
+        const inAlternate = (item.alts ?? []).some((alt) => alt.includes(text));
+        expect(
+          answer.has(text) || inAlternate,
+          `${where} is tagged "${id}" but neither its answer nor its alternates use ${text}`,
+        ).toBe(true);
+      }
     }
   });
 
-  it('never gives one piece of text two different readings', () => {
-    const readingsByText = new Map<string, Set<string>>();
-    for (const tile of everyTile(language)) {
-      const seen = readingsByText.get(tile.newLanguageText) ?? new Set<string>();
-      seen.add(tile.reading);
-      readingsByText.set(tile.newLanguageText, seen);
+  it('lists no alternate identical to the canonical answer', () => {
+    for (const { item, where } of everySentence) {
+      const canonical = item.ans.map((t) => t[0]).join(language.joiner);
+      expect(item.alts ?? [], `${where} repeats its canonical answer as an alternate`).not.toContain(
+        canonical,
+      );
     }
-    for (const [text, readings] of readingsByText) {
-      expect([...readings], `"${text}" reads as ${[...readings].join(' and ')}`).toHaveLength(1);
-    }
-  });
-
-  describe.each(language.scenarios)('$name', (scenario) => {
-    it('has a non-empty blurb and its own vocabulary', () => {
-      expect(scenario.blurb).not.toBe('');
-      expect(scenario.words.length).toBeGreaterThan(0);
-    });
-
-    describe.each(scenario.items)('$promptText', (item) => {
-      it('has a native-language prompt and at least two tiles', () => {
-        expect(item.promptText).not.toBe('');
-        expect(item.answer.length).toBeGreaterThanOrEqual(2);
-      });
-
-      it('has a grammar note — it is what the learner sees after a second miss', () => {
-        expect(item.note.trim()).not.toBe('');
-    });
-
-      it('has a text and a reading on every tile', () => {
-        for (const tile of item.answer) {
-          expect(tile.newLanguageText.trim()).not.toBe('');
-          expect(tile.reading.trim()).not.toBe('');
-        }
-    });
-
-      /* The one that matters most. An accepted answer the bank cannot build
-         would be judged correct by check() but impossible to assemble — the
-         drill would look broken with no way to tell why. buildBank seeds an
-         alternate's tiles precisely so this holds; the test is what proves it
-         still does. */
-      it('can build every alternate from the bank it is offered', () => {
-        const bank = buildBank(
-          item,
-          0,
-          { grammar: language.grammar, words: scenario.words },
-          TILE_MULTIPLIER,
-        );
-        const available = new Set(bank.map((t) => t.id));
-        for (const alternate of item.alternates) {
-          expect(alternate.length, 'an alternate with no tiles is never buildable')
-            .toBeGreaterThan(0);
-          for (const tile of alternate) {
-            expect(available, `${tile.id} is missing from the bank`).toContain(tile.id);
-          }
-        }
-      });
-
-      it('does not list an alternate identical to the canonical answer', () => {
-        const sentence = (tiles: readonly { newLanguageText: string }[]) =>
-          tiles.map((t) => t.newLanguageText).join(language.joiner);
-        const canonical = sentence(item.answer);
-        expect(item.alternates.map(sentence)).not.toContain(canonical);
-      });
-    });
   });
 });

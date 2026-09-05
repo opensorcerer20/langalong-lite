@@ -1,60 +1,53 @@
-import {
-  describe,
-  expect,
-  it,
-} from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { TILE_MULTIPLIER } from '../../src/config';
-import type { Tile } from '../../src/data/drill';
 import { LANGUAGE } from '../../src/data/languages';
+import type { SentenceItem, Tile } from '../../src/data/types';
 import { buildBank } from '../../src/lib/buildBank';
-import {
-  buildString,
-  isCorrect,
-} from '../../src/lib/checkAnswer';
+import { buildString, isCorrect } from '../../src/lib/checkAnswer';
 import { revealIndices } from '../../src/lib/revealPlacement';
-import {
-  drillItem,
-  tile,
-} from '../helpers/fixtures';
 
-const ITEM = drillItem({
-  promptText: 'One bread, please.',
-  answer: [tile('パン', 'pan'), tile('を', 'o', 'particle'), tile('ください', 'kudasai', 'verb')],
+const ITEM: SentenceItem = {
+  id: '01',
+  en: 'One bread, please.',
+  ans: [['パン', 'pan'], ['を', 'o'], ['ください', 'kudasai']],
   note: 'を marks the direct object.',
-});
+  tags: { particles: [], conjugations: [] },
+};
 
 describe('revealIndices', () => {
   it('points at the bank positions that spell the answer', () => {
     const bank: readonly Tile[] = [
-      tile('ください', 'kudasai', 'verb'),
-      tile('は', 'wa', 'particle'),
-      tile('パン', 'pan'),
-      tile('を', 'o', 'particle'),
+      ['ください', 'kudasai'],
+      ['は', 'wa'],
+      ['パン', 'pan'],
+      ['を', 'o'],
     ];
     expect(revealIndices(ITEM, bank)).toEqual([2, 3, 0]);
   });
 
-  /* The claimed-position guard. A bank holding the same tile twice must not
+  /* The claimed-position guard. A bank holding the same text twice must not
      return the same index twice, or the answer line renders short. */
   it('claims each position once when the bank repeats a tile', () => {
-    const doubled = drillItem({
-      promptText: 'Bread bread.',
-      answer: [tile('パン', 'pan'), tile('パン', 'pan')],
+    const doubled: SentenceItem = {
+      id: 'doubled',
+      en: 'Bread bread.',
+      ans: [['パン', 'pan'], ['パン', 'pan']],
       note: 'Contrived.',
-    });
-    const bank: readonly Tile[] = [tile('パン', 'pan'), tile('を', 'o', 'particle'), tile('パン', 'pan')];
+      tags: { particles: [], conjugations: [] },
+    };
+    const bank: readonly Tile[] = [['パン', 'pan'], ['を', 'o'], ['パン', 'pan']];
     expect(revealIndices(doubled, bank)).toEqual([0, 2]);
   });
 
   it('falls back to 0 for a tile missing from the bank', () => {
-    expect(revealIndices(ITEM, [tile('パン', 'pan')])).toEqual([0, 0, 0]);
+    expect(revealIndices(ITEM, [['パン', 'pan']])).toEqual([0, 0, 0]);
   });
 
   it('returns one index per answer tile', () => {
     const pools = { grammar: LANGUAGE.grammar, words: [] };
-    const bank = buildBank(ITEM, 0, pools, TILE_MULTIPLIER);
-    expect(revealIndices(ITEM, bank)).toHaveLength(ITEM.answer.length);
+    const bank = buildBank(ITEM, 0, pools, TILE_MULTIPLIER, LANGUAGE.joiner);
+    expect(revealIndices(ITEM, bank)).toHaveLength(ITEM.ans.length);
   });
 });
 
@@ -67,6 +60,7 @@ describe('revealIndices over the shipped content', () => {
         index,
         { grammar: LANGUAGE.grammar, words: scenario.words },
         TILE_MULTIPLIER,
+        LANGUAGE.joiner,
       );
       const built = buildString(bank, revealIndices(item, bank), LANGUAGE.joiner);
       const where = `${scenario.name} item ${index}: "${built}"`;
