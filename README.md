@@ -64,6 +64,7 @@ The app is organised so each piece can be read on its own: the language content 
 | [docs/AUTHORING.md](docs/AUTHORING.md) | Adding sentences, situations, languages and glyphs |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | What isn't built yet |
 | [docs/MAINTENANCE.md](docs/MAINTENANCE.md) | Known debt, the prototype, troubleshooting |
+| [docs/CHANGELOG.md](docs/CHANGELOG.md) | Notable changes, and why |
 
 ## Project layout
 
