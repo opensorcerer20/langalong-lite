@@ -5,7 +5,10 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
-    "types": ["vitest/globals", "@testing-library/jest-dom"],
+    /* "node" is here for scripts/, which run under vite-node and read files.
+       It is program-wide, so process and friends also type-check inside src/ —
+       nothing there uses them, and the bundler would fail loudly if it did. */
+    "types": ["vitest/globals", "@testing-library/jest-dom", "node"],
 
     "strict": true,
     "noUncheckedIndexedAccess": true,
