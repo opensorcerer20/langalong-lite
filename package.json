@@ -33,6 +33,7 @@
     "unplugin-stylex": "^0.6.3",
     "vite": "^7.0.0",
     "vite-node": "^3.0.0",
-    "vitest": "^3.0.0"
+    "vitest": "^3.0.0",
+    "zod": "^4.5.4"
   }
 }
