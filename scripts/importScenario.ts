@@ -13,7 +13,7 @@
 
 import { readFileSync } from 'node:fs';
 
-import PACK from '../src/data/ja.json';
+import { JA_FILE as PACK } from '../src/data/languages';
 import { loadPack } from '../src/data/loadPack';
 import {
   buildReport,

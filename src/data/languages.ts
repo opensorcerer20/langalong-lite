@@ -5,12 +5,24 @@
    what keeps them language-agnostic, and it is worth preserving: a component
    that reaches in here for a piece of Japanese has broken the arrangement. */
 
-import JA_FILE from './ja.json';
+import JA_BAKERY from '../../content/ja/bakery.json';
+import JA_CORE from '../../content/ja/core.json';
+import JA_STATION from '../../content/ja/station.json';
+import { assemblePack } from './assemblePack';
+import type { PackFile } from './loadPack';
 import { loadPack } from './loadPack';
 import type { LanguagePack } from './types';
 
 /**
- * The Japanese pack, expanded from its authored file.
+ * The Japanese content, assembled.
+ *
+ * The list is the whole of what it takes to add a situation, and its order is
+ * the set numbering — bakery is Set 01 because it is first here.
+ */
+export const JA_FILE: PackFile = assemblePack(JA_CORE, [JA_BAKERY, JA_STATION]);
+
+/**
+ * The Japanese pack, expanded from that.
  *
  * At module scope on purpose: a pack that will not load is a broken build, not
  * a broken drill, so it fails at import.
