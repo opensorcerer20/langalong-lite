@@ -1,17 +1,22 @@
 /* Parsing a content file the compiler has never seen.
 
-   Two kinds of test here. Most use inline fixtures and assert what the schema
-   accepts or refuses. The last group parses the real content files — not as
-   convenient examples, but because "the schema accepts what the app ships" is
-   the property that catches a schema stricter than the interfaces it mirrors,
-   which no inline fixture can. */
+   Most tests here use inline fixtures and assert what the schema accepts or
+   refuses. The last group reads files off disk — tests/fixtures/content/, never
+   content/ja/ — because the schema being stricter than the interfaces it
+   mirrors shows up only against a whole, valid file, and reading one is also
+   the path the script itself takes. */
 
-import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 
-import JA_BAKERY from '../../content/ja/bakery.json';
-import JA_CORE from '../../content/ja/core.json';
-import JA_STATION from '../../content/ja/station.json';
-import { parseCoreFile, parseScenarioFile } from '../../scripts/contentSchema';
+import {
+  describe,
+  expect,
+  it,
+} from 'vitest';
+import {
+  parseCoreFile,
+  parseScenarioFile,
+} from '../../scripts/contentSchema';
 
 const SCENARIO = {
   id: 'bakery',
@@ -94,16 +99,23 @@ describe('parseScenarioFile — what it refuses', () => {
   });
 });
 
-describe('the shipped content files', () => {
-  /* If a schema above asks for more than the app does, this is what says so. */
-  it.each([
-    ['bakery', JA_BAKERY],
-    ['station', JA_STATION],
-  ])('parses content/ja/%s.json', (name, file) => {
-    expect(() => parseScenarioFile(file, `content/ja/${name}.json`)).not.toThrow();
+describe('whole files, read the way the script reads them', () => {
+  /* From the project root, which is where both vitest and the script run. */
+  const read = (name: string): unknown =>
+    JSON.parse(readFileSync(`tests/fixtures/content/${name}.json`, 'utf8'));
+
+  /* Two shapes worth having on disk: one carrying every optional field, one
+     carrying none. Between them they cover what a schema could wrongly demand. */
+  it.each(['full', 'minimal'])('parses a %s scenario file', (name) => {
+    expect(() => parseScenarioFile(read(name), `${name}.json`)).not.toThrow();
   });
 
-  it('parses content/ja/core.json', () => {
-    expect(() => parseCoreFile(JA_CORE, 'content/ja/core.json')).not.toThrow();
+  it('parses a core file', () => {
+    expect(() => parseCoreFile(read('core'), 'core.json')).not.toThrow();
+  });
+
+  it('returns the file unchanged, so nothing is dropped on the way through', () => {
+    const file = read('full');
+    expect(parseScenarioFile(file, 'full.json')).toEqual(file);
   });
 });
