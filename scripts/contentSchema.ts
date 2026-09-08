@@ -1,12 +1,12 @@
 /* Runtime shapes for the content files, for scripts only.
 
    The app never needs this. It imports content/ja/*.json as literals, so tsc
-   checks them against CoreFile and SituationFile before anything runs. A script
+   checks them against CoreFile and ScenarioFile before anything runs. A script
    handed a path reads a file tsc has never seen, and that is the one boundary
    in the repo where the types are a claim rather than a fact.
 
      app     content/ja/*.json ──import──►  tsc checks it
-     script  <any path>        ──read────►  parseSituationFile checks it
+     script  <any path>        ──read────►  parseScenarioFile checks it
 
    The interfaces in src/data/ stay authoritative; these mirror them. Two things
    keep the mirror honest: the assertions below fail to compile if a schema stops
@@ -18,7 +18,7 @@
 
 import { z } from 'zod';
 
-import type { CoreFile, SituationFile } from '../src/data/assemblePack';
+import type { CoreFile, ScenarioFile } from '../src/data/assemblePack';
 
 const Lexicon = z.record(z.string(), z.string());
 
@@ -33,18 +33,15 @@ const Item = z
   })
   .strict();
 
-const Scenario = z
+export const ScenarioFileSchema = z
   .object({
     id: z.string(),
     name: z.string(),
     blurb: z.string(),
+    lexicon: Lexicon,
     words: z.array(z.string()).optional(),
     items: z.array(Item),
   })
-  .strict();
-
-export const SituationFileSchema = z
-  .object({ lexicon: Lexicon, scenario: Scenario })
   .strict();
 
 export const CoreFileSchema = z
@@ -73,9 +70,9 @@ type AsAuthored<T> = T extends object ? { [K in keyof T]: AsAuthored<Exclude<T[K
 
 /* Compile-time: a parsed file must satisfy what the app requires. Drop a field
    from a schema above, or change its type, and these stop compiling. */
-const _situation: SituationFile = {} as AsAuthored<z.infer<typeof SituationFileSchema>>;
+const _scenario: ScenarioFile = {} as AsAuthored<z.infer<typeof ScenarioFileSchema>>;
 const _core: CoreFile = {} as AsAuthored<z.infer<typeof CoreFileSchema>>;
-void _situation;
+void _scenario;
 void _core;
 
 /**
@@ -83,8 +80,8 @@ void _core;
  *
  * @param where The path, for the message — nothing else identifies the file.
  */
-export function parseSituationFile(value: unknown, where: string): SituationFile {
-  return parse(SituationFileSchema, value, where);
+export function parseScenarioFile(value: unknown, where: string): ScenarioFile {
+  return parse(ScenarioFileSchema, value, where);
 }
 
 export function parseCoreFile(value: unknown, where: string): CoreFile {

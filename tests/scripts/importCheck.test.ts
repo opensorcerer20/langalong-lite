@@ -7,7 +7,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { checkImport, formatReport } from '../../scripts/importCheck';
-import type { CoreFile, SituationFile } from '../../src/data/assemblePack';
+import type { CoreFile, ScenarioFile } from '../../src/data/assemblePack';
 
 const CORE: CoreFile = {
   code: 'xx',
@@ -20,32 +20,28 @@ const CORE: CoreFile = {
   conjugations: { tai: { name: 'want to', note: 'stem + たい' } },
 };
 
-const BAKERY: SituationFile = {
+const BAKERY: ScenarioFile = {
+  id: 'bakery',
+  name: 'Bakery',
+  blurb: 'At the counter.',
   lexicon: { パン: 'pan' },
-  scenario: {
-    id: 'bakery',
-    name: 'Bakery',
-    blurb: 'At the counter.',
-    items: [{ id: '01', en: 'Bread, please.', ans: 'パン|を|ください', teaches: ['o'] }],
-  },
+  items: [{ id: '01', en: 'Bread, please.', ans: 'パン|を|ください', teaches: ['o'] }],
 };
 
-const CAFE: SituationFile = {
+const CAFE: ScenarioFile = {
+  id: 'cafe',
+  name: 'Café',
+  blurb: 'Ordering.',
   lexicon: { ケーキ: 'keeki', を: 'o' },
-  scenario: {
-    id: 'cafe',
-    name: 'Café',
-    blurb: 'Ordering.',
-    words: ['コーヒー'],
-    items: [
-      { id: '01', en: 'Cake, please.', ans: 'ケーキ|を|ください', teaches: ['o'] },
-      { id: '02', en: 'This too.', ans: 'ケーキ|も|ください', teaches: ['mo'] },
-    ],
-  },
+  words: ['コーヒー'],
+  items: [
+    { id: '01', en: 'Cake, please.', ans: 'ケーキ|を|ください', teaches: ['o'] },
+    { id: '02', en: 'This too.', ans: 'ケーキ|も|ください', teaches: ['mo'] },
+  ],
 };
 
-const check = (candidate: SituationFile, situations: readonly SituationFile[] = [BAKERY]) =>
-  checkImport(CORE, situations, candidate);
+const check = (candidate: ScenarioFile, scenarios: readonly ScenarioFile[] = [BAKERY]) =>
+  checkImport(CORE, scenarios, candidate);
 
 describe('checkImport — a situation the pack does not list', () => {
   it('reports where it would land', () => {
@@ -100,10 +96,7 @@ describe('checkImport — a situation the pack already lists', () => {
   });
 
   it('picks up an edit to the file rather than the version in the pack', () => {
-    const edited: SituationFile = {
-      ...CAFE,
-      scenario: { ...CAFE.scenario, name: 'Coffee shop' },
-    };
+    const edited: ScenarioFile = { ...CAFE, name: 'Coffee shop' };
     expect(check(edited, [BAKERY, CAFE]).report.situationName).toBe('Coffee shop');
   });
 });
@@ -112,9 +105,12 @@ describe('checkImport — what it leaves to loadPack', () => {
   /* A missing reading is loadPack's throw, naming the sentence. Checking it
      here as well would be a second set of rules to keep in step. */
   it('hands back a pack a missing reading makes unloadable', () => {
-    const missing: SituationFile = {
+    const missing: ScenarioFile = {
+      id: 'x',
+      name: 'X',
+      blurb: '.',
       lexicon: {},
-      scenario: { id: 'x', name: 'X', blurb: '.', items: [{ id: '01', en: 'x', ans: '肉' }] },
+      items: [{ id: '01', en: 'x', ans: '肉' }],
     };
     expect(() => check(missing)).not.toThrow();
   });
@@ -141,7 +137,8 @@ describe('formatReport', () => {
   });
 
   it('says so plainly when nothing new is taught', () => {
-    const text = formatReport(check(CAFE, [BAKERY, CAFE, { ...CAFE, scenario: { ...CAFE.scenario, id: 'other' } }]).report, 'x.json');
+    const elsewhere: ScenarioFile = { ...CAFE, id: 'other' };
+    const text = formatReport(check(CAFE, [BAKERY, CAFE, elsewhere]).report, 'x.json');
     expect(text).toContain('nothing new');
   });
 });

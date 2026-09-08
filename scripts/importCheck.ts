@@ -12,7 +12,7 @@
    — and neither is a duplicate-id error. Nothing is written either way; a
    situation joins the pack by being listed in src/data/languages.ts. */
 
-import type { CoreFile, SituationFile } from '../src/data/assemblePack';
+import type { CoreFile, ScenarioFile } from '../src/data/assemblePack';
 import { assemblePack } from '../src/data/assemblePack';
 import type { ItemEntry, PackFile } from '../src/data/loadPack';
 import { TILE_SEPARATOR } from '../src/data/loadPack';
@@ -45,18 +45,17 @@ export interface ImportCheck {
 
 export function checkImport(
   core: CoreFile,
-  situations: readonly SituationFile[],
-  candidate: SituationFile,
+  scenarios: readonly ScenarioFile[],
+  candidate: ScenarioFile,
 ): ImportCheck {
-  const { scenario } = candidate;
-  const others = situations.filter((file) => file.scenario.id !== scenario.id);
-  const replacing = others.length < situations.length;
+  const others = scenarios.filter((file) => file.id !== candidate.id);
+  const replacing = others.length < scenarios.length;
 
   /* Replacing keeps the situation's position, so its set number does not move
      just because the file was re-checked. */
   const withCandidate = replacing
-    ? situations.map((file) => (file.scenario.id === scenario.id ? candidate : file))
-    : [...situations, candidate];
+    ? scenarios.map((file) => (file.id === candidate.id ? candidate : file))
+    : [...scenarios, candidate];
 
   /* Measured against the pack without this situation at all — otherwise a
      re-check of a wired-in file would report that it teaches nothing new. */
@@ -65,15 +64,15 @@ export function checkImport(
   return {
     pack: assemblePack(core, withCandidate),
     report: {
-      situationId: scenario.id,
-      situationName: scenario.name,
+      situationId: candidate.id,
+      situationName: candidate.name,
       kicker: `Set ${String(withCandidate.indexOf(candidate) + 1).padStart(2, '0')}`,
       replacing,
-      sentences: scenario.items.length,
+      sentences: candidate.items.length,
       ...splitLexicon(candidate.lexicon, before.lexicon),
-      reused: reusedFrom(scenario.items, core.grammar),
-      firstTaught: firstTaughtBy(scenario.items, others),
-      extraWords: scenario.words ?? [],
+      reused: reusedFrom(candidate.items, core.grammar),
+      firstTaught: firstTaughtBy(candidate.items, others),
+      extraWords: candidate.words ?? [],
     },
   };
 }
@@ -112,9 +111,9 @@ function reusedFrom(items: readonly ItemEntry[], grammar: readonly string[]): st
  * The line worth reading: `teaches` is declared per sentence, so nothing else
  * says whether a new situation broadens the pack's coverage or repeats it.
  */
-function firstTaughtBy(items: readonly ItemEntry[], others: readonly SituationFile[]): string[] {
+function firstTaughtBy(items: readonly ItemEntry[], others: readonly ScenarioFile[]): string[] {
   const already = new Set(
-    others.flatMap((file) => file.scenario.items.flatMap((item) => item.teaches ?? [])),
+    others.flatMap((file) => file.items.flatMap((item) => item.teaches ?? [])),
   );
   const first = new Set<string>();
 

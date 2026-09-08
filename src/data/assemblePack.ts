@@ -1,7 +1,7 @@
 /* One core file plus one file per situation, in, a PackFile out.
 
      content/ja/core.json      shared: lexicon, grammar, particles, conjugations
-     content/ja/bakery.json    its own readings + its own situation
+     content/ja/bakery.json    one situation, and the readings its words need
      content/ja/station.json   ⋮
               │
               ▼  assemblePack()
@@ -20,32 +20,38 @@ import type { PackFile, ScenarioEntry } from './loadPack';
 
 type Lexicon = Readonly<Record<string, string>>;
 
-/** Everything shared between situations. A PackFile without the content. */
+/** Everything shared between scenarios. A PackFile without the content. */
 export type CoreFile = Omit<PackFile, 'scenarios'>;
 
-/** One situation, and the readings only it needs. */
-export interface SituationFile {
-  readonly lexicon: Lexicon;
-  readonly scenario: ScenarioEntry;
-}
+/**
+ * A scenario file: a scenario, plus the readings only it needs.
+ *
+ * The lexicon is the one thing a file adds to what the pack already holds —
+ * everything else is the scenario itself, so it is written at the top level.
+ */
+export type ScenarioFile = ScenarioEntry & { readonly lexicon: Lexicon };
 
-export function assemblePack(core: CoreFile, situations: readonly SituationFile[]): PackFile {
+export function assemblePack(core: CoreFile, scenarios: readonly ScenarioFile[]): PackFile {
   let lexicon: Lexicon = core.lexicon;
   const seen = new Set<string>();
 
-  for (const file of situations) {
-    const { id } = file.scenario;
+  for (const file of scenarios) {
+    /* Ids are storage keys — two scenarios sharing one would merge a learner's
+       progress across both. */
+    if (seen.has(file.id)) throw new Error(`two scenario files both use the id "${file.id}"`);
+    seen.add(file.id);
 
-    /* Ids are storage keys — two situations sharing one would merge a
-       learner's progress across both. */
-    if (seen.has(id)) throw new Error(`two situation files both use the id "${id}"`);
-    seen.add(id);
-
-    rejectRepeatedItemIds(file.scenario);
-    lexicon = mergeLexicon(lexicon, file.lexicon, id);
+    rejectRepeatedItemIds(file);
+    lexicon = mergeLexicon(lexicon, file.lexicon, file.id);
   }
 
-  return { ...core, lexicon, scenarios: situations.map((file) => file.scenario) };
+  return { ...core, lexicon, scenarios: scenarios.map(withoutLexicon) };
+}
+
+/** The scenario as the pack holds it — everything the file has but its readings. */
+function withoutLexicon(file: ScenarioFile): ScenarioEntry {
+  const { lexicon: _lexicon, ...scenario } = file;
+  return scenario;
 }
 
 /**
@@ -75,7 +81,7 @@ function mergeLexicon(into: Lexicon, incoming: Lexicon, where: string): Lexicon 
   return merged;
 }
 
-/** Within a situation an id must be unique: it is half of the progress key. */
+/** Within a scenario an id must be unique: it is half of the progress key. */
 function rejectRepeatedItemIds(scenario: ScenarioEntry): void {
   const seen = new Set<string>();
 

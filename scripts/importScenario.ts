@@ -13,14 +13,14 @@ import { readFileSync } from 'node:fs';
 
 import { JA_CONTENT } from '../src/data/languages';
 import { loadPack } from '../src/data/loadPack';
-import { parseSituationFile } from './contentSchema';
+import { parseScenarioFile } from './contentSchema';
 import { checkImport, formatReport } from './importCheck';
 
 function main(source: string | undefined): void {
   if (source === undefined) throw new Error('usage: npm run import -- <situation.json>');
 
-  const file = parseSituationFile(JSON.parse(readFileSync(source, 'utf8')), source);
-  const { pack, report } = checkImport(JA_CONTENT.core, JA_CONTENT.situations, file);
+  const file = parseScenarioFile(JSON.parse(readFileSync(source, 'utf8')), source);
+  const { pack, report } = checkImport(JA_CONTENT.core, JA_CONTENT.scenarios, file);
 
   /* Throws naming the sentence — restaurant 03 — "肉" is not in the lexicon. */
   loadPack(pack);
