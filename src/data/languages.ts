@@ -7,6 +7,7 @@
 
 import JA_BAKERY from '../../content/ja/bakery.json';
 import JA_CORE from '../../content/ja/core.json';
+import JA_MEETING from '../../content/ja/meeting.json';
 import JA_RESTAURANT from '../../content/ja/restaurant.json';
 import JA_STATION from '../../content/ja/station.json';
 import type { CoreFile, ScenarioFile } from './assemblePack';
@@ -27,7 +28,7 @@ import type { LanguagePack } from './types';
 export const JA_CONTENT: {
   readonly core: CoreFile;
   readonly scenarios: readonly ScenarioFile[];
-} = { core: JA_CORE, scenarios: [JA_BAKERY, JA_STATION, JA_RESTAURANT] };
+} = { core: JA_CORE, scenarios: [JA_BAKERY, JA_STATION, JA_RESTAURANT, JA_MEETING] };
 
 /**
  * The Japanese pack, assembled and expanded.
