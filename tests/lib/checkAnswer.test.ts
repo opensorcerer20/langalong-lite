@@ -47,7 +47,7 @@ describe('acceptedAnswers', () => {
   });
 
   it('is just the canonical answer when there are no alternates', () => {
-    const noAlts: SentenceItem = { id: ITEM.id, en: ITEM.en, ans: ITEM.ans, note: ITEM.note, tags: ITEM.tags };
+    const noAlts: SentenceItem = { id: ITEM.id, en: ITEM.en, ans: ITEM.ans, tags: ITEM.tags };
     expect(acceptedAnswers(noAlts, JOINER)).toEqual(['パンをください']);
   });
 });

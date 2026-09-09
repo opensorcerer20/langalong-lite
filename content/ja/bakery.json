@@ -1,0 +1,122 @@
+{
+  "id": "bakery",
+  "name": "Bakery",
+  "blurb": "Asking for items, counting them, paying at the counter.",
+
+  "lexicon": {
+    "パン": "pan",
+    "クロワッサン": "kurowassan",
+    "メロンパン": "meronpan",
+    "ケーキ": "keeki",
+    "コーヒー": "koohii",
+    "一つ": "hitotsu",
+    "二つ": "futatsu",
+    "三つ": "mittsu",
+    "これ": "kore",
+    "それ": "sore",
+    "この": "kono",
+    "あの": "ano",
+    "袋": "fukuro",
+    "カード": "kaado",
+    "現金": "genkin",
+    "おいしい": "oishii",
+    "甘い": "amai",
+    "温かい": "atatakai",
+    "冷たい": "tsumetai",
+    "もの": "mono",
+    "食べ": "tabe",
+    "飲み": "nomi",
+    "買い": "kai",
+    "払え": "harae",
+    "いくら": "ikura",
+    "おすすめ": "osusume"
+  },
+
+  "words": [
+    "一つ",
+    "三つ",
+    "それ",
+    "あの",
+    "ケーキ",
+    "コーヒー",
+    "現金",
+    "おいしい",
+    "冷たい",
+    "飲み",
+    "買い"
+  ],
+  "items": [
+    {
+      "id": "01",
+      "en": "One bread, please.",
+      "ans": "パン|を|ください",
+      "alts": ["パンをお願いします"],
+      "note": "を marks the direct object — the thing you are asking for. は would make it the topic, which sounds like you are commenting on bread, not requesting it.",
+      "teaches": ["o"]
+    },
+    {
+      "id": "02",
+      "en": "I'd like two croissants.",
+      "ans": "クロワッサン|を|二つ|ください",
+      "note": "The counter comes after を, not attached to the noun: ＸをNください. 二つ is the generic counter for small objects.",
+      "teaches": ["o"]
+    },
+    {
+      "id": "03",
+      "en": "Do you have melon bread?",
+      "ans": "メロンパン|は|あります|か",
+      "note": "For existence questions the item is the topic, so は. か turns the sentence into a question — no rising intonation needed.",
+      "teaches": ["wa"]
+    },
+    {
+      "id": "04",
+      "en": "How much is this?",
+      "ans": "これ|は|いくら|です|か",
+      "note": "これ is 'this thing' on its own; この needs a noun after it (この パン).",
+      "teaches": ["wa"]
+    },
+    {
+      "id": "05",
+      "en": "Is this bread sweet?",
+      "ans": "この|パン|は|甘い|です|か",
+      "note": "甘い is already an adjective — です only adds politeness, it never becomes 甘いだです or takes が here.",
+      "teaches": ["wa"]
+    },
+    {
+      "id": "06",
+      "en": "I want to eat something warm.",
+      "ans": "温かい|もの|が|食べ|たい|です",
+      "note": "〜たい takes が for its object, not を. Attach たい to the verb stem: 食べ + たい.",
+      "teaches": ["ga", "tai"]
+    },
+    {
+      "id": "07",
+      "en": "I'll take this one.",
+      "ans": "これ|を|お願いします",
+      "alts": ["これをください", "これをもらいます"],
+      "note": "お願いします is softer than ください at the point of paying. Both are fine; the particle stays を.",
+      "teaches": ["o"]
+    },
+    {
+      "id": "08",
+      "en": "Can I pay by card?",
+      "ans": "カード|で|払え|ます|か",
+      "note": "で marks the means or instrument — by card, by train, in Japanese. 払え+ます is the potential form: 'can pay'.",
+      "teaches": ["de", "potential", "masu"]
+    },
+    {
+      "id": "09",
+      "en": "Please give me a bag.",
+      "ans": "袋|を|ください",
+      "note": "Same frame as the first sentence. Once ＸをＹください is automatic, only the noun changes.",
+      "teaches": ["o"]
+    },
+    {
+      "id": "10",
+      "en": "What do you recommend?",
+      "ans": "おすすめ|は|何|です|か",
+      "note": "何 stays where the answer would go — Japanese does not move question words to the front.",
+      "teaches": ["wa"]
+    }
+  ]
+}

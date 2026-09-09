@@ -54,7 +54,13 @@ export interface Tsumiki {
   readonly done: boolean;
   /** The current item is the last in the set. */
   readonly isLastItem: boolean;
-  /** Show the grammar note: enough misses, or the answer is settled. */
+  /**
+   * Show the grammar note: the item has one, and either enough misses have
+   * accumulated or the answer is settled.
+   *
+   * An item without a note never sets this, which is what keeps the status line
+   * from pointing at help that is not on screen.
+   */
   readonly showNote: boolean;
   /** Show the "Show me the answer" button. */
   readonly showReveal: boolean;
@@ -245,7 +251,7 @@ export function useTsumiki(language: LanguagePack, progress?: ProgressStore): Ts
     total,
     done,
     isLastItem: state.item === total - 1,
-    showNote: state.misses >= NOTE_AFTER_MISSES || done,
+    showNote: item.note !== undefined && (state.misses >= NOTE_AFTER_MISSES || done),
     showReveal: state.misses >= REVEAL_AFTER_MISSES && !done,
     /* A finished set reads 100%, not "last item". */
     progress: (state.finished ? total : state.item) / total,

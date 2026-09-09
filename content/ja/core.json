@@ -1,0 +1,105 @@
+{
+  "code": "ja",
+  "name": "Japanese",
+  "joiner": "",
+  "fontStack": "'Noto Sans JP'",
+  "lexicon": {
+    "は": "wa",
+    "が": "ga",
+    "を": "o",
+    "に": "ni",
+    "で": "de",
+    "も": "mo",
+    "の": "no",
+    "へ": "e",
+    "と": "to",
+    "か": "ka",
+    "まで": "made",
+    "から": "kara",
+    "です": "desu",
+    "ます": "masu",
+    "ました": "mashita",
+    "ません": "masen",
+    "たい": "tai",
+    "ている": "teiru",
+    "ください": "kudasai",
+    "お願いします": "onegaishimasu",
+    "あります": "arimasu",
+    "ありません": "arimasen",
+    "もらいます": "moraimasu",
+    "どこ": "doko",
+    "何": "nani"
+  },
+
+  "grammar": [
+    "は",
+    "が",
+    "を",
+    "に",
+    "で",
+    "も",
+    "の",
+    "へ",
+    "と",
+    "か",
+    "まで",
+    "から",
+
+    "です",
+    "ます",
+    "ました",
+    "ません",
+    "たい",
+    "ている",
+
+    "ください",
+    "お願いします",
+    "あります",
+    "ありません",
+    "もらいます",
+    "どこ",
+    "何"
+  ],
+
+  "particles": {
+    "wa": { "tile": "は", "gloss": "marks the topic — what the sentence is about" },
+    "ga": { "tile": "が", "gloss": "marks the subject, and the object of 〜たい" },
+    "o": { "tile": "を", "gloss": "marks the direct object — the thing acted on" },
+    "ni": { "tile": "に", "gloss": "marks a destination, a point in time, or where something is" },
+    "de": { "tile": "で", "gloss": "marks the means, or where an action happens" },
+    "mo": { "tile": "も", "gloss": "replaces は or が to mean \"too\" or \"also\"" },
+    "no": { "tile": "の", "gloss": "joins two nouns — possession, or one describing the other" },
+    "e": { "tile": "へ", "gloss": "marks the direction of movement — softer than に" },
+    "to": { "tile": "と", "gloss": "joins nouns as a complete list, or marks who with" },
+    "ka": { "tile": "か", "gloss": "turns a sentence into a question" },
+    "made": { "tile": "まで", "gloss": "marks the end point — \"as far as\", \"until\"" },
+    "kara": { "tile": "から", "gloss": "marks the starting point — \"from\", \"since\"" }
+  },
+
+  "conjugations": {
+    "masu": {
+      "name": "polite non-past",
+      "note": "Attach ます to the verb stem: 止まり + ます. This is the form to default to with anyone you are not close to."
+    },
+    "mashita": {
+      "name": "polite past",
+      "note": "The past of ます is ました, on the same stem: 止まり + ました. です does not take it — it becomes でした."
+    },
+    "masen": {
+      "name": "polite negative",
+      "note": "The negative of ます is ません, on the same stem: 止まり + ません. Nothing else in the sentence changes."
+    },
+    "te-form": {
+      "name": "te-form",
+      "note": "The connective form — it joins clauses and carries ている, てください and much else. Ichidan verbs take て on the stem; godan verbs change the ending by its final sound."
+    },
+    "tai": {
+      "name": "want to",
+      "note": "Attach たい to the verb stem: 食べ + たい. It behaves as an adjective afterwards, and its object takes が rather than を."
+    },
+    "potential": {
+      "name": "potential",
+      "note": "\"Can do\" — 払え, 使え. What the verb could act on becomes が rather than を, because the potential describes a state rather than an action."
+    }
+  }
+}

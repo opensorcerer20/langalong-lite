@@ -1,0 +1,22 @@
+{
+  "id": "cafe",
+  "name": "Café",
+  "blurb": "Every optional field a scenario file may carry, all present at once.",
+
+  "lexicon": {
+    "ケーキ": "keeki",
+    "コーヒー": "koohii"
+  },
+
+  "words": ["コーヒー"],
+  "items": [
+    {
+      "id": "01",
+      "en": "Cake, please.",
+      "ans": "ケーキ|を|ください",
+      "alts": ["ケーキをお願いします"],
+      "note": "を marks the thing being asked for.",
+      "teaches": ["o"]
+    }
+  ]
+}

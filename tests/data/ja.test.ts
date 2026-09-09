@@ -7,8 +7,7 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { JA } from '../../src/data/ja';
-import { LANGUAGE, LANGUAGES } from '../../src/data/languages';
+import { JA, LANGUAGE, LANGUAGES } from '../../src/data/languages';
 
 describe('the ja pack', () => {
   it('is the language the app currently drills', () => {
@@ -24,14 +23,12 @@ describe('the ja pack', () => {
     expect(JA.fontStack).toContain('Noto Sans JP');
   });
 
-  it('ships the two situations in set order', () => {
-    expect(JA.scenarios.map((s) => s.name)).toEqual(['Bakery', 'Train station']);
-    expect(JA.scenarios.map((s) => s.kicker)).toEqual(['Set 01', 'Set 02']);
-  });
-
-  /* Exact set sizes were asserted here — [10, 8]. That test failed every time a
-     sentence was written and never once indicated a bug, so it is gone. That
-     each set is non-empty and internally sound is languages.test.ts's job. */
+  /* Exact set sizes were asserted here — [10, 8] — and, alongside them, the
+     exact situation list: ['Bakery', 'Train station'] and its kickers. Both
+     failed every time content was written and neither ever indicated a bug, so
+     both are gone. That each set is non-empty, internally sound and uniquely
+     identified is languages.test.ts's job, and it does not care how many
+     situations there are. */
 
   it('carries the near-miss particles the distractors rely on', () => {
     const texts = JA.grammar.map((t) => t[0]);

@@ -2,7 +2,7 @@
 
 [← README](../README.md)
 
-How the code is arranged, why the layers point the way they do, and the StyleX rules worth knowing before editing a stylesheet. For a trace of what actually happens on each screen, see [FLOW.md](FLOW.md).
+How the code is arranged, why the layers point the way they do, and the StyleX rules worth knowing before editing a stylesheet. What the current design assumes — and what a second exercise or language would run into — is in [ROADMAP.md](ROADMAP.md#what-the-current-design-assumes).
 
 ## The one rule
 
@@ -13,12 +13,12 @@ components/  ──►  state/useTsumiki  ──►  state/appReducer           
                         │
                         ├────────────►  lib/                         (pure, data-free)
                         │
-                        ├────────────►  data/                        (inert, logic-free)
+                        ├────────────►  data/                        (content + its loader)
                         │
                         └────────────►  storage/                     (async, side effects)
 ```
 
-- **`src/data/`** is the language packs. Content and types, no functions. Nothing here imports anything but its own types.
+- **`src/data/`** is the language packs: one authored JSON file each, the types they take, and `loadPack.ts`, which expands one into the other. The content itself is inert. `loadPack` is the one piece of logic here, and it reaches into `lib/` for `getVocabIn` — an edge but not a cycle, since `lib/` imports only *types* from `data/` and never content.
 - **`src/lib/`** is the processing: bank generation, segmentation, answer checking, reveal placement, key composition, and the roll-up arithmetic that turns an attempt into a progress row. Pure functions that take the content they need as arguments and never import `data/`.
 - **`src/state/appReducer.ts`** is every drill rule, as one pure reducer. It imports nothing at all — `check` carries a boolean verdict and `reveal` carries the bank positions to fill, so judging an answer happens at the seam where the content already is. That is what makes the rules exercise-agnostic: nothing in them knows what a sentence is.
 - **`src/storage/`** is persistence: IndexedDB, and the interfaces that hide it. It is the only layer with side effects, and like `data/` it is reached only through the seam.
@@ -29,7 +29,23 @@ components/  ──►  state/useTsumiki  ──►  state/appReducer           
 
 ## Language packs
 
-The Japanese lives in `src/data/ja/` behind a `LanguagePack`, and `src/data/languages.ts` holds the registry and the one line that says which pack is active. Nothing outside `src/data/ja/` names Japanese.
+The Japanese is authored in `src/data/ja.json` and expanded by `loadPack` into a `LanguagePack`. `src/data/languages.ts` does that expansion, holds the registry, and names which pack is active. Nothing outside those two files names Japanese.
+
+**Authored and runtime shapes differ on purpose** — the first is optimised for writing by hand, the second for being read by the drill:
+
+```
+AUTHORED (ja.json)                 RUNTIME (LanguagePack)
+lexicon: { "パン": "pan" }   ─┐
+                              ├──►  ans: [["パン","pan"], ["を","o"]]
+ans: "パン|を"               ─┘
+teaches: ["o", "tai"]         ──►  tags: { particles:["o"], conjugations:["tai"] }
+(list position)               ──►  kicker: "Set 01"
+items[].ans + words[]         ──►  words: [every content tile, deduped]
+```
+
+A reading is written once, in the lexicon. That turns "a text reads one way per pack" from a rule a test enforces into a property of the file's shape. See [AUTHORING.md](AUTHORING.md) for the fields.
+
+There is no schema library. A pack is compiled into the bundle, so `resolveJsonModule` type-checks it against `PackFile`, `loadPack` throws on what types cannot express, and `tests/data/packFileKeys.test.ts` catches the one gap left — a typo'd *optional* key, which is legal TypeScript and silently drops the field. If content ever arrives at runtime instead, it becomes untrusted input and zod is the right answer.
 
 A pack carries its own content — a grammar pool, its particles and conjugation patterns, and a list of scenarios — plus the two things the rest of the app cannot infer about a language:
 
@@ -53,7 +69,7 @@ The shortcut is tempting and wrong, for four reasons in descending order of how 
 
 ### The schema
 
-Two stores that matter, keyed by strings composed in `src/lib/keys.ts` — `ja:item:bakery:01` for a sentence, `ja:tile:パン` for vocabulary, `ja:particle:o` and `ja:conjugation:tai` for the grammar points a sentence teaches. Ids are local to their parent and qualified here, so nothing inside `src/data/ja/` has to name Japanese.
+Two stores that matter, keyed by strings composed in `src/lib/keys.ts` — `ja:item:bakery:01` for a sentence, `ja:tile:パン` for vocabulary, `ja:particle:o` and `ja:conjugation:tai` for the grammar points a sentence teaches. Ids are local to their parent and qualified here, so nothing inside `ja.json` has to name Japanese.
 
 A particle deliberately does **not** reuse its tile key. Knowing the word を and knowing when を is the right particle are different things, and a drill built to teach the second would be scored against the first if they shared a row. Vocabulary goes the other way on purpose: a future vocabulary exercise writes to the same `ja:tile:*` row the sentence drill already writes to, because those are evidence about the same thing differing only in directness — which `viaItem` already records.
 
@@ -103,14 +119,10 @@ Values still come from the design system: `var(--color-accent)` and friends are 
 
 | Path | What it is |
 | --- | --- |
-| `src/data/types.ts` | `Tile`, `SentenceItem`, `Scenario`, `Particle`, `ConjugationPattern`, `LanguagePack` — the shapes, shared by every pack |
-| `src/data/languages.ts` | The pack registry, and which one the app is drilling |
-| `src/data/ja/index.ts` | The Japanese pack. The only file outside `ja/` that names Japanese |
-| `src/data/ja/grammar.ts` | Japanese's 25 shared particles, endings and question words distractors draw on. **Contents and order are pinned by the bank fixtures** |
-| `src/data/ja/particles.ts` | The same particles as declared things: an id to store progress against, and which particles are worth confusing with which |
-| `src/data/ja/conjugations.ts` | The inflected forms a sentence can be tagged as teaching |
-| `src/data/ja/bakery.ts`, `src/data/ja/station.ts` | One situation's sentences and vocabulary each |
-| `src/data/ja/scenarios.ts` | Japanese's situation list, in home-screen order |
+| `src/data/types.ts` | `Tile`, `SentenceItem`, `Scenario`, `Particle`, `ConjugationPattern`, `LanguagePack` — the runtime shapes, shared by every pack |
+| `src/data/languages.ts` | Loads the packs, holds the registry, and names which one the app is drilling |
+| `src/data/ja.json` | All the Japanese: lexicon, grammar pool, particles, patterns, situations and sentences |
+| `src/data/loadPack.ts` | The authored shapes, and expanding one into a `LanguagePack` |
 | `src/config.ts` | The four difficulty and display dials |
 | `src/lib/buildBank.ts` | The deterministic tile bank |
 | `src/lib/segment.ts` | Splitting a written-out sentence back into tiles, longest match first |
@@ -129,7 +141,6 @@ Values still come from the design system: `var(--color-accent)` and friends are 
 | `src/styles/global.css` | The page ground — `html`, `body`, `button`. No element owns these, so they stay CSS |
 | `src/styles/fonts.css` | The two `@font-face` rules |
 | `tests/` | One file per component and per module, mirroring `src/` |
-| `tests/fixtures/prototype-banks.json` | All 18 tile banks as the prototype generated them |
 | `fonts/`, `icons/` | Vendored Archivo (latin) and Noto Sans JP, subset to the 102 kana and kanji in use. Both variable, wght 100–900, both OFL 1.1 with the license text alongside. Pulled in through the bundler, which is why there is no `public/` |
 | `_ds/modernist-…/` | The Modernist design system. `styles.css` is imported unmodified and is the source of every color, space and radius token |
 | `DESIGN.md` | The design document the app was built from |
@@ -141,11 +152,13 @@ Values still come from the design system: `var(--color-accent)` and friends are 
 npm test
 ```
 
-297 tests. Most are ordinary unit tests, but five are worth knowing about:
+**Unit tests build their own fixtures rather than borrowing shipped sentences**; only `tests/data/` and the two integration tests below read the real content, and they do it deliberately. A unit test that reaches into `LANGUAGE.scenarios[0].items[5]` for a convenient example fails when content is edited and reports it as a bug in the code under test. `tests/components/DrillScreen.test.tsx` shows the pattern.
+
+Most are ordinary unit tests, but these are worth knowing about:
 
 - **`tests/storage/progressStore.test.ts`** is one contract suite run over both `ProgressStore` implementations. The in-memory store is not only a test double — it is what a learner actually gets when IndexedDB will not open — so the two behaving differently would be a real bug. IndexedDB itself is polyfilled with `fake-indexeddb` rather than mocked, because upgrade paths, transaction lifetimes and key ranges are exactly where its bugs live.
 - **`tests/storage/drillIntegration.test.tsx`** plays a real drill through the real components into a real database and reads the rows back, which is the only test that would catch the two halves being wired together wrongly.
-
-- **`tests/lib/buildBank.test.ts`** checks the generated tile bank against `tests/fixtures/prototype-banks.json`, which holds all 18 banks exactly as the original `app.js` produced them. The bank is deterministic — no RNG, just arithmetic on the item's index — so any change to the draw stride or the shuffle shows up here as a diff rather than as a silently different app.
+- **`tests/lib/buildBank.test.ts`** tests the generator by its properties rather than against a recorded output: the same item and index give the same bank, every answer tile is present, no text repeats, an alternate's missing tiles are seeded. It used to pin all 18 banks tile for tile against a fixture of what the prototype produced; that was removed, because it asserted fidelity to frozen code and failed on every content change — adding a sentence or a vocabulary word reshuffles banks by design.
 - **`tests/components/App.test.tsx`** plays real drills through the real content: the miss ladder, the reveal forfeiting first-try credit, finishing a set and reading the score.
-- **`tests/data/languages.test.ts`** runs the content-integrity checks over every pack in `LANGUAGES`, so a language added later inherits the whole net without writing it again. What is true of one language only — Japanese's set names, its particles, its empty joiner — lives in `tests/data/ja.test.ts` instead. Two of these checks guard arrangements that would otherwise drift silently: that every declared particle carries the same tile the grammar pool holds, and that `confusedWith` is symmetrical.
+- **`tests/data/loadPack.test.ts`** and **`tests/data/packFileKeys.test.ts`** cover the authored-to-runtime expansion and the unknown-key check, both against small inline fixtures rather than the shipped pack.
+- **`tests/data/languages.test.ts`** runs the content-integrity checks over every pack in `LANGUAGES`, so a language added later inherits the whole net without writing it again. What is true of one language only — its particles, its empty joiner, its font — lives in `tests/data/ja.test.ts` instead. One of these checks guards an arrangement that would otherwise drift silently: that every declared particle carries the same tile the grammar pool holds.

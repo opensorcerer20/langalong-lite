@@ -1,13 +1,86 @@
 /* The hook, driven through act() rather than through components — these are
-   about the wiring between content, config and the reducer. */
+   about the wiring between content, config and the reducer.
+
+   On a stand-in pack, not the shipped one. What is tested is that the hook
+   resolves whatever pack it is handed; the previous version asserted the second
+   situation was called "Train station", which made renaming or reordering the
+   shipped situations fail a state test. */
 
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { NOTE_AFTER_MISSES, REVEAL_AFTER_MISSES } from '../../src/config';
-import { LANGUAGE } from '../../src/data/languages';
+import type { LanguagePack, SentenceItem, Tile } from '../../src/data/types';
 import { revealIndices } from '../../src/lib/revealPlacement';
 import { useTsumiki } from '../../src/state/useTsumiki';
+
+const GRAMMAR: readonly Tile[] = [
+  ['を', 'o'],
+  ['は', 'wa'],
+  ['が', 'ga'],
+  ['に', 'ni'],
+  ['で', 'de'],
+  ['です', 'desu'],
+  ['ます', 'masu'],
+  ['か', 'ka'],
+  ['ください', 'kudasai'],
+];
+
+const WORDS: readonly Tile[] = [
+  ['パン', 'pan'],
+  ['ケーキ', 'keeki'],
+  ['これ', 'kore'],
+  ['それ', 'sore'],
+  ['袋', 'fukuro'],
+  ['甘い', 'amai'],
+];
+
+const item = (id: string, ans: readonly Tile[], note?: string): SentenceItem => ({
+  id,
+  en: `Prompt ${id}`,
+  ans,
+  ...(note === undefined ? {} : { note }),
+  tags: { particles: [], conjugations: [] },
+});
+
+/* Situation 0 has three items so progress reads in thirds, and its first item
+   carries a note — showNote requires one. */
+const LANGUAGE: LanguagePack = {
+  code: 'xx',
+  name: 'Test language',
+  joiner: '',
+  fontStack: 'serif',
+  grammar: GRAMMAR,
+  particles: [],
+  conjugations: [],
+  scenarios: [
+    {
+      id: 'first',
+      name: 'First situation',
+      kicker: 'Set 01',
+      blurb: 'The first one.',
+      words: WORDS,
+      items: [
+        item('01', [['パン', 'pan'], ['を', 'o'], ['ください', 'kudasai']], 'を marks the object.'),
+        item('02', [['ケーキ', 'keeki'], ['を', 'o'], ['ください', 'kudasai']], 'The same frame.'),
+        item('03', [['これ', 'kore'], ['は', 'wa'], ['甘い', 'amai'], ['です', 'desu']], 'は is the topic.'),
+      ],
+    },
+    {
+      id: 'second',
+      name: 'Second situation',
+      kicker: 'Set 02',
+      blurb: 'The second one.',
+      words: WORDS,
+      items: [
+        item('01', [['袋', 'fukuro'], ['を', 'o'], ['ください', 'kudasai']], 'A bag, please.'),
+        item('02', [['それ', 'sore'], ['を', 'o'], ['ください', 'kudasai']], 'That one.'),
+      ],
+    },
+  ],
+};
+
+const SECOND = LANGUAGE.scenarios[1]!;
 
 const open = (scenario = 0) => {
   const view = renderHook(() => useTsumiki(LANGUAGE));
@@ -38,9 +111,9 @@ describe('useTsumiki', () => {
 
   it('resolves the open scenario, its item and its tile bank', () => {
     const { result } = open(1);
-    expect(result.current.scenario.name).toBe('Train station');
-    expect(result.current.item).toBe(LANGUAGE.scenarios[1]?.items[0]);
-    expect(result.current.total).toBe(LANGUAGE.scenarios[1]?.items.length);
+    expect(result.current.scenario).toBe(SECOND);
+    expect(result.current.item).toBe(SECOND.items[0]);
+    expect(result.current.total).toBe(SECOND.items.length);
     expect(result.current.bank.length).toBeGreaterThan(0);
   });
 

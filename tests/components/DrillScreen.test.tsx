@@ -19,11 +19,21 @@ const BANK: readonly Tile[] = [
   ['を', 'o'],
 ];
 
+const NOTE = 'を marks the direct object.';
+
 const ITEM: SentenceItem = {
   id: '01',
   en: 'One bread, please.',
   ans: [['パン', 'pan'], ['を', 'o'], ['ください', 'kudasai']],
-  note: 'を marks the direct object.',
+  note: NOTE,
+  tags: { particles: [], conjugations: [] },
+};
+
+/** A short practice phrase: no note to show, which the screen has to survive. */
+const NOTELESS_ITEM: SentenceItem = {
+  id: '02',
+  en: 'Two, please.',
+  ans: [['二つ', 'futatsu'], ['ください', 'kudasai']],
   tags: { particles: [], conjugations: [] },
 };
 
@@ -121,11 +131,25 @@ describe('DrillScreen', () => {
 
   it('shows the note only when the view model says it is due', () => {
     const { unmount } = render(<DrillScreen tsumiki={view({ misses: 1 })} />);
-    expect(screen.queryByText(ITEM.note)).not.toBeInTheDocument();
+    expect(screen.queryByText(NOTE)).not.toBeInTheDocument();
     unmount();
 
     render(<DrillScreen tsumiki={view({ misses: 2 }, { showNote: true })} />);
-    expect(screen.getByText(ITEM.note)).toBeInTheDocument();
+    expect(screen.getByText(NOTE)).toBeInTheDocument();
+  });
+
+  /* An item with no note is not a broken item — it is a short phrase with
+     nothing to explain. Missing it repeatedly must not put an empty panel on
+     screen, and must not send the learner looking for help that is not there. */
+  it('renders no note, and promises none, for an item without one', () => {
+    render(
+      <DrillScreen
+        tsumiki={view({ misses: 2, status: 'wrong' }, { item: NOTELESS_ITEM, showNote: false })}
+      />,
+    );
+
+    expect(screen.queryByText(/Grammar/)).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Not quite. Try again.');
   });
 
   it('locks the answer line and the bank once the answer is settled', async () => {

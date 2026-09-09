@@ -19,15 +19,17 @@ import { revealIndices } from '../../src/lib/revealPlacement';
 import { openRepository } from '../../src/storage';
 import type { Repository } from '../../src/storage';
 
-const BAKERY = LANGUAGE.scenarios[0]!;
-const FIRST_ITEM = BAKERY.items[0]!;
-const FIRST_KEY = itemKey(LANGUAGE.code, BAKERY.id, FIRST_ITEM.id);
+/* Real content on purpose — this drives the real components into a real
+   database. Only the situation's name is derived. */
+const FIRST = LANGUAGE.scenarios[0]!;
+const FIRST_ITEM = FIRST.items[0]!;
+const FIRST_KEY = itemKey(LANGUAGE.code, FIRST.id, FIRST_ITEM.id);
 
 const bankFor = (index: number) =>
   buildBank(
-    BAKERY.items[index]!,
+    FIRST.items[index]!,
     index,
-    { grammar: LANGUAGE.grammar, words: BAKERY.words },
+    { grammar: LANGUAGE.grammar, words: FIRST.words },
     TILE_MULTIPLIER,
     LANGUAGE.joiner,
   );
@@ -39,10 +41,10 @@ beforeEach(async () => {
   repository = await openRepository();
 });
 
-/** Open the bakery set, as a learner would. */
-async function openBakery(user: ReturnType<typeof userEvent.setup>) {
+/** Open the first set, as a learner would. */
+async function openFirstSet(user: ReturnType<typeof userEvent.setup>) {
   render(<App language={LANGUAGE} progress={repository.progress} />);
-  await user.click(screen.getByRole('button', { name: /Bakery/ }));
+  await user.click(screen.getByRole('button', { name: new RegExp(FIRST.name) }));
 }
 
 /** Click the bank tiles that spell the first item's answer, then Check. */
@@ -61,7 +63,7 @@ describe('a drill played into IndexedDB', () => {
 
   it('writes the sentence and its tiles to the database', async () => {
     const user = userEvent.setup();
-    await openBakery(user);
+    await openFirstSet(user);
     await solveFirst(user);
 
     expect(await repository.progress.getSchedule(FIRST_KEY)).toMatchObject({
@@ -85,7 +87,7 @@ describe('a drill played into IndexedDB', () => {
      grammar point the sentence teaches, not only against the sentence. */
   it('writes the grammar points the sentence is tagged with', async () => {
     const user = userEvent.setup();
-    await openBakery(user);
+    await openFirstSet(user);
     await solveFirst(user);
 
     expect(FIRST_ITEM.tags.particles.length).toBeGreaterThan(0);
@@ -99,16 +101,16 @@ describe('a drill played into IndexedDB', () => {
 
   it('stamps the stored rows with the exercise and the situation', async () => {
     const user = userEvent.setup();
-    await openBakery(user);
+    await openFirstSet(user);
     await solveFirst(user);
 
     const [logged] = await repository.progress.attemptsFor(FIRST_KEY);
-    expect(logged).toMatchObject({ mode: 'sentence', scenarioId: BAKERY.id });
+    expect(logged).toMatchObject({ mode: 'sentence', scenarioId: FIRST.id });
   });
 
   it('survives the app being torn down and reopened', async () => {
     const user = userEvent.setup();
-    await openBakery(user);
+    await openFirstSet(user);
     await solveFirst(user);
 
     /* A second repository over the same database — what a reload looks like. */
@@ -118,7 +120,7 @@ describe('a drill played into IndexedDB', () => {
 
   it('makes what was answered queryable as due work', async () => {
     const user = userEvent.setup();
-    await openBakery(user);
+    await openFirstSet(user);
     await solveFirst(user);
 
     const due = await repository.progress.due(LANGUAGE.code, Date.now(), 50);
@@ -127,7 +129,7 @@ describe('a drill played into IndexedDB', () => {
 
   it('records a miss before the answer that follows it', async () => {
     const user = userEvent.setup();
-    await openBakery(user);
+    await openFirstSet(user);
 
     const tiles = document.querySelectorAll('[data-variant="bank"]');
     await user.click(tiles[0] as HTMLElement);

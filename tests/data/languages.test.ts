@@ -113,9 +113,13 @@ describe.each(LANGUAGES)('$name', (language) => {
     }
   });
 
-  it('gives every sentence a grammar note — it is what a second miss shows', () => {
+  /* A note is optional — a short practice phrase usually has nothing to
+     explain — but an empty string is not the way to say so. Absent means "no
+     note"; "" would put a blank panel on screen after a second miss. */
+  it('leaves a sentence’s note absent rather than empty', () => {
     for (const { item, where } of everySentence) {
-      expect(item.note.trim(), `${where} has no note`).not.toBe('');
+      if (item.note === undefined) continue;
+      expect(item.note.trim(), `${where} has an empty note — omit it instead`).not.toBe('');
     }
   });
 
@@ -163,17 +167,14 @@ describe.each(LANGUAGES)('$name', (language) => {
         expect(pattern.id, `pattern "${pattern.id}" — ":" is the key separator`).not.toContain(':');
         expect(pattern.name.trim(), `pattern "${pattern.id}" has no name`).not.toBe('');
         expect(pattern.note.trim(), `pattern "${pattern.id}" has no note`).not.toBe('');
-        expect(pattern.verbGroups.length, `pattern "${pattern.id}" applies to no verb group`)
-          .toBeGreaterThan(0);
       }
       expect(patternIds.size, 'two patterns share an id').toBe(language.conjugations.length);
     });
 
     /* The two lists overlap by design and must not drift. The grammar pool is
-       what the sentence drill draws distractors from and its order is pinned by
-       the bank fixtures, so particles.ts re-declares its tiles rather than the
-       pool being derived from it — which is exactly the arrangement that lets
-       them fall out of step, hence this. */
+       what the sentence drill draws distractors from, so particles.ts
+       re-declares its tiles rather than the pool being derived from it — which
+       is exactly the arrangement that lets them fall out of step, hence this. */
     it('declares every particle with the same tile the grammar pool holds', () => {
       const pool = new Map(language.grammar.map((tile) => [tile[0], tile[1]]));
 
@@ -184,35 +185,11 @@ describe.each(LANGUAGES)('$name', (language) => {
       }
     });
 
-    it('points confusedWith at declared particles, never at itself', () => {
-      for (const particle of language.particles) {
-        for (const other of particle.confusedWith) {
-          expect(particleIds.has(other), `particle "${particle.id}" is confused with unknown "${other}"`)
-            .toBe(true);
-          expect(other, `particle "${particle.id}" is confused with itself`).not.toBe(particle.id);
-        }
-        expect(
-          new Set(particle.confusedWith).size,
-          `particle "${particle.id}" repeats a confusion`,
-        ).toBe(particle.confusedWith.length);
-      }
-    });
-
-    /* Confusability runs both ways or it is not confusability. An asymmetric
-       pair would mean は offers が as a distractor while が never offers は,
-       which is not a rule anyone would write on purpose. */
-    it('keeps confusedWith symmetrical', () => {
-      const declared = new Map(language.particles.map((p) => [p.id, new Set(p.confusedWith)]));
-
-      for (const particle of language.particles) {
-        for (const other of particle.confusedWith) {
-          expect(
-            declared.get(other)?.has(particle.id),
-            `"${particle.id}" lists "${other}" but "${other}" does not list "${particle.id}"`,
-          ).toBe(true);
-        }
-      }
-    });
+    /* Two tests over `confusedWith` stood here — that every id resolved to a
+       declared particle, and that the relation was symmetrical. The field is
+       gone: nothing but these read it, it was authored for a particle exercise
+       that does not exist, and symmetry meant adding one particle obliged you
+       to edit others. Reinstate both alongside whatever the drill declares. */
   });
 
   /* Tags are what a later exercise selects on and what remediation reports
