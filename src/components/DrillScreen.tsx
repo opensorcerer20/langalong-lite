@@ -3,7 +3,7 @@
 
 import * as stylex from '@stylexjs/stylex';
 
-import { NOTE_AFTER_MISSES, SHOW_READING } from '../config';
+import { SHOW_READING } from '../config';
 import type { Tsumiki } from '../state/useTsumiki';
 import { shared } from '../styles/shared';
 import { AnswerLine } from './AnswerLine';
@@ -22,12 +22,12 @@ export function DrillScreen({ tsumiki }: DrillScreenProps) {
 
   return (
     <section {...stylex.props(shared.screen)}>
-      <PromptBand prompt={item.promptText} language={language.name} index={state.item} total={total} />
+      <PromptBand prompt={item.en} language={language.name} index={state.item} total={total} />
 
       <AnswerLine
         bank={bank}
         placed={state.placed}
-        length={item.answer.length}
+        length={item.ans.length}
         showReading={SHOW_READING}
         locked={done}
         onRemove={tsumiki.untap}
@@ -41,13 +41,11 @@ export function DrillScreen({ tsumiki }: DrillScreenProps) {
         onPlace={tsumiki.tap}
       />
 
-      <StatusLine
-        status={state.status}
-        misses={state.misses}
-        noteAfterMisses={NOTE_AFTER_MISSES}
-      />
+      <StatusLine status={state.status} noteOnScreen={showNote} />
 
-      {showNote && <GrammarNote note={item.note} done={done} />}
+      {/* `item.note` narrows for the compiler; `showNote` is already false
+          without one. */}
+      {showNote && item.note && <GrammarNote note={item.note} done={done} />}
 
       <DrillActions
         done={done}

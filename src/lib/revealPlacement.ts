@@ -1,16 +1,12 @@
 /* Working out which bank tiles spell out the answer, for "Show me the answer".
 
-   The same tile can be needed more than once in one sentence, so each bank
-   position is claimed as it is matched and a claimed position is not reused:
+   The bank can hold the same text more than once — 二枚 appears both in the
+   answer and in the station vocabulary — so each position is claimed as it is
+   matched and a claimed position is not reused. Without that, a sentence
+   needing the same tile twice would point at one position twice and the answer
+   line would render short. */
 
-     answer   [この] [パン] [は] [この] …
-     bank      0:は  1:この  2:パン  3:この  …
-     result   [1]   [2]    [0]   [3]        ← not [1] [2] [0] [1]
-
-   Without the claim, the second この would match position 1 again and the
-   answer line would render short. */
-
-import type { DrillItem, Tile } from '../data/drill';
+import type { SentenceItem, Tile } from '../data/types';
 
 /**
  * Indices into `bank`, in order, that spell out the item's canonical answer.
@@ -19,12 +15,12 @@ import type { DrillItem, Tile } from '../data/drill';
  * buildBank seeds the answer's own tiles first — but the drill must not break
  * if content and bank ever drift apart.
  */
-export function revealIndices(item: DrillItem, bank: readonly Tile[]): number[] {
+export function revealIndices(item: SentenceItem, bank: readonly Tile[]): number[] {
   const claimed = new Set<number>();
 
-  return item.answer.map((tile) => {
+  return item.ans.map((tile) => {
     for (let index = 0; index < bank.length; index++) {
-      if (bank[index]?.id === tile.id && !claimed.has(index)) {
+      if (bank[index]?.[0] === tile[0] && !claimed.has(index)) {
         claimed.add(index);
         return index;
       }

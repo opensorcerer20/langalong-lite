@@ -22,8 +22,9 @@
    face nothing references is never downloaded — so a second language adds its
    own rule below without costing this one anything.
 
-   Subset to the 102 kana and kanji used by the two sentence sets. Adding
-   vocabulary with new kanji means regenerating this file — see docs/AUTHORING.md. */
+   Subset to exactly the Japanese the pack uses; fonts/noto-sans-jp-subset.txt
+   records which characters those are. Adding vocabulary means regenerating it
+   with `npm run font`, or the new glyphs fall back to the OS Japanese face. */
 @font-face {
   font-family: 'Noto Sans JP';
   font-style: normal;

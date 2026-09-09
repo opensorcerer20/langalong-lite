@@ -1,0 +1,22 @@
+{
+  "code": "xx",
+  "name": "Test language",
+  "joiner": "",
+  "fontStack": "serif",
+
+  "lexicon": {
+    "を": "o",
+    "ください": "kudasai",
+    "お願いします": "onegaishimasu"
+  },
+
+  "grammar": ["を", "ください", "お願いします"],
+
+  "particles": {
+    "o": { "tile": "を", "gloss": "marks the direct object" }
+  },
+
+  "conjugations": {
+    "tai": { "name": "want to", "note": "Attach たい to the verb stem." }
+  }
+}

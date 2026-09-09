@@ -7,7 +7,7 @@ import { shared } from '../styles/shared';
 export interface PromptBandProps {
   /** The English prompt. */
   readonly prompt: string;
-  /** The new language's name in English, for the kicker. */
+  /** The target language's name in English, for the kicker. */
   readonly language: string;
   /** Zero-based index of the current item. */
   readonly index: number;

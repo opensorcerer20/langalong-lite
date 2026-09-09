@@ -74,7 +74,7 @@ If a request is ambiguous, or implementing it would require acting in conflict w
 ## Explaining data structures & relationships
 
 Prose descriptions of how data fits together (nested objects, relationships between
-entities, data flow) don't work well for me. When explaining these, prefer:
+entities, data flow) don't work well for me. Rule of thumb: if a paragraph has more than 3 sentences, re-evaluate to shorten the content. When explaining these, prefer:
 
 - **Diagrams**: ASCII art, tree structures, or Mermaid diagrams for relationships/hierarchies
 - **Pseudocode or code snippets**: actual shape of the data (e.g. a sample JSON object,
@@ -97,3 +97,8 @@ This applies to explanations of schemas, API responses, state shape, config stru
 component props, etc. — anywhere data relationships are being described.
 
 When in doubt, default to a code/diagram representation even for simple structures.
+
+## Coding conventions
+- Don't use unicode characters like ’ when it's more typical to use '
+- Try to avoid needing to escape ' or " unless there's a strong reason to do so.
+

@@ -1,17 +1,13 @@
 /* Judging what the learner built.
 
    Comparison is on the joined string, not on the tiles, which is what lets an
-   alternate be accepted even though it is assembled from a different set of
-   tiles than the canonical answer:
-
-     built       [パン] [を] [お願いします]  ─join─►  'パンをお願いします'
-     accepted    'パンをください'                    ← canonical
-                 'パンをお願いします'                 ← alternate 0  ✓ match
+   alternate written as one string ("パンをお願いします") be accepted even though it
+   is assembled from a different set of tiles than the canonical answer.
 
    How the tiles join is the language's business, not this file's — see
    LanguagePack.joiner — so every function here takes it as an argument. */
 
-import type { DrillItem, Tile } from '../data/drill';
+import type { SentenceItem, Tile } from '../data/types';
 
 /**
  * The sentence the learner has built, as one string.
@@ -27,19 +23,18 @@ export function buildString(
   joiner: string,
 ): string {
   return placed
-    .map((index) => bank[index]?.newLanguageText)
+    .map((index) => bank[index]?.[0])
     .filter((text) => text !== undefined)
     .join(joiner);
 }
 
 /** Every answer this item accepts: the canonical one first, then its alternates. */
-export function acceptedAnswers(item: DrillItem, joiner: string): string[] {
-  const sentence = (tiles: readonly Tile[]) =>
-    tiles.map((tile) => tile.newLanguageText).join(joiner);
-  return [sentence(item.answer), ...item.alternates.map(sentence)];
+export function acceptedAnswers(item: SentenceItem, joiner: string): string[] {
+  const canonical = item.ans.map((tile) => tile[0]).join(joiner);
+  return [canonical, ...(item.alts ?? [])];
 }
 
 /** Whether `built` is one of the answers this item accepts. */
-export function isCorrect(item: DrillItem, built: string, joiner: string): boolean {
+export function isCorrect(item: SentenceItem, built: string, joiner: string): boolean {
   return acceptedAnswers(item, joiner).includes(built);
 }

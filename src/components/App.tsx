@@ -1,7 +1,9 @@
 /* The whole app in one screenful: state comes from the hook, and which of the
    three screens is showing follows from it. */
 
+import type { LanguagePack } from '../data/types';
 import { useTsumiki } from '../state/useTsumiki';
+import type { ProgressStore } from '../storage/types';
 import { DoneScreen } from './DoneScreen';
 import { DrillScreen } from './DrillScreen';
 import { Header } from './Header';
@@ -9,11 +11,20 @@ import { HomeScreen } from './HomeScreen';
 import { PhoneColumn } from './PhoneColumn';
 import { ProgressBar } from './ProgressBar';
 
-/* Static chrome: nothing is persisted between sessions yet. */
+/* Still static. Progress is now recorded, but a streak is a property of the
+   days a learner studied rather than of what they answered, and that record is
+   not kept — see the session row left out of the storage schema on purpose. */
 const STREAK = 'Day 12';
 
-export function App() {
-  const tsumiki = useTsumiki();
+export interface AppProps {
+  /** The pack to drill, resolved by the caller from a ContentSource. */
+  readonly language: LanguagePack;
+  /** Where attempts are recorded. Omitted, the drill runs and records nothing. */
+  readonly progress?: ProgressStore;
+}
+
+export function App({ language: pack, progress }: AppProps) {
+  const tsumiki = useTsumiki(pack, progress);
   const { state, language, scenario, scenarios, total } = tsumiki;
 
   const inDrill = state.screen === 'drill';

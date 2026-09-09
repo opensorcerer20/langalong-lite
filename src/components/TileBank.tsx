@@ -6,7 +6,7 @@
 
 import * as stylex from '@stylexjs/stylex';
 
-import type { Tile as TileData } from '../data/drill';
+import type { Tile as TileData } from '../data/types';
 import { Tile } from './Tile';
 
 export interface TileBankProps {

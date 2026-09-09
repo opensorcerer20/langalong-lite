@@ -1,0 +1,11 @@
+{
+  "id": "kiosk",
+  "name": "Kiosk",
+  "blurb": "The least a scenario file can be: no words, no alts, no note, no teaches.",
+
+  "lexicon": {
+    "ケーキ": "keeki"
+  },
+
+  "items": [{ "id": "01", "en": "Cake, please.", "ans": "ケーキ|を|ください" }]
+}

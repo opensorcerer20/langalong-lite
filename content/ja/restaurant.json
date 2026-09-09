@@ -1,0 +1,80 @@
+{
+  "id": "restaurant",
+  "name": "Restaurant",
+  "blurb": "Ordering, saying what you do not eat, waiting, paying.",
+
+  "lexicon": {
+    "コーヒー": "koohii",
+    "ケーキ": "keeki",
+    "これ": "kore",
+    "肉": "niku",
+    "魚": "sakana",
+    "お水": "omizu",
+    "メニュー": "menyuu",
+    "お会計": "okaikei",
+    "注文": "chuumon",
+    "し": "shi",
+    "開いて": "aite",
+    "もう": "mou",
+    "何時": "nanji",
+    "食べ": "tabe",
+    "友達": "tomodachi",
+    "待って": "matte",
+    "います": "imasu"
+  },
+
+  "words": ["お水", "魚", "メニュー"],
+  "items": [
+    {
+      "id": "01",
+      "en": "A coffee and a cake, please.",
+      "ans": "コーヒー|と|ケーキ|を|ください",
+      "alts": ["コーヒーとケーキをお願いします"],
+      "note": "と joins nouns as a complete list — coffee and cake, and nothing else implied. It never joins whole sentences the way English 'and' does.",
+      "teaches": ["to", "o"]
+    },
+    {
+      "id": "02",
+      "en": "This one too, please.",
+      "ans": "これ|も|お願いします",
+      "alts": ["これもください"],
+      "note": "も replaces は or を rather than joining them: これも, never これをも. It carries the 'too' on its own.",
+      "teaches": ["mo"]
+    },
+    {
+      "id": "03",
+      "en": "I don't eat meat.",
+      "ans": "肉|は|食べ|ません",
+      "note": "ません is the negative of ます on the same stem: 食べ + ません. は marks 肉 as the topic, which is how a standing preference is stated rather than a one-off refusal.",
+      "teaches": ["wa", "masen"]
+    },
+    {
+      "id": "04",
+      "en": "What time do you open?",
+      "ans": "何時|から|開いて|います|か",
+      "note": "から marks the starting point — open from what time. It is a separate tile from 何時, and swapping it for まで would ask when you close. 開いて + います is the state the shop is in, not an action it is performing.",
+      "teaches": ["kara", "ka", "te-form"]
+    },
+    {
+      "id": "05",
+      "en": "I already ordered.",
+      "ans": "もう|注文|し|ました",
+      "note": "注文 is a noun, and し + ました makes it a verb: 'did ordering'. Any する noun works this way. ました is the past of ます on the same stem.",
+      "teaches": ["mashita"]
+    },
+    {
+      "id": "06",
+      "en": "I'm waiting for a friend.",
+      "ans": "友達|を|待って|います",
+      "note": "The te-form plus います is an action in progress. ている is the same pattern spoken plainly; います is the polite one, and the bank offers both.",
+      "teaches": ["o", "te-form"]
+    },
+    {
+      "id": "07",
+      "en": "The bill, please.",
+      "ans": "お会計|を|お願いします",
+      "note": "The same frame as ordering: Ｘをお願いします. Only the noun changes, which is what makes it worth learning as one shape.",
+      "teaches": ["o"]
+    }
+  ]
+}

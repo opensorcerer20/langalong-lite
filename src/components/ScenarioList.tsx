@@ -1,10 +1,10 @@
 /* The situations, one ruled row each. */
 
-import type { DrillScenario } from '../data/drill';
+import type { Scenario } from '../data/types';
 import { ScenarioRow } from './ScenarioRow';
 
 export interface ScenarioListProps {
-  readonly scenarios: readonly DrillScenario[];
+  readonly scenarios: readonly Scenario[];
   /** Called with the scenario's index, which is how state identifies it. */
   readonly onOpen: (index: number) => void;
 }

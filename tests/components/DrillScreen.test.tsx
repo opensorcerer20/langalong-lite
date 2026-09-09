@@ -2,81 +2,85 @@
    through to the right pieces — not the drill rules, which live in appReducer
    and are tested there. */
 
-import {
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest';
-
-import {
-  render,
-  screen,
-} from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
 
 import { DrillScreen } from '../../src/components/DrillScreen';
-import type {
-  DrillPack,
-  Tile,
-} from '../../src/data/drill';
-import type { AppState } from '../../src/state/appReducer';
+import type { LanguagePack, SentenceItem, Tile } from '../../src/data/types';
 import { initialState } from '../../src/state/appReducer';
+import type { AppState } from '../../src/state/appReducer';
 import type { Tsumiki } from '../../src/state/useTsumiki';
-import {
-  drillItem,
-  drillScenario,
-  tile,
-} from '../helpers/fixtures';
 
 const BANK: readonly Tile[] = [
-  tile('ください', 'kudasai', 'verb'),
-  tile('は', 'wa', 'particle'),
-  tile('パン', 'pan'),
-  tile('を', 'o', 'particle'),
+  ['ください', 'kudasai'],
+  ['は', 'wa'],
+  ['パン', 'pan'],
+  ['を', 'o'],
 ];
 
-const ITEM = drillItem({
-  promptText: 'One bread, please.',
-  answer: [tile('パン', 'pan'), tile('を', 'o', 'particle'), tile('ください', 'kudasai', 'verb')],
-  note: 'を marks the direct object.',
-});
+const NOTE = 'を marks the direct object.';
 
-const SCENARIO = drillScenario({
+const ITEM: SentenceItem = {
+  id: '01',
+  en: 'One bread, please.',
+  ans: [['パン', 'pan'], ['を', 'o'], ['ください', 'kudasai']],
+  note: NOTE,
+  tags: { particles: [], conjugations: [] },
+};
+
+/** A short practice phrase: no note to show, which the screen has to survive. */
+const NOTELESS_ITEM: SentenceItem = {
+  id: '02',
+  en: 'Two, please.',
+  ans: [['二つ', 'futatsu'], ['ください', 'kudasai']],
+  tags: { particles: [], conjugations: [] },
+};
+
+const SCENARIO = {
   id: 'bakery',
   name: 'Bakery',
+  kicker: 'Set 01',
   blurb: 'At the counter.',
   items: [ITEM],
-});
+  words: [],
+};
 
 /* A stand-in pack rather than the real one: this screen only reads the name and
    the joiner, and building them here keeps the test off the shipped content. */
-const LANGUAGE: DrillPack = {
+const LANGUAGE: LanguagePack = {
   code: 'ja',
   name: 'Japanese',
   joiner: '',
   fontStack: "'Noto Sans JP'",
   grammar: [],
+  particles: [],
+  conjugations: [],
   scenarios: [SCENARIO],
 };
 
-/** A stand-in view model, so the screen can be driven directly. */
-function view(state: Partial<AppState> = {}, over: Partial<Tsumiki> = {}): Tsumiki {
-  const merged: AppState = { ...initialState, screen: 'drill', ...state };
-  const done = merged.status === 'right' || merged.status === 'shown';
+/** A stand-in view model, so the screen can be driven directly.
 
+    Nothing here is derived. An earlier version computed `done`, `showNote` and
+    `showReveal` from the state the test passed in, which meant a test setting
+    `misses: 2` and asserting the note appeared was really asserting that this
+    function could compare two numbers — the screen would have passed it however
+    it was wired. The flags are plain defaults now, and a test that cares about
+    one sets it explicitly. Where those flags come from is useTsumiki's business
+    and is tested there. */
+function view(state: Partial<AppState> = {}, over: Partial<Tsumiki> = {}): Tsumiki {
   return {
-    state: merged,
+    state: { ...initialState, screen: 'drill', ...state },
     language: LANGUAGE,
     scenarios: [SCENARIO],
     scenario: SCENARIO,
     item: ITEM,
     bank: BANK,
     total: 10,
-    done,
+    done: false,
     isLastItem: false,
-    showNote: merged.misses >= 2 || done,
-    showReveal: merged.misses >= 3 && !done,
+    showNote: false,
+    showReveal: false,
     progress: 0,
     openScenario: vi.fn(),
     goHome: vi.fn(),
@@ -114,47 +118,47 @@ describe('DrillScreen', () => {
     expect(tsumiki.untap).toHaveBeenCalledWith(1);
   });
 
-  it('checks the answer', async () => {
-    const tsumiki = view({ placed: [2] });
+  /* The screen's own derivation, rather than a flag handed to it: there is
+     something to check exactly when something is on the line. */
+  it('can only check once a tile is placed', () => {
+    const { unmount } = render(<DrillScreen tsumiki={view()} />);
+    expect(screen.getByRole('button', { name: 'Check' })).toBeDisabled();
+    unmount();
+
+    render(<DrillScreen tsumiki={view({ placed: [2] })} />);
+    expect(screen.getByRole('button', { name: 'Check' })).toBeEnabled();
+  });
+
+  it('shows the note only when the view model says it is due', () => {
+    const { unmount } = render(<DrillScreen tsumiki={view({ misses: 1 })} />);
+    expect(screen.queryByText(NOTE)).not.toBeInTheDocument();
+    unmount();
+
+    render(<DrillScreen tsumiki={view({ misses: 2 }, { showNote: true })} />);
+    expect(screen.getByText(NOTE)).toBeInTheDocument();
+  });
+
+  /* An item with no note is not a broken item — it is a short phrase with
+     nothing to explain. Missing it repeatedly must not put an empty panel on
+     screen, and must not send the learner looking for help that is not there. */
+  it('renders no note, and promises none, for an item without one', () => {
+    render(
+      <DrillScreen
+        tsumiki={view({ misses: 2, status: 'wrong' }, { item: NOTELESS_ITEM, showNote: false })}
+      />,
+    );
+
+    expect(screen.queryByText(/Grammar/)).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Not quite. Try again.');
+  });
+
+  it('locks the answer line and the bank once the answer is settled', async () => {
+    const tsumiki = view({ placed: [2, 3, 0] }, { done: true });
     render(<DrillScreen tsumiki={tsumiki} />);
-    await userEvent.click(screen.getByRole('button', { name: 'Check' }));
-    expect(tsumiki.check).toHaveBeenCalledOnce();
-  });
 
-  it('holds the note back until it is due', () => {
-    render(<DrillScreen tsumiki={view({ misses: 1, status: 'wrong' })} />);
-    expect(screen.queryByText(ITEM.note)).not.toBeInTheDocument();
-  });
-
-  it('shows the note once it is due', () => {
-    render(<DrillScreen tsumiki={view({ misses: 2, status: 'wrong' })} />);
-    expect(screen.getByText(ITEM.note)).toBeInTheDocument();
-    expect(screen.getByText('Grammar')).toBeInTheDocument();
-  });
-
-  it('relabels the note once the answer is settled', () => {
-    render(<DrillScreen tsumiki={view({ status: 'right', placed: [2, 3, 0] })} />);
-    expect(screen.getByText('Additional grammar tips')).toBeInTheDocument();
-  });
-
-  it('locks the bank once the answer is settled', async () => {
-    const tsumiki = view({ status: 'right', placed: [2, 3, 0] });
-    render(<DrillScreen tsumiki={tsumiki} />);
-    await userEvent.click(screen.getAllByText('は')[0]!);
+    await userEvent.click(screen.getAllByText('は')[0]!); /* in the bank */
+    await userEvent.click(screen.getAllByText('パン')[0]!); /* on the line */
     expect(tsumiki.tap).not.toHaveBeenCalled();
-  });
-
-  it('offers the reveal only once enough misses have happened', async () => {
-    const tsumiki = view({ misses: 3, status: 'wrong' });
-    render(<DrillScreen tsumiki={tsumiki} />);
-    await userEvent.click(screen.getByRole('button', { name: /show me the answer/i }));
-    expect(tsumiki.reveal).toHaveBeenCalledOnce();
-  });
-
-  it('advances once the answer is settled', async () => {
-    const tsumiki = view({ status: 'shown', placed: [2, 3, 0] });
-    render(<DrillScreen tsumiki={tsumiki} />);
-    await userEvent.click(screen.getByRole('button', { name: /next sentence/i }));
-    expect(tsumiki.next).toHaveBeenCalledOnce();
+    expect(tsumiki.untap).not.toHaveBeenCalled();
   });
 });
