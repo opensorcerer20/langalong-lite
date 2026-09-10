@@ -1,5 +1,10 @@
 /* Modernist — design-system tokens and component classes. This file is the source of truth for the system's look; retune it here and see readme.md. */
-@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap');
+/* The one deliberate modification to this vendored file: the Google Fonts
+   @import for Archivo was removed. This app vendors Archivo itself, in
+   src/styles/fonts.css, as a variable face covering wght 100-900 — so the
+   import fetched a font nothing rendered from, blocking first paint on a
+   third-party request. Restore it only if you also drop the vendored face.
+   Noted in docs/MAINTENANCE.md so a re-export does not silently bring it back. */
 
 :root {
   --color-bg: #f3f2f2;

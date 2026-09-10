@@ -1,9 +1,13 @@
 /* Vendored web fonts, so the app renders correctly with no network.
 
-   The design system's own stylesheet @imports Archivo from Google Fonts. These
-   faces are declared after it and win the match, so the vendored files are what
-   actually render. Both are variable (wght 100–900) and carry no unicode-range,
-   so any glyph they lack falls through to the next family in the stack.
+   These are the only source of either face. The design system's stylesheet used
+   to @import Archivo from Google Fonts as well, which these rules quietly won
+   the match against — but the request still fired on every load, blocking first
+   paint on a third party for a font nothing rendered from. That import is now
+   removed; see the note at the top of _ds/modernist-…/styles.css.
+
+   Both are variable (wght 100–900) and carry no unicode-range, so any glyph
+   they lack falls through to the next family in the stack.
 
    The urls are relative: Vite resolves them at build and emits hashed copies
    into dist/assets, which is why there is no public/ directory. */
