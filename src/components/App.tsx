@@ -11,11 +11,6 @@ import { HomeScreen } from './HomeScreen';
 import { PhoneColumn } from './PhoneColumn';
 import { ProgressBar } from './ProgressBar';
 
-/* Still static. Progress is now recorded, but a streak is a property of the
-   days a learner studied rather than of what they answered, and that record is
-   not kept — see the session row left out of the storage schema on purpose. */
-const STREAK = 'Day 12';
-
 export interface AppProps {
   /** The pack to drill, resolved by the caller from a ContentSource. */
   readonly language: LanguagePack;
@@ -39,7 +34,6 @@ export function App({ language: pack, progress }: AppProps) {
                  a learner at the beginning. */
               `${language.name} · beginner`
         }
-        streak={STREAK}
         onBack={inDrill ? tsumiki.goHome : undefined}
       />
 

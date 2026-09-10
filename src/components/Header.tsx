@@ -8,13 +8,11 @@ import * as stylex from '@stylexjs/stylex';
 export interface HeaderProps {
   /** The right-hand label — the language on home, the situation in a drill. */
   readonly label: string;
-  /** The streak. Static chrome for now; nothing is persisted between sessions. */
-  readonly streak: string;
   /** Omitted on the home screen, where there is no back. */
   readonly onBack?: (() => void) | undefined;
 }
 
-export function Header({ label, streak, onBack }: HeaderProps) {
+export function Header({ label, onBack }: HeaderProps) {
   return (
     <header {...stylex.props(s.header)}>
       <div {...stylex.props(s.left)}>
@@ -27,7 +25,6 @@ export function Header({ label, streak, onBack }: HeaderProps) {
       </div>
       <div {...stylex.props(s.right)}>
         <span>{label}</span>
-        <span {...stylex.props(s.streak)}>{streak}</span>
       </div>
     </header>
   );
@@ -87,10 +84,5 @@ const s = stylex.create({
     letterSpacing: '0.14em',
     textTransform: 'uppercase',
     color: 'var(--color-text)',
-  },
-
-  streak: {
-    color: 'var(--color-accent-700)',
-    fontWeight: 600,
   },
 });

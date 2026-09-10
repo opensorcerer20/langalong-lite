@@ -5,23 +5,22 @@ import { describe, expect, it, vi } from 'vitest';
 import { Header } from '../../src/components/Header';
 
 describe('Header', () => {
-  it('is a banner showing the wordmark, the label and the streak', () => {
-    render(<Header label="Bakery · 01" streak="Day 12" />);
+  it('is a banner showing the wordmark and the label', () => {
+    render(<Header label="Bakery · 01" />);
     expect(screen.getByRole('banner')).toBeInTheDocument();
     expect(screen.getByText('TSUMIKI')).toBeInTheDocument();
     expect(screen.getByText('Bakery · 01')).toBeInTheDocument();
-    expect(screen.getByText('Day 12')).toBeInTheDocument();
   });
 
   /* There is nowhere to go back to from the home screen. */
   it('has no back link when no way back is given', () => {
-    render(<Header label="Japanese · beginner" streak="Day 12" />);
+    render(<Header label="Japanese · beginner" />);
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
   it('goes back when there is somewhere to go', async () => {
     const onBack = vi.fn();
-    render(<Header label="Bakery · 01" streak="Day 12" onBack={onBack} />);
+    render(<Header label="Bakery · 01" onBack={onBack} />);
     await userEvent.click(screen.getByRole('button', { name: /all/i }));
     expect(onBack).toHaveBeenCalledOnce();
   });

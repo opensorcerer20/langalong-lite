@@ -39,7 +39,9 @@ The removal is commented in place at the top of the file, and in `src/main.tsx` 
 
 Debt carried over from the conversions — the plain-JS PWA prototype to React, then CSS Modules to StyleX. None of it is broken; all of it is a thing that was deliberately deferred and should not be discovered by surprise later. Roughly in order of how likely it is to bite.
 
-**Static chrome pretending to be real data.** `STREAK = 'Day 12'` is a hardcoded literal in `src/components/App.tsx`. Nothing is persisted between sessions, so the streak, the first-try score and which set you were on all reset on reload. The streak is the worst of these because it silently asserts something false to the learner — a real streak needs storage before the number means anything.
+**Session state resets on reload.** The first-try score and which set you were on live only in `appReducer`, so a refresh loses both. Per-item history survives — it is in IndexedDB — but nothing reads it back into the UI yet.
+
+The hardcoded `STREAK = 'Day 12'` that used to sit beside them is gone. It was the worst of the three because it asserted something false rather than merely forgetting something true; the header now shows nothing until there is a session row to derive a real streak from. See [ROADMAP.md](ROADMAP.md).
 
 **A display string doing double duty as an identifier.** `App.tsx` builds the drill header with `scenario.kicker.replace('Set ', '')`, so `Set 01` becomes `01`. The fragility this used to carry is gone — `kicker` is no longer authored but generated as `Set NN` from list position, so it cannot be renamed into breaking the header. What remains is the design smell: `kicker` is both the home-screen label and the header's set number, and those want to be two fields on `Scenario` rather than one parsed at the point of use.
 
