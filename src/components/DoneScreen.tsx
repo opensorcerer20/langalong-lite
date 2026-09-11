@@ -29,7 +29,7 @@ export function DoneScreen({
   total,
   title = 'Set complete',
   scoreLabel = 'built first try',
-  body = 'Next set unlocks the response level: a shopkeeper speaks first and you build the reply.',
+  body = 'Only sentences built without a miss count towards that score. Replaying a set is how it goes up.',
   onRestart,
   onHome,
 }: DoneScreenProps) {

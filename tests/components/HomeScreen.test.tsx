@@ -63,9 +63,12 @@ describe('HomeScreen', () => {
     expect(onOpen).toHaveBeenCalledWith(1);
   });
 
-  /* Sets expectations: the second level exists but is not built yet. */
-  it('explains that only the translate level is available', () => {
+  /* Says how the drill works, and promises nothing that is not built. The copy
+     used to announce a "response level" that unlocks per situation; there is no
+     such level and nothing unlocks. */
+  it('explains how a situation is played', () => {
     render(<HomeScreen scenarios={SCENARIOS} onOpen={() => {}} />);
-    expect(screen.getByText(/translate level only for now/i)).toBeInTheDocument();
+    expect(screen.getByText(/read the English prompt/i)).toBeInTheDocument();
+    expect(screen.queryByText(/unlocks|response level/i)).not.toBeInTheDocument();
   });
 });
