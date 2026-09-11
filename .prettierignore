@@ -1,0 +1,18 @@
+# Vendored and frozen — see docs/MAINTENANCE.md. _ds/ carries one deliberate
+# modification; reformatting it would bury that in noise.
+_ds/
+prototype/
+
+# Generated or installed.
+dist/
+node_modules/
+.vite/
+
+# Binaries and license texts, which are not ours to reflow.
+fonts/
+icons/
+
+# Markdown is left alone. The docs are prose, reviewed as prose, and this repo's
+# convention is no forced line breaks — which Prettier's default proseWrap does
+# honour, but a reflow would still churn tables and diagrams for no gain.
+*.md
