@@ -35,13 +35,19 @@ if (!root) throw new Error('#root is missing from index.html');
    depend on the build target supporting it.
 
    Opening storage cannot fail in a way that stops the app — openRepository
-   falls back to keeping progress in memory — so there is no error branch. */
+   falls back to keeping progress in memory — so there is no error branch. What
+   it can do is fail to be durable, and `durable` is carried through to the
+   header rather than dropped: a session that will be forgotten says so. */
 void openRepository().then(async (repository) => {
   const language = await repository.content.active();
 
   createRoot(root).render(
     <StrictMode>
-      <App language={language} progress={repository.progress} />
+      <App
+        language={language}
+        progress={repository.progress}
+        durable={repository.durable}
+      />
     </StrictMode>,
   );
 });

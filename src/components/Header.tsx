@@ -8,11 +8,17 @@ import * as stylex from '@stylexjs/stylex';
 export interface HeaderProps {
   /** The right-hand label — the language on home, the situation in a drill. */
   readonly label: string;
+  /**
+   * A standing condition worth admitting, drawn beside the label. Today that is
+   * only "progress is not being saved"; see App. Omitted, nothing is drawn —
+   * this is not a place for transient messages, which the status line owns.
+   */
+  readonly notice?: string | undefined;
   /** Omitted on the home screen, where there is no back. */
   readonly onBack?: (() => void) | undefined;
 }
 
-export function Header({ label, onBack }: HeaderProps) {
+export function Header({ label, notice, onBack }: HeaderProps) {
   return (
     <header {...stylex.props(s.header)}>
       <div {...stylex.props(s.left)}>
@@ -25,6 +31,10 @@ export function Header({ label, onBack }: HeaderProps) {
       </div>
       <div {...stylex.props(s.right)}>
         <span>{label}</span>
+        {/* Not a live region. Durability is resolved before the first render —
+            see main.tsx — so this never appears mid-session, and the drill's
+            status line is already the one thing here that announces. */}
+        {notice !== undefined && <span {...stylex.props(s.notice)}>{notice}</span>}
       </div>
     </header>
   );
@@ -84,5 +94,13 @@ const s = stylex.create({
     letterSpacing: '0.14em',
     textTransform: 'uppercase',
     color: 'var(--color-text)',
+  },
+
+  /* The accent, as a warning rather than as decoration — it is the one thing in
+     the header a learner is meant to notice. */
+  notice: {
+    color: 'var(--color-accent-700)',
+    fontWeight: 600,
+    whiteSpace: 'nowrap',
   },
 });

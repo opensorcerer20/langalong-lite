@@ -220,6 +220,42 @@ describe('App', () => {
     expect(bankTiles().length).toBeGreaterThan(needed * 2);
   });
 
+  /* The app is allowed to forget a session; it is not allowed to do so
+     silently. See Repository.durable. */
+  describe('when progress will not survive the session', () => {
+    it('says so', () => {
+      render(<App language={LANGUAGE} durable={false} />);
+      expect(screen.getByText(/not saving/i)).toBeInTheDocument();
+    });
+
+    it('says nothing when storage is durable', () => {
+      render(<App language={LANGUAGE} durable />);
+      expect(screen.queryByText(/not saving/i)).not.toBeInTheDocument();
+    });
+
+    /* Omitting the prop must not read as a failure — most callers, tests
+       included, have no store to speak of. */
+    it('says nothing when durability is not stated', () => {
+      render(<App language={LANGUAGE} />);
+      expect(screen.queryByText(/not saving/i)).not.toBeInTheDocument();
+    });
+
+    /* The notice sits in the header for the whole session, including inside a
+       drill — where the status line is the page's one live region. Two would
+       make `getByRole('status')` ambiguous, and would announce a standing
+       condition as though it had just changed. */
+    it('keeps the drill playable, and leaves the status line the only live region', async () => {
+      const user = userEvent.setup();
+      render(<App language={LANGUAGE} durable={false} />);
+      await user.click(screen.getByText(FIRST.name));
+      await solve(user, 0);
+      await user.click(primary());
+
+      expect(screen.getByText(/not saving/i)).toBeInTheDocument();
+      expect(screen.getByRole('status')).toHaveTextContent('Correct');
+    });
+  });
+
   it('renders the romaji under the kana', async () => {
     const user = userEvent.setup();
     render(<App language={LANGUAGE} />);
