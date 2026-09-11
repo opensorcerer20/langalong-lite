@@ -1,5 +1,6 @@
-/* The three dials that change how the drill feels. Everything else about the
-   difficulty is a property of the content itself. */
+/* The four dials that change how the drill feels — three difficulty, one
+   display. Everything else about the difficulty is a property of the content
+   itself. */
 
 /**
  * Distractor density: the bank holds roughly this many times the tiles the

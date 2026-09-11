@@ -2,10 +2,11 @@
 
    Stylesheet order matters and is the same order the prototype used:
 
-     1. the design system, unmodified — every color, space and type token, plus
-        .btn and .hr. It @imports Archivo from Google Fonts;
-     2. the vendored faces, which are declared second and so win the match,
-        making the app render correctly with no network;
+     1. the design system — every color, space and type token, plus .btn and
+        .hr. Vendored, and modified in exactly one place: its Google Fonts
+        @import was removed, because the faces below replace it;
+     2. the vendored faces, which are what every glyph is drawn from, so the
+        app renders correctly with no network and makes no third-party request;
      3. the app's own global rules, which build on the tokens above.
 
    Everything else is a CSS module, imported by the component that owns it. */
@@ -34,13 +35,19 @@ if (!root) throw new Error('#root is missing from index.html');
    depend on the build target supporting it.
 
    Opening storage cannot fail in a way that stops the app — openRepository
-   falls back to keeping progress in memory — so there is no error branch. */
+   falls back to keeping progress in memory — so there is no error branch. What
+   it can do is fail to be durable, and `durable` is carried through to the
+   header rather than dropped: a session that will be forgotten says so. */
 void openRepository().then(async (repository) => {
   const language = await repository.content.active();
 
   createRoot(root).render(
     <StrictMode>
-      <App language={language} progress={repository.progress} />
+      <App
+        language={language}
+        progress={repository.progress}
+        durable={repository.durable}
+      />
     </StrictMode>,
   );
 });

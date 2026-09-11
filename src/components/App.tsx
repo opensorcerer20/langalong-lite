@@ -11,19 +11,28 @@ import { HomeScreen } from './HomeScreen';
 import { PhoneColumn } from './PhoneColumn';
 import { ProgressBar } from './ProgressBar';
 
-/* Still static. Progress is now recorded, but a streak is a property of the
-   days a learner studied rather than of what they answered, and that record is
-   not kept — see the session row left out of the storage schema on purpose. */
-const STREAK = 'Day 12';
-
 export interface AppProps {
   /** The pack to drill, resolved by the caller from a ContentSource. */
   readonly language: LanguagePack;
   /** Where attempts are recorded. Omitted, the drill runs and records nothing. */
   readonly progress?: ProgressStore;
+  /**
+   * Whether that store survives the session — `Repository.durable`. False when
+   * IndexedDB could not be opened and progress is being kept in memory, which
+   * the header then says out loud.
+   *
+   * Defaults to true, so a caller that has no store to speak of — a component
+   * test, mainly — does not accidentally claim the app is failing to save.
+   */
+  readonly durable?: boolean;
 }
 
-export function App({ language: pack, progress }: AppProps) {
+/* Short enough for the header's uppercase slot, and about the consequence
+   rather than the cause: "IndexedDB is unavailable" is not the learner's
+   problem to hold. */
+const NOT_SAVING = 'Not saving';
+
+export function App({ language: pack, progress, durable = true }: AppProps) {
   const tsumiki = useTsumiki(pack, progress);
   const { state, language, scenario, scenarios, total } = tsumiki;
 
@@ -39,7 +48,7 @@ export function App({ language: pack, progress }: AppProps) {
                  a learner at the beginning. */
               `${language.name} · beginner`
         }
-        streak={STREAK}
+        notice={durable ? undefined : NOT_SAVING}
         onBack={inDrill ? tsumiki.goHome : undefined}
       />
 

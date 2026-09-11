@@ -22,8 +22,8 @@ export function HomeScreen({ scenarios, onOpen }: HomeScreenProps) {
       <ScenarioList scenarios={scenarios} onOpen={onOpen} />
 
       <p {...stylex.props(s.foot)}>
-        Translate level only for now. The response level &mdash; where the shopkeeper or clerk
-        speaks first &mdash; unlocks per situation.
+        Every situation works the same way: read the English prompt, then build the sentence from
+        the tiles. Sets can be replayed as often as you like.
       </p>
     </section>
   );
