@@ -157,7 +157,9 @@ describe.each(LANGUAGES)('$name', (language) => {
     it('gives every particle and pattern an id, unique and free of ":"', () => {
       for (const particle of language.particles) {
         expect(particle.id.trim(), `a particle has no id`).not.toBe('');
-        expect(particle.id, `particle "${particle.id}" — ":" is the key separator`).not.toContain(':');
+        expect(particle.id, `particle "${particle.id}" — ":" is the key separator`).not.toContain(
+          ':',
+        );
         expect(particle.gloss.trim(), `particle "${particle.id}" has no gloss`).not.toBe('');
       }
       expect(particleIds.size, 'two particles share an id').toBe(language.particles.length);
@@ -247,9 +249,10 @@ describe.each(LANGUAGES)('$name', (language) => {
   it('lists no alternate identical to the canonical answer', () => {
     for (const { item, where } of everySentence) {
       const canonical = item.ans.map((t) => t[0]).join(language.joiner);
-      expect(item.alts ?? [], `${where} repeats its canonical answer as an alternate`).not.toContain(
-        canonical,
-      );
+      expect(
+        item.alts ?? [],
+        `${where} repeats its canonical answer as an alternate`,
+      ).not.toContain(canonical);
     }
   });
 });

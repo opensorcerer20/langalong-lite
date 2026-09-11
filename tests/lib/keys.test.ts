@@ -80,7 +80,10 @@ describe('parseKey', () => {
   });
 
   it('round-trips every key the composers produce', () => {
-    expect(parseKey(itemKey('ja', 'station', '08'))).toMatchObject({ scenarioId: 'station', itemId: '08' });
+    expect(parseKey(itemKey('ja', 'station', '08'))).toMatchObject({
+      scenarioId: 'station',
+      itemId: '08',
+    });
     expect(parseKey(tileKey('ja', PAN))).toMatchObject({ text: 'パン' });
     expect(parseKey(particleKey('ja', 'ni'))).toMatchObject({ particleId: 'ni' });
     expect(parseKey(conjugationKey('ja', 'tai'))).toMatchObject({ patternId: 'tai' });
@@ -89,7 +92,10 @@ describe('parseKey', () => {
   /* The reason the unit sits in segment two rather than being inferred from how
      many segments there are. */
   it('does not mistake a situation called "tile" for vocabulary', () => {
-    expect(parseKey(itemKey('ja', 'tile', '01'))).toMatchObject({ unit: 'item', scenarioId: 'tile' });
+    expect(parseKey(itemKey('ja', 'tile', '01'))).toMatchObject({
+      unit: 'item',
+      scenarioId: 'tile',
+    });
   });
 
   it('keeps a separator inside tile text, which is always the last field', () => {

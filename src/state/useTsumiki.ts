@@ -220,7 +220,11 @@ export function useTsumiki(language: LanguagePack, progress?: ProgressStore): Ts
        as an attempt the learner never made. */
     if (isDone(state) || state.placed.length === 0) return;
 
-    const right = isCorrect(item, buildString(bank, state.placed, language.joiner), language.joiner);
+    const right = isCorrect(
+      item,
+      buildString(bank, state.placed, language.joiner),
+      language.joiner,
+    );
     record(right ? 'right' : 'wrong', right);
     dispatch({ type: 'check', correct: right });
   }, [state, item, bank, language.joiner, record]);

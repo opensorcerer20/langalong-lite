@@ -46,7 +46,7 @@ export function woff2UrlIn(css: string): string {
   throw new Error(
     urls.length === 0
       ? 'no woff2 in the stylesheet — css2 returns one only for a browser User-Agent, ' +
-        'and nine static TrueType faces otherwise'
+          'and nine static TrueType faces otherwise'
       : `the stylesheet offers ${urls.length} woff2 faces, and only one was expected`,
   );
 }

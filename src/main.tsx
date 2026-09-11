@@ -43,11 +43,7 @@ void openRepository().then(async (repository) => {
 
   createRoot(root).render(
     <StrictMode>
-      <App
-        language={language}
-        progress={repository.progress}
-        durable={repository.durable}
-      />
+      <App language={language} progress={repository.progress} durable={repository.durable} />
     </StrictMode>,
   );
 });

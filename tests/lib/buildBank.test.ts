@@ -57,7 +57,11 @@ const POOLS = { grammar: GRAMMAR, words: WORDS };
 const ITEM: SentenceItem = {
   id: '01',
   en: 'One bread, please.',
-  ans: [['パン', 'pan'], ['を', 'o'], ['ください', 'kudasai']],
+  ans: [
+    ['パン', 'pan'],
+    ['を', 'o'],
+    ['ください', 'kudasai'],
+  ],
   tags: { particles: [], conjugations: [] },
 };
 
@@ -65,7 +69,10 @@ const ITEM: SentenceItem = {
 const SHORT: SentenceItem = {
   id: '02',
   en: 'Bread, please.',
-  ans: [['パン', 'pan'], ['を', 'o']],
+  ans: [
+    ['パン', 'pan'],
+    ['を', 'o'],
+  ],
   tags: { particles: [], conjugations: [] },
 };
 
@@ -88,7 +95,11 @@ const LONG: SentenceItem = {
 const WITH_ALT: SentenceItem = {
   id: '04',
   en: "I'll take this one.",
-  ans: [['これ', 'kore'], ['を', 'o'], ['お願いします', 'onegaishimasu']],
+  ans: [
+    ['これ', 'kore'],
+    ['を', 'o'],
+    ['お願いします', 'onegaishimasu'],
+  ],
   alts: ['これをもらいます'],
   tags: { particles: [], conjugations: [] },
 };

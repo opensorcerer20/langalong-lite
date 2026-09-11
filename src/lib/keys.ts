@@ -72,7 +72,12 @@ export function conjugationKey(languageCode: string, patternId: string): string 
 
 /** A key read back apart. */
 export type ParsedKey =
-  | { readonly unit: 'item'; readonly languageCode: string; readonly scenarioId: string; readonly itemId: string }
+  | {
+      readonly unit: 'item';
+      readonly languageCode: string;
+      readonly scenarioId: string;
+      readonly itemId: string;
+    }
   | { readonly unit: 'tile'; readonly languageCode: string; readonly text: string }
   | { readonly unit: 'particle'; readonly languageCode: string; readonly particleId: string }
   | { readonly unit: 'conjugation'; readonly languageCode: string; readonly patternId: string };

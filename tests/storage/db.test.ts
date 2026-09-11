@@ -41,7 +41,9 @@ describe('openDatabase', () => {
     const store = db.transaction(STORE_ATTEMPTS, 'readonly').objectStore(STORE_ATTEMPTS);
     expect(store.keyPath).toBe('id');
     expect(store.autoIncrement).toBe(true);
-    expect([...store.indexNames].sort()).toEqual([INDEX_ATTEMPTS_BY_AT, INDEX_ATTEMPTS_BY_KEY].sort());
+    expect([...store.indexNames].sort()).toEqual(
+      [INDEX_ATTEMPTS_BY_AT, INDEX_ATTEMPTS_BY_KEY].sort(),
+    );
     db.close();
   });
 

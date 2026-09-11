@@ -10,7 +10,15 @@ const scenario = (name: string, kicker: string): Scenario => ({
   name,
   kicker,
   blurb: `About ${name}.`,
-  items: [{ id: '01', en: 'One bread, please.', ans: [['パン', 'pan']], note: 'A note.', tags: { particles: [], conjugations: [] } }],
+  items: [
+    {
+      id: '01',
+      en: 'One bread, please.',
+      ans: [['パン', 'pan']],
+      note: 'A note.',
+      tags: { particles: [], conjugations: [] },
+    },
+  ],
   words: [['パン', 'pan']],
 });
 
@@ -33,5 +41,4 @@ describe('ScenarioList', () => {
     await userEvent.click(screen.getByText('Train station'));
     expect(onOpen).toHaveBeenCalledWith(1);
   });
-
 });

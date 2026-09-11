@@ -42,7 +42,9 @@ describe('openRepository', () => {
       misses: 0,
       durationMs: 2500,
     });
-    expect(await repository.progress.getSchedule('ja:item:bakery:01')).toMatchObject({ correct: 1 });
+    expect(await repository.progress.getSchedule('ja:item:bakery:01')).toMatchObject({
+      correct: 1,
+    });
   });
 
   describe('when IndexedDB cannot be opened', () => {
@@ -62,13 +64,15 @@ describe('openRepository', () => {
         key: 'ja:item:bakery:01',
         languageCode: 'ja',
         unit: 'item',
-      mode: 'sentence',
+        mode: 'sentence',
         at: 1_700_000_000_000,
         outcome: 'right',
         misses: 0,
         durationMs: 2500,
       });
-      expect(await repository.progress.getSchedule('ja:item:bakery:01')).toMatchObject({ correct: 1 });
+      expect(await repository.progress.getSchedule('ja:item:bakery:01')).toMatchObject({
+        correct: 1,
+      });
     });
 
     it('still serves content — the drill does not depend on storage', async () => {

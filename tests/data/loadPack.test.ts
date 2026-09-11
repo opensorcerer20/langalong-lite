@@ -183,7 +183,13 @@ describe('loadPack — sentences', () => {
     const item = firstScenario(
       file({
         items: [
-          { id: '01', en: 'Bread.', ans: 'パン|を', note: 'を marks it.', alts: ['パンをください'] },
+          {
+            id: '01',
+            en: 'Bread.',
+            ans: 'パン|を',
+            note: 'を marks it.',
+            alts: ['パンをください'],
+          },
         ],
       }),
     ).items[0]!;

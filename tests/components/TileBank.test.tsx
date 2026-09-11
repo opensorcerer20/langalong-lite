@@ -61,5 +61,4 @@ describe('TileBank', () => {
     expect(container.textContent).toContain('パン');
     expect(container.textContent).not.toContain('pan');
   });
-
 });

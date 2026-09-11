@@ -133,9 +133,15 @@ export function formatReport(report: ImportReport, source: string): string {
     '',
     row('situation', `${report.situationId} "${report.situationName}" → ${report.kicker}`),
     row('sentences', String(report.sentences)),
-    row('lexicon', `+${report.lexiconNew.length} new, ${report.lexiconPresent.length} already present`),
+    row(
+      'lexicon',
+      `+${report.lexiconNew.length} new, ${report.lexiconPresent.length} already present`,
+    ),
     row('reused', `${report.reused.length} tiles already in the grammar pool`),
-    row('first taught', report.firstTaught.length > 0 ? report.firstTaught.join(', ') : 'nothing new'),
+    row(
+      'first taught',
+      report.firstTaught.length > 0 ? report.firstTaught.join(', ') : 'nothing new',
+    ),
   ];
 
   if (report.extraWords.length > 0) {

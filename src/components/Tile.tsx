@@ -59,7 +59,9 @@ export function Tile({
     >
       <span {...stylex.props(s.text)}>{text}</span>
       {showReading && (
-        <span {...stylex.props(s.reading, isBank ? s.readingBank : s.readingPlaced)}>{reading}</span>
+        <span {...stylex.props(s.reading, isBank ? s.readingBank : s.readingPlaced)}>
+          {reading}
+        </span>
       )}
     </button>
   );

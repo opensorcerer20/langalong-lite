@@ -8,15 +8,8 @@
 
 import { readFileSync } from 'node:fs';
 
-import {
-  describe,
-  expect,
-  it,
-} from 'vitest';
-import {
-  parseCoreFile,
-  parseScenarioFile,
-} from '../../scripts/contentSchema';
+import { describe, expect, it } from 'vitest';
+import { parseCoreFile, parseScenarioFile } from '../../scripts/contentSchema';
 
 const SCENARIO = {
   id: 'bakery',

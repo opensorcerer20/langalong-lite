@@ -64,11 +64,20 @@ describe('japaneseCharacters', () => {
 
   it('holds each character once, in code-point order', () => {
     expect(new Set(characters).size).toBe(characters.length);
-    expect([...characters].sort((a, b) => a.codePointAt(0)! - b.codePointAt(0)!)).toEqual(characters);
+    expect([...characters].sort((a, b) => a.codePointAt(0)! - b.codePointAt(0)!)).toEqual(
+      characters,
+    );
   });
 
   it('finds nothing in a pack with no Japanese in it', () => {
-    const latin: PackFile = { ...PACK, lexicon: {}, grammar: [], particles: {}, conjugations: {}, scenarios: [] };
+    const latin: PackFile = {
+      ...PACK,
+      lexicon: {},
+      grammar: [],
+      particles: {},
+      conjugations: {},
+      scenarios: [],
+    };
     expect(japaneseCharacters(latin)).toEqual([]);
   });
 });
