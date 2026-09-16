@@ -18,7 +18,7 @@ components/  ──►  state/useTsumiki  ──►  state/appReducer           
                         └────────────►  storage/                     (async, side effects)
 ```
 
-- **`src/data/`** is the language packs: one authored JSON file each, the types they take, and `loadPack.ts`, which expands one into the other. The content itself is inert. `loadPack` is the one piece of logic here, and it reaches into `lib/` for `getVocabIn` — an edge but not a cycle, since `lib/` imports only *types* from `data/` and never content.
+- **`src/data/`** is the loader for the language packs: the types they take, `assemblePack.ts`, which merges the authored files in `content/` into one, and `loadPack.ts`, which expands that into a `LanguagePack`. The content itself lives in `content/` and is inert. `loadPack` is the one piece of logic here, and it reaches into `lib/` for `getVocabIn` — an edge but not a cycle, since `lib/` imports only *types* from `data/` and never content.
 - **`src/lib/`** is the processing: bank generation, segmentation, answer checking, reveal placement, key composition, and the roll-up arithmetic that turns an attempt into a progress row. Pure functions that take the content they need as arguments and never import `data/`.
 - **`src/state/appReducer.ts`** is every drill rule, as one pure reducer. It imports nothing at all — `check` carries a boolean verdict and `reveal` carries the bank positions to fill, so judging an answer happens at the seam where the content already is. That is what makes the rules exercise-agnostic: nothing in them knows what a sentence is.
 - **`src/storage/`** is persistence: IndexedDB, and the interfaces that hide it. It is the only layer with side effects, and like `data/` it is reached only through the seam.
@@ -29,12 +29,22 @@ components/  ──►  state/useTsumiki  ──►  state/appReducer           
 
 ## Language packs
 
-The Japanese is authored in `src/data/ja.json` and expanded by `loadPack` into a `LanguagePack`. `src/data/languages.ts` does that expansion, holds the registry, and names which pack is active. Nothing outside those two files names Japanese.
+The Japanese is authored in `content/ja/` — a shared `core.json` plus one file per situation — merged by `assemblePack` and expanded by `loadPack` into a `LanguagePack`. `src/data/languages.ts` imports the files, runs both, holds the registry, and names which pack is active. Nothing outside `content/` and `languages.ts` names Japanese.
+
+```
+content/ja/core.json        shared lexicon, grammar, particles, conjugations
+content/ja/bakery.json  ─┐  one situation + the readings only it needs
+content/ja/station.json  ├──►  assemblePack()  ──►  PackFile  ──►  loadPack()  ──►  LanguagePack
+content/ja/…            ─┘     merges lexicons,       authored        expands
+                               rejects disagreements   shape
+```
+
+Splitting per situation means adding one is writing one file rather than editing a shared one in three places. The cost is that two files can disagree about a reading, which `assemblePack` throws on rather than silently resolving — progress is keyed on the text, so taking one reading over the other would attach history to a word that now reads differently.
 
 **Authored and runtime shapes differ on purpose** — the first is optimised for writing by hand, the second for being read by the drill:
 
 ```
-AUTHORED (ja.json)                 RUNTIME (LanguagePack)
+AUTHORED (content/ja/*.json)       RUNTIME (LanguagePack)
 lexicon: { "パン": "pan" }   ─┐
                               ├──►  ans: [["パン","pan"], ["を","o"]]
 ans: "パン|を"               ─┘
@@ -43,7 +53,7 @@ teaches: ["o", "tai"]         ──►  tags: { particles:["o"], conjugations:[
 items[].ans + words[]         ──►  words: [every content tile, deduped]
 ```
 
-A reading is written once, in the lexicon. That turns "a text reads one way per pack" from a rule a test enforces into a property of the file's shape. See [AUTHORING.md](AUTHORING.md) for the fields.
+A reading is written once, in a lexicon. That turns "a text reads one way per pack" from a rule a test enforces into a property of the files' shape. See [AUTHORING.md](AUTHORING.md) for the fields.
 
 There is no schema library. A pack is compiled into the bundle, so `resolveJsonModule` type-checks it against `PackFile`, `loadPack` throws on what types cannot express, and `tests/data/packFileKeys.test.ts` catches the one gap left — a typo'd *optional* key, which is legal TypeScript and silently drops the field. If content ever arrives at runtime instead, it becomes untrusted input and zod is the right answer.
 
@@ -69,7 +79,7 @@ The shortcut is tempting and wrong, for four reasons in descending order of how 
 
 ### The schema
 
-Two stores that matter, keyed by strings composed in `src/lib/keys.ts` — `ja:item:bakery:01` for a sentence, `ja:tile:パン` for vocabulary, `ja:particle:o` and `ja:conjugation:tai` for the grammar points a sentence teaches. Ids are local to their parent and qualified here, so nothing inside `ja.json` has to name Japanese.
+Two stores that matter, keyed by strings composed in `src/lib/keys.ts` — `ja:item:bakery:01` for a sentence, `ja:tile:パン` for vocabulary, `ja:particle:o` and `ja:conjugation:tai` for the grammar points a sentence teaches. Ids are local to their parent and qualified here, so nothing inside `content/ja/` has to name Japanese.
 
 A particle deliberately does **not** reuse its tile key. Knowing the word を and knowing when を is the right particle are different things, and a drill built to teach the second would be scored against the first if they shared a row. Vocabulary goes the other way on purpose: a future vocabulary exercise writes to the same `ja:tile:*` row the sentence drill already writes to, because those are evidence about the same thing differing only in directness — which `viaItem` already records.
 
@@ -121,7 +131,9 @@ Values still come from the design system: `var(--color-accent)` and friends are 
 | --- | --- |
 | `src/data/types.ts` | `Tile`, `SentenceItem`, `Scenario`, `Particle`, `ConjugationPattern`, `LanguagePack` — the runtime shapes, shared by every pack |
 | `src/data/languages.ts` | Loads the packs, holds the registry, and names which one the app is drilling |
-| `src/data/ja.json` | All the Japanese: lexicon, grammar pool, particles, patterns, situations and sentences |
+| `content/<code>/core.json` | A language's shared lexicon, grammar pool, particles and conjugation patterns |
+| `content/<code>/<id>.json` | One situation: its sentences, its extra distractors, and the readings only it needs |
+| `src/data/assemblePack.ts` | Merging the core file and the situation files into one `PackFile` |
 | `src/data/loadPack.ts` | The authored shapes, and expanding one into a `LanguagePack` |
 | `src/config.ts` | The four difficulty and display dials |
 | `src/lib/buildBank.ts` | The deterministic tile bank |
@@ -141,9 +153,10 @@ Values still come from the design system: `var(--color-accent)` and friends are 
 | `src/styles/global.css` | The page ground — `html`, `body`, `button`. No element owns these, so they stay CSS |
 | `src/styles/fonts.css` | The two `@font-face` rules |
 | `tests/` | One file per component and per module, mirroring `src/` |
-| `fonts/`, `icons/` | Vendored Archivo (latin) and Noto Sans JP, subset to the 102 kana and kanji in use. Both variable, wght 100–900, both OFL 1.1 with the license text alongside. Pulled in through the bundler, which is why there is no `public/` |
+| `fonts/`, `icons/` | Vendored Archivo (latin) and Noto Sans JP, subset to exactly the kana and kanji in use — `fonts/noto-sans-jp-subset.txt` records which. Both variable, wght 100–900, both OFL 1.1 with the license text alongside. Pulled in through the bundler, which is why there is no `public/` |
 | `_ds/modernist-…/` | The Modernist design system. `styles.css` is imported unmodified and is the source of every color, space and radius token |
-| `DESIGN.md` | The design document the app was built from |
+| `scripts/` | `npm run import` (check a situation file) and `npm run font` (regenerate the JP subset), plus the pure halves both are tested through |
+| `prototype/DESIGN.md` | The design document the app was built from |
 | `prototype/` | The pre-React app, kept for reference — see [MAINTENANCE.md](MAINTENANCE.md) |
 
 ## Tests
