@@ -61,9 +61,34 @@ const LANGUAGE: LanguagePack = {
       blurb: 'The first one.',
       words: WORDS,
       items: [
-        item('01', [['パン', 'pan'], ['を', 'o'], ['ください', 'kudasai']], 'を marks the object.'),
-        item('02', [['ケーキ', 'keeki'], ['を', 'o'], ['ください', 'kudasai']], 'The same frame.'),
-        item('03', [['これ', 'kore'], ['は', 'wa'], ['甘い', 'amai'], ['です', 'desu']], 'は is the topic.'),
+        item(
+          '01',
+          [
+            ['パン', 'pan'],
+            ['を', 'o'],
+            ['ください', 'kudasai'],
+          ],
+          'を marks the object.',
+        ),
+        item(
+          '02',
+          [
+            ['ケーキ', 'keeki'],
+            ['を', 'o'],
+            ['ください', 'kudasai'],
+          ],
+          'The same frame.',
+        ),
+        item(
+          '03',
+          [
+            ['これ', 'kore'],
+            ['は', 'wa'],
+            ['甘い', 'amai'],
+            ['です', 'desu'],
+          ],
+          'は is the topic.',
+        ),
       ],
     },
     {
@@ -73,8 +98,24 @@ const LANGUAGE: LanguagePack = {
       blurb: 'The second one.',
       words: WORDS,
       items: [
-        item('01', [['袋', 'fukuro'], ['を', 'o'], ['ください', 'kudasai']], 'A bag, please.'),
-        item('02', [['それ', 'sore'], ['を', 'o'], ['ください', 'kudasai']], 'That one.'),
+        item(
+          '01',
+          [
+            ['袋', 'fukuro'],
+            ['を', 'o'],
+            ['ください', 'kudasai'],
+          ],
+          'A bag, please.',
+        ),
+        item(
+          '02',
+          [
+            ['それ', 'sore'],
+            ['を', 'o'],
+            ['ください', 'kudasai'],
+          ],
+          'That one.',
+        ),
       ],
     },
   ],
@@ -153,9 +194,7 @@ describe('useTsumiki', () => {
     const view = open();
     act(() => view.result.current.reveal());
     const { bank, state, item } = view.result.current;
-    expect(state.placed.map((i) => bank[i]?.[0]).join('')).toBe(
-      item.ans.map((t) => t[0]).join(''),
-    );
+    expect(state.placed.map((i) => bank[i]?.[0]).join('')).toBe(item.ans.map((t) => t[0]).join(''));
   });
 
   it('holds the note back until the configured miss count', () => {

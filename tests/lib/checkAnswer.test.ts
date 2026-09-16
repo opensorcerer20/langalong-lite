@@ -13,7 +13,11 @@ const BANK: readonly Tile[] = [
 const ITEM: SentenceItem = {
   id: '01',
   en: 'One bread, please.',
-  ans: [['パン', 'pan'], ['を', 'o'], ['ください', 'kudasai']],
+  ans: [
+    ['パン', 'pan'],
+    ['を', 'o'],
+    ['ください', 'kudasai'],
+  ],
   alts: ['パンをお願いします'],
   note: 'を marks the direct object.',
   tags: { particles: [], conjugations: [] },
@@ -92,7 +96,11 @@ describe('a space-separated language', () => {
   const SPACED_ITEM: SentenceItem = {
     id: '01',
     en: 'One bread, please.',
-    ans: [['un', 'un'], ['pan', 'pan'], ['por favor', 'por favor']],
+    ans: [
+      ['un', 'un'],
+      ['pan', 'pan'],
+      ['por favor', 'por favor'],
+    ],
     alts: ['un pan'],
     note: 'Placeholder.',
     tags: { particles: [], conjugations: [] },

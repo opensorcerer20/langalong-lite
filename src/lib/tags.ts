@@ -13,10 +13,7 @@
 
    Pure, and free of content imports like everything else in lib/. */
 
-import type {
-  SentenceItem,
-  Tile,
-} from '../data/types';
+import type { SentenceItem, Tile } from '../data/types';
 
 /**
  * The vocabulary tiles in `item`'s canonical answer, in order and without

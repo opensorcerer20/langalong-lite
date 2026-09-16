@@ -34,7 +34,8 @@ async function main(): Promise<void> {
   const { added, removed } = compareSubsets(previous, characters);
 
   console.log(`\n  characters   ${characters.length}`);
-  if (previous.length === 0) console.log('  previously   nothing recorded — this run establishes it');
+  if (previous.length === 0)
+    console.log('  previously   nothing recorded — this run establishes it');
   if (previous.length > 0 && added.length > 0) console.log(`  added        ${added.join('')}`);
   if (previous.length > 0 && removed.length > 0) console.log(`  no longer    ${removed.join('')}`);
 

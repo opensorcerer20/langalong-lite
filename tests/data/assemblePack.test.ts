@@ -3,16 +3,9 @@
    Inline fixtures, never the shipped content — these assert how assembly
    behaves, and content is free to change without failing them. */
 
-import {
-  describe,
-  expect,
-  it,
-} from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-import type {
-  CoreFile,
-  ScenarioFile,
-} from '../../src/data/assemblePack';
+import type { CoreFile, ScenarioFile } from '../../src/data/assemblePack';
 import { assemblePack } from '../../src/data/assemblePack';
 
 const CORE: CoreFile = {

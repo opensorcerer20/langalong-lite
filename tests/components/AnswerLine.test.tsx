@@ -13,9 +13,7 @@ const BANK: readonly Tile[] = [
 ];
 
 const line = (placed: number[], props: Partial<Parameters<typeof AnswerLine>[0]> = {}) =>
-  render(
-    <AnswerLine bank={BANK} placed={placed} length={3} onRemove={() => {}} {...props} />,
-  );
+  render(<AnswerLine bank={BANK} placed={placed} length={3} onRemove={() => {}} {...props} />);
 
 describe('AnswerLine', () => {
   it('shows the placed tiles in the order they were placed', () => {

@@ -74,7 +74,11 @@ describe('placing tiles', () => {
   });
 
   it('clears a "not quite" status as soon as a tile is placed', () => {
-    const missed = run(drilling(), ...[2, 1, 0].map((b): AppAction => ({ type: 'tap', bankIndex: b })), CHECK_WRONG);
+    const missed = run(
+      drilling(),
+      ...[2, 1, 0].map((b): AppAction => ({ type: 'tap', bankIndex: b })),
+      CHECK_WRONG,
+    );
     expect(missed.status).toBe('wrong');
     expect(appReducer(missed, { type: 'tap', bankIndex: 2 }).status).toBe('idle');
   });

@@ -2,18 +2,15 @@
 
 A Japanese sentence-building app for English-speaking learners. An English prompt is shown; you assemble the Japanese sentence from a bank of tiles. The tile bank is deliberately oversupplied — roughly 3x the tiles needed, minimum 12 — so a correct sentence cannot be brute-forced by elimination.
 
-18 sentences across two situations: **Bakery** (10) and **Train station** (8).
+32 sentences across four situations: **Bakery** (10), **Train station** (8), **Restaurant** (7) and **Meeting someone** (7).
 
 > The repository is `langalong-lite`; the app inside it is **Tsumiki**. Same thing.
 
 <!-- Badges deliberately omitted: React / TypeScript / Vite versions are still moving, and a stale badge is worse than none. Add once the stack is pinned. -->
 
-<!-- Screenshots: three captures still to be taken — see docs/images/README.md. These links 404 until they exist. -->
-<p align="center">
-  <img src="docs/images/home.png" alt="Home — choose a situation" width="30%">
-  <img src="docs/images/drill.png" alt="Drill — building a sentence" width="30%">
-  <img src="docs/images/complete.png" alt="Set complete — first-try score" width="30%">
-</p>
+<!-- Screenshots: not taken yet. The block that used to sit here rendered as three
+     broken images on every view, which costs more than the missing pictures do.
+     Restore it once the captures exist — see docs/images/README.md. -->
 
 ## How it plays
 
@@ -39,8 +36,12 @@ npm run dev
 | `npm test` | The full suite once |
 | `npm run test:watch` | The suite in watch mode |
 | `npm run typecheck` | `tsc --noEmit` |
+| `npm run lint` | ESLint |
+| `npm run format` | Prettier, writing in place (`format:check` to verify only) |
 | `npm run build` | Typecheck, then a production build into `dist/` |
 | `npm run preview` | Serve the production build |
+| `npm run import -- <file>` | Check a situation file and report what it would add |
+| `npm run font` | Regenerate the Japanese font subset from the pack |
 
 `dist/` is a folder of static files and deploys to any static host.
 
@@ -52,14 +53,15 @@ npm run dev
 | **Vite 7** | Dev server and build |
 | **StyleX 0.18** | Styles, colocated per component and compiled away at build time |
 | **Vitest** + **Testing Library** | Unit, component and storage tests |
+| **ESLint** + **Prettier** | Flat config; type correctness is `tsc`'s job, so the rules that earn their place are the React ones |
 
-The app is organised so each piece can be read on its own: the language content is inert data that imports nothing, the drill rules are pure functions that import no content, and the components are presentational — one file each, styles included. The Japanese is authored in one JSON file, `src/data/ja.json`, and expanded into a `LanguagePack` at load — so a second language is a file plus a registry entry rather than a rewrite. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) has the dependency rule and the StyleX gotchas.
+The app is organised so each piece can be read on its own: the language content is inert data that imports nothing, the drill rules are pure functions that import no content, and the components are presentational — one file each, styles included. The Japanese is authored in `content/ja/` — a shared core file plus one per situation — and expanded into a `LanguagePack` at load, so a second language is a folder plus a registry entry rather than a rewrite. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) has the dependency rule and the StyleX gotchas.
 
 ## Documentation
 
 | Document | For |
 | --- | --- |
-| [DESIGN.md](DESIGN.md) | Why the app works the way it does |
+| [prototype/DESIGN.md](prototype/DESIGN.md) | Why the app works the way it does |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the code is arranged, and the StyleX rules |
 | [docs/AUTHORING.md](docs/AUTHORING.md) | Adding sentences, situations, languages and glyphs |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | What isn't built yet |
@@ -70,12 +72,14 @@ The app is organised so each piece can be read on its own: the language content 
 
 | Path | What it is |
 | --- | --- |
-| `src/data/` | The language packs: `ja.json`, the shapes it takes, and the loader that expands it |
+| `content/<code>/` | The authored content: a shared `core.json` plus one file per situation |
+| `src/data/` | The shapes content takes, and the loader that merges and expands it into a `LanguagePack` |
 | `src/lib/` | Bank generation, segmentation, answer checking, storage keys, progress roll-up. Pure, and never imports `data/` |
 | `src/storage/` | Progress in IndexedDB, behind interfaces. The only layer with side effects |
 | `src/state/` | The reducer holding every drill rule, and the hook that joins it to content and storage |
 | `src/components/` | One component and its StyleX styles per file |
 | `src/config.ts` | The four difficulty and display dials |
+| `scripts/` | `npm run import` and `npm run font`, plus the pure halves they are tested through |
 | `tests/` | One file per component and per module, mirroring `src/` |
 | `fonts/`, `icons/` | Vendored Archivo and Noto Sans JP subsets, and the app icons |
 | `_ds/modernist-…/` | The Modernist design system — the source of every colour, space and radius token |
@@ -91,7 +95,7 @@ Across every component and module. Two are load-bearing: `tests/data/languages.t
 
 ## Adding content
 
-All content is in `src/data/ja.json`. A sentence is the English prompt, the answer with tile boundaries marked, and three optional fields:
+Content is in `content/ja/` — one file per situation, plus a shared `core.json`. A sentence is the English prompt, the answer with tile boundaries marked, and three optional fields:
 
 ```json
 {
@@ -106,9 +110,9 @@ All content is in `src/data/ja.json`. A sentence is the English prompt, the answ
 
 A short practice phrase is just `{ "id": "12", "en": "Two, please.", "ans": "二つ|ください" }`.
 
-Readings live once in the file's `lexicon`, so a tile is named by its text everywhere else. `teaches` is what the sentence *teaches* rather than what it contains, which is why it is authored rather than inferred. A situation's distractor vocabulary is derived from its own answers — `words` lists only extras.
+Readings live once in a `lexicon`, so a tile is named by its text everywhere else. Each situation file carries the readings only it needs; two files disagreeing about one is an error rather than a silent win for either. `teaches` is what the sentence *teaches* rather than what it contains, which is why it is authored rather than inferred. A situation's distractor vocabulary is derived from its own answers — `words` lists only extras.
 
-`npm test` verifies the tags resolve, the tiles are well formed, and every alternate is actually buildable from the bank. A new situation is another entry in `scenarios`; a new language is another JSON file plus an entry in `LANGUAGES`. Full guide, including the difficulty dials and regenerating the font subset: [docs/AUTHORING.md](docs/AUTHORING.md).
+`npm test` verifies the tags resolve, the tiles are well formed, and every alternate is actually buildable from the bank. `npm run import -- content/ja/<id>.json` reports what a new situation file would add and whether the pack still loads with it. A new situation is one file plus a line in `src/data/languages.ts`; a new language is a folder plus an entry in `LANGUAGES`. Full guide, including the difficulty dials and regenerating the font subset: [docs/AUTHORING.md](docs/AUTHORING.md).
 
 ## Credits
 

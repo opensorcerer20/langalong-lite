@@ -4,6 +4,35 @@
 
 Notable changes, newest first. Entries record *why* and what carries forward, not every commit — `git log` has those.
 
+## 2026-09-12 — The docs catch up, and a formatter arrives
+
+Housekeeping after the rewrite, in four parts. None of it changes what the app does; the production bundle came out byte-identical through the formatting pass.
+
+**The docs described an app that no longer existed.** Every one of them still said content lived in a single `src/data/ja.json` — see the entry below, which is where that stopped being true. `AUTHORING.md` was the one that mattered: it is the guide you follow to add a situation, and it was wrong about the file layout, wrong about the steps, and still told you to run a hand-built `curl` that `npm run font` had replaced. Rewritten and then walked end to end on a throwaway situation, which is how two errors in the rewrite itself were caught.
+
+**The app stopped making claims it could not support.** A hardcoded `Day 12` streak is gone rather than left standing until there is a session row to derive one from; `openRepository`'s `durable` flag now reaches the header, so a session that will be forgotten says so; and two pieces of copy promising an unbuilt "response level" now describe what the app actually does.
+
+**One third-party request removed.** The vendored design system `@import`ed Archivo from Google Fonts, which the app's own `@font-face` rules already won the match against — so nothing rendered from it, but the request fired on every load and blocked first paint. That is the single deliberate modification to `_ds/`, recorded in [MAINTENANCE.md](MAINTENANCE.md) because a re-export would silently restore it.
+
+**ESLint and Prettier, neither of which existed.** Deliberately narrow: `tsc` already runs strict with `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes`, so the rules that earn their place are the React ones. It found two real things immediately — a `useRef(Date.now())` called during render, and a character class bounded by U+F900 whose visual twin at U+8C48 would have silently widened it by twenty thousand code points.
+
+## 2026-09-07 — One content file per situation
+
+`ja.json` had become the file you edit for everything, and adding a situation meant touching a shared lexicon in three places while hoping nobody else was in there.
+
+```
+content/ja/core.json      shared: lexicon, grammar pool, particles, conjugations
+content/ja/bakery.json ─┐ one situation + the readings only it needs
+content/ja/station.json ├──►  assemblePack()  ──►  PackFile  ──►  loadPack()
+content/ja/…           ─┘
+```
+
+Adding a situation is now writing one file and listing it in `src/data/languages.ts`, where position decides the set number.
+
+**What the split costs, and why it is worth paying.** Two files can now disagree about how a text reads. `assemblePack` throws on that rather than picking a winner, because progress is keyed on the text — quietly taking one reading over the other would attach a learner's history to a word that now reads differently. Repeating a reading identically across files is fine and expected.
+
+`npm run import -- content/ja/<id>.json` reports what a candidate would add and then loads the pack it would make, which is the same throw the app boots on. It is safe before or after wiring the file in: a file already in the pack stands in for itself rather than colliding.
+
 ## 2026-09-05 — Content moves to JSON, and the tests stop pinning it
 
 Adding sentences and situations used to cost more than writing them. Three things caused it, and all three are gone.

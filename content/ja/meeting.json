@@ -14,70 +14,49 @@
     "英語": "eigo",
     "先生": "sensei"
   },
-  "words": [
-    "英語",
-    "先生"
-  ],
+  "words": ["英語", "先生"],
   "items": [
     {
       "id": "01",
       "en": "Where did you come from?",
       "ans": "どこ|から|来|ました|か",
       "note": "から marks where you started — the same particle as a train from Kyoto, used of a person. どこ stays where the answer would go rather than moving to the front.",
-      "teaches": [
-        "kara",
-        "ka",
-        "mashita"
-      ]
+      "teaches": ["kara", "ka", "mashita"]
     },
     {
       "id": "02",
       "en": "I came from Kyoto.",
       "ans": "京都|から|来|ました",
       "note": "来 is the stem of 来ます, so 来 + ました is 'came'. The place still takes から, exactly as in the question it answers.",
-      "teaches": [
-        "kara",
-        "mashita"
-      ]
+      "teaches": ["kara", "mashita"]
     },
     {
       "id": "03",
       "en": "What is your name?",
       "ans": "お名前|は|何|です|か",
       "note": "お名前 is the polite form of 名前 — you use it of someone else's name, never your own. 何 sits where the answer will go rather than moving to the front.",
-      "teaches": [
-        "wa",
-        "ka"
-      ]
+      "teaches": ["wa", "ka"]
     },
     {
       "id": "04",
       "en": "I came with a friend.",
       "ans": "友達|と|来|ました",
       "note": "This と is 'with', not the 'and' that joins a coffee and a cake. Same tile, and which one it is depends on whether a verb follows.",
-      "teaches": [
-        "to",
-        "mashita"
-      ]
+      "teaches": ["to", "mashita"]
     },
     {
       "id": "05",
       "en": "Me too.",
       "ans": "私|も|です",
       "note": "も replaces は here rather than sitting beside it: 私も, never 私はも. Two tiles and です is a whole turn in a conversation.",
-      "teaches": [
-        "mo"
-      ]
+      "teaches": ["mo"]
     },
     {
       "id": "06",
       "en": "I don't understand Japanese.",
       "ans": "日本語|が|分かり|ません",
       "note": "分かる takes が for a state of being that is understood, not を which requires an active physical action",
-      "teaches": [
-        "ga",
-        "masen"
-      ]
+      "teaches": ["ga", "masen"]
     },
     {
       "id": "07",

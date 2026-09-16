@@ -142,7 +142,10 @@ describe('unknownKeys', () => {
     ],
     [
       'a particle',
-      (p: PackFile) => ({ ...p, particles: { o: withStrayKey(p.particles.o!, 'confusedWith', []) } }),
+      (p: PackFile) => ({
+        ...p,
+        particles: { o: withStrayKey(p.particles.o!, 'confusedWith', []) },
+      }),
       'particle "o"',
     ],
     [

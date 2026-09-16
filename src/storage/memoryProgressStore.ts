@@ -39,13 +39,15 @@ export function createMemoryProgressStore(): ProgressStore {
 
     async due(languageCode: string, at: number, limit: number): Promise<readonly ScheduleRecord[]> {
       if (limit <= 0) return [];
-      return [...schedule.values()]
-        .filter((row) => row.languageCode === languageCode && row.dueAt <= at)
-        /* Ties break on the key, matching how IndexedDB orders equal index
+      return (
+        [...schedule.values()]
+          .filter((row) => row.languageCode === languageCode && row.dueAt <= at)
+          /* Ties break on the key, matching how IndexedDB orders equal index
            entries by primary key. Without it the two stores would disagree
            about the order of rows seen in the same millisecond. */
-        .sort((a, b) => a.dueAt - b.dueAt || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0))
-        .slice(0, limit);
+          .sort((a, b) => a.dueAt - b.dueAt || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0))
+          .slice(0, limit)
+      );
     },
 
     async attemptsFor(key: string): Promise<readonly NewAttempt[]> {

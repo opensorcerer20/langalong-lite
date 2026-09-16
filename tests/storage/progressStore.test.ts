@@ -119,9 +119,14 @@ describe.each(IMPLEMENTATIONS)('ProgressStore (%s)', (_name, create) => {
 
   it('keeps separate keys apart', async () => {
     await store.recordAttempt(attempt({ key: 'ja:item:bakery:01' }));
-    await store.recordAttempt(attempt({ key: 'ja:tile:パン', unit: 'tile', viaItem: 'ja:item:bakery:01' }));
+    await store.recordAttempt(
+      attempt({ key: 'ja:tile:パン', unit: 'tile', viaItem: 'ja:item:bakery:01' }),
+    );
 
-    expect(await store.getSchedule('ja:item:bakery:01')).toMatchObject({ unit: 'item', attempts: 1 });
+    expect(await store.getSchedule('ja:item:bakery:01')).toMatchObject({
+      unit: 'item',
+      attempts: 1,
+    });
     expect(await store.getSchedule('ja:tile:パン')).toMatchObject({ unit: 'tile', attempts: 1 });
   });
 

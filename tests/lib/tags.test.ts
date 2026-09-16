@@ -4,17 +4,10 @@
    and the tests are about the edges that line has: repeats, a sentence made
    entirely of function words, and the pool being the thing that decides. */
 
-import {
-  describe,
-  expect,
-  it,
-} from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { LANGUAGE } from '../../src/data/languages';
-import type {
-  SentenceItem,
-  Tile,
-} from '../../src/data/types';
+import type { SentenceItem, Tile } from '../../src/data/types';
 import { getVocabIn } from '../../src/lib/tags';
 
 const GRAMMAR: readonly Tile[] = [
@@ -35,36 +28,65 @@ const texts = (tiles: readonly Tile[]) => tiles.map((tile) => tile[0]);
 
 describe('getVocabIn', () => {
   it('keeps the content words and drops the grammar pool', () => {
-    const sentence = item([['パン', 'pan'], ['を', 'o'], ['ください', 'kudasai']]);
+    const sentence = item([
+      ['パン', 'pan'],
+      ['を', 'o'],
+      ['ください', 'kudasai'],
+    ]);
     expect(texts(getVocabIn(sentence, GRAMMAR))).toEqual(['パン', 'ください']);
   });
 
   it('keeps the answer’s order', () => {
-    const sentence = item([['ケーキ', 'keeki'], ['は', 'wa'], ['パン', 'pan']]);
+    const sentence = item([
+      ['ケーキ', 'keeki'],
+      ['は', 'wa'],
+      ['パン', 'pan'],
+    ]);
     expect(texts(getVocabIn(sentence, GRAMMAR))).toEqual(['ケーキ', 'パン']);
   });
 
   /* One word used twice is one word. A vocabulary exercise built from this
      would otherwise offer the same tile as two separate questions. */
   it('returns a repeated word once', () => {
-    const sentence = item([['パン', 'pan'], ['と', 'to'], ['パン', 'pan']]);
+    const sentence = item([
+      ['パン', 'pan'],
+      ['と', 'to'],
+      ['パン', 'pan'],
+    ]);
     expect(texts(getVocabIn(sentence, GRAMMAR))).toEqual(['パン', 'と']);
   });
 
   it('is empty when the sentence is all function words', () => {
-    expect(getVocabIn(item([['は', 'wa'], ['です', 'desu']]), GRAMMAR)).toEqual([]);
+    expect(
+      getVocabIn(
+        item([
+          ['は', 'wa'],
+          ['です', 'desu'],
+        ]),
+        GRAMMAR,
+      ),
+    ).toEqual([]);
   });
 
   /* The pool is the whole definition, so the same sentence splits differently
      against a different one — which is what lets each pack decide for itself
      what counts as vocabulary. */
   it('follows the pool it is given, not a fixed idea of a function word', () => {
-    const sentence = item([['パン', 'pan'], ['を', 'o']]);
+    const sentence = item([
+      ['パン', 'pan'],
+      ['を', 'o'],
+    ]);
     expect(texts(getVocabIn(sentence, []))).toEqual(['パン', 'を']);
   });
 
   it('carries the reading through, so the result is usable as tiles', () => {
-    const [first] = getVocabIn(item([['パン', 'pan'], ['を', 'o']]), GRAMMAR);
+    const [first] = getVocabIn(
+      item([
+        ['パン', 'pan'],
+        ['を', 'o'],
+      ]),
+      GRAMMAR,
+    );
     expect(first).toEqual(['パン', 'pan']);
   });
 
@@ -76,8 +98,10 @@ describe('getVocabIn', () => {
       for (const scenario of LANGUAGE.scenarios) {
         for (const sentence of scenario.items) {
           const vocab = getVocabIn(sentence, LANGUAGE.grammar);
-          expect(vocab.length, `${scenario.name} · ${sentence.id} has no vocabulary`)
-            .toBeGreaterThan(0);
+          expect(
+            vocab.length,
+            `${scenario.name} · ${sentence.id} has no vocabulary`,
+          ).toBeGreaterThan(0);
         }
       }
     });

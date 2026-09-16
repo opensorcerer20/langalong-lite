@@ -19,9 +19,13 @@ import type { PackFile } from '../src/data/loadPack';
  * covered without anyone remembering to come back here.
  */
 export function japaneseCharacters(pack: PackFile): string[] {
-  /* Kana, CJK punctuation (、。〜), the main ideograph block, compatibility
-     ideographs, and fullwidth forms. Latin is Archivo's job. */
-  const japanese = /[　-ヿ㐀-䶿一-鿿豈-﫿＀-￯]/gu;
+  /* CJK punctuation and kana, both ideograph blocks, compatibility ideographs,
+     fullwidth forms. Latin is Archivo's job.
+
+     Escapes, not the characters: U+3000 is invisible, and the U+F900 bound is
+     a lookalike for the ordinary ideograph at U+8C48 — typing that one instead
+     widens the class by ~20k code points and nothing fails. */
+  const japanese = /[\u3000-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF\uFF00-\uFFEF]/gu;
   const found = new Set(JSON.stringify(pack).match(japanese) ?? []);
 
   return [...found].sort((a, b) => a.codePointAt(0)! - b.codePointAt(0)!);
@@ -46,7 +50,7 @@ export function woff2UrlIn(css: string): string {
   throw new Error(
     urls.length === 0
       ? 'no woff2 in the stylesheet — css2 returns one only for a browser User-Agent, ' +
-        'and nine static TrueType faces otherwise'
+          'and nine static TrueType faces otherwise'
       : `the stylesheet offers ${urls.length} woff2 faces, and only one was expected`,
   );
 }

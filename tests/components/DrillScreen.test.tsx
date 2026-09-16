@@ -24,7 +24,11 @@ const NOTE = 'を marks the direct object.';
 const ITEM: SentenceItem = {
   id: '01',
   en: 'One bread, please.',
-  ans: [['パン', 'pan'], ['を', 'o'], ['ください', 'kudasai']],
+  ans: [
+    ['パン', 'pan'],
+    ['を', 'o'],
+    ['ください', 'kudasai'],
+  ],
   note: NOTE,
   tags: { particles: [], conjugations: [] },
 };
@@ -33,7 +37,10 @@ const ITEM: SentenceItem = {
 const NOTELESS_ITEM: SentenceItem = {
   id: '02',
   en: 'Two, please.',
-  ans: [['二つ', 'futatsu'], ['ください', 'kudasai']],
+  ans: [
+    ['二つ', 'futatsu'],
+    ['ください', 'kudasai'],
+  ],
   tags: { particles: [], conjugations: [] },
 };
 

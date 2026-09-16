@@ -13,7 +13,10 @@ import type { Scenario } from '../../src/data/types';
 const item = (id: string) => ({
   id,
   en: `Prompt ${id}`,
-  ans: [['あ', 'a'], ['い', 'i']] as const,
+  ans: [
+    ['あ', 'a'],
+    ['い', 'i'],
+  ] as const,
   tags: { particles: [], conjugations: [] },
 });
 

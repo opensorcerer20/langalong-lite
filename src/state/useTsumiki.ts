@@ -130,8 +130,11 @@ export function useTsumiki(language: LanguagePack, progress?: ProgressStore): Ts
 
   /* When the current item went on screen, or when the last attempt on it
      settled. Held in a ref rather than in the reducer because elapsed time is
-     not a drill rule and appReducer must stay pure. */
-  const presentedAt = useRef(Date.now());
+     not a drill rule and appReducer must stay pure.
+
+     Null rather than seeded with Date.now(), which would be an impure call
+     during render. present() always sets it first anyway. */
+  const presentedAt = useRef<number | null>(null);
 
   /**
    * Write down one attempt, and — when the item is settled — one indirect
@@ -146,8 +149,9 @@ export function useTsumiki(language: LanguagePack, progress?: ProgressStore): Ts
       if (!progress) return;
 
       const at = Date.now();
-      /* Time since the item appeared, or since the previous attempt on it. */
-      const durationMs = at - presentedAt.current;
+      /* Time since the item appeared, or since the previous attempt on it.
+         Nothing to measure from reads as zero, not as the age of the epoch. */
+      const durationMs = at - (presentedAt.current ?? at);
       presentedAt.current = at;
 
       const key = itemKey(language.code, scenario.id, item.id);
@@ -220,7 +224,11 @@ export function useTsumiki(language: LanguagePack, progress?: ProgressStore): Ts
        as an attempt the learner never made. */
     if (isDone(state) || state.placed.length === 0) return;
 
-    const right = isCorrect(item, buildString(bank, state.placed, language.joiner), language.joiner);
+    const right = isCorrect(
+      item,
+      buildString(bank, state.placed, language.joiner),
+      language.joiner,
+    );
     record(right ? 'right' : 'wrong', right);
     dispatch({ type: 'check', correct: right });
   }, [state, item, bank, language.joiner, record]);

@@ -47,9 +47,9 @@ The hardcoded `STREAK = 'Day 12'` that used to sit beside them is gone. It was t
 
 **Defensive fallbacks that hide real inconsistencies.** `revealPlacement.ts` returns index `0` for an answer tile missing from the bank, and `checkAnswer.ts` skips a placed index the bank cannot resolve. Both guard against content and bank drifting apart — which `buildBank` currently makes impossible, since it seeds the answer's own tiles first. As written, a genuine inconsistency would render a wrong sentence and call it the answer. Decide whether these should throw instead.
 
-**Two copies of the Japanese.** `prototype/app.js` carries its own full copy of the sentences, and nothing enforces that it matches `src/data/ja.json`. Nothing now depends on it either — the bank fixture generated from the prototype's copy is gone, so drift costs nothing but confusion for anyone reading `prototype/` as a reference. Either declare it a frozen artifact and stop treating it as one, or delete it once the React version is trusted enough.
+**Two copies of the Japanese.** `prototype/app.js` carries its own full copy of the sentences, and nothing enforces that it matches `content/ja/`. Nothing now depends on it either — the bank fixture generated from the prototype's copy is gone, so drift costs nothing but confusion for anyone reading `prototype/` as a reference. Either declare it a frozen artifact and stop treating it as one, or delete it once the React version is trusted enough.
 
-**Dead weight at the repository root.** `Sentence Builder.dc.html` and `support.js` are the original Claude Design handoff — 91 KB, tracked, referenced by nothing that runs. `DESIGN.md` supersedes them as the record of intent.
+**The Claude Design handoff.** `prototype/Sentence Builder.dc.html` and `prototype/support.js` are the original handoff — 91 KB, tracked, referenced by nothing that runs. They sat at the repository root and have since moved into `prototype/`, which is the right place for them; `prototype/DESIGN.md` supersedes them as the record of intent.
 
 **Orphaned icons.** `icons/` holds four files; the React app references only `icon-192.png`, as the favicon. The 512, maskable-512 and 180 variants exist for the web manifest, which now lives in `prototype/`. Keep them — re-adding PWA support needs them — but they are not currently in use by anything you build.
 
@@ -57,6 +57,8 @@ The hardcoded `STREAK = 'Day 12'` that used to sit beside them is gone. It was t
 
 **StyleX is pinned to 0.18.3.** `unplugin-stylex` depends on `@stylexjs/babel-plugin: ^0.18.2`, which resolves below the current StyleX 0.19. Revisit when the plugin catches up or StyleX ships first-party Vite support. Related: the `emitFile()` warning under Troubleshooting above. It is cosmetic, but recurring warnings train you to stop reading warnings.
 
-**`DESIGN.md` is stale in a confusing way.** Its "Not built yet" list includes "Real PWA plumbing: manifest, service worker, offline lesson cache" — written before the prototype existed. The prototype then built exactly that, and the React conversion dropped it again. The line is accidentally true for the wrong reason, which is worse than being plainly wrong.
+**`prototype/DESIGN.md` is stale in a confusing way.** Its "Not built yet" list includes "Real PWA plumbing: manifest, service worker, offline lesson cache" — written before the prototype existed. The prototype then built exactly that, and the React conversion dropped it again. The line is accidentally true for the wrong reason, which is worse than being plainly wrong.
+
+**Prettier owns `content/`.** The situation files are hand-authored but formatted like code, so `npm run format` will reflow JSON you wrote by hand. Harmless — it is how the other four situation files already looked — but run it after adding content rather than being surprised by it in a later diff.
 
 **There is no `LICENSE` file.** The two vendored fonts are licensed in the README, but the project's own code says nothing. `package.json` is `"private": true` with no `license` field.

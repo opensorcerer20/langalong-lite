@@ -66,7 +66,9 @@ export const CoreFileSchema = z
  * never carries one; the difference is in the types alone. This drops the
  * `| undefined` at every depth so the two can be compared.
  */
-type AsAuthored<T> = T extends object ? { [K in keyof T]: AsAuthored<Exclude<T[K], undefined>> } : T;
+type AsAuthored<T> = T extends object
+  ? { [K in keyof T]: AsAuthored<Exclude<T[K], undefined>> }
+  : T;
 
 /* Compile-time: a parsed file must satisfy what the app requires. Drop a field
    from a schema above, or change its type, and these stop compiling. */
@@ -94,7 +96,11 @@ export function parseCoreFile(value: unknown, where: string): CoreFile {
  * Reported together rather than one at a time: fixing a content file one throw
  * per run is the kind of friction this whole effort exists to remove.
  */
-function parse<S extends z.ZodType>(schema: S, value: unknown, where: string): AsAuthored<z.infer<S>> {
+function parse<S extends z.ZodType>(
+  schema: S,
+  value: unknown,
+  where: string,
+): AsAuthored<z.infer<S>> {
   const result = schema.safeParse(value);
 
   /* Sound for the reason AsAuthored gives: parsed JSON never holds undefined. */

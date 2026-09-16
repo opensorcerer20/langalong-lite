@@ -70,8 +70,7 @@ describe('App', () => {
 
     /* This sentence teaches を and has a note; the ladder is what it is for. */
     const note = FIRST.items[0]!.note!;
-    const wrongTile = () =>
-      bankTiles().find((tile) => !tile.hasAttribute('data-used'))!;
+    const wrongTile = () => bankTiles().find((tile) => !tile.hasAttribute('data-used'))!;
 
     /* First miss — a nudge, no explanation. */
     await user.click(wrongTile());

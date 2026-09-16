@@ -107,6 +107,22 @@ describe('useTsumiki recording', () => {
     expect(Number.isFinite(attempt?.durationMs)).toBe(true);
   });
 
+  /* Unreachable from the drill, which presents first. Pinned because a zero
+     seed would time this at fifty-odd years rather than at nothing. */
+  it('times an attempt made before anything was presented as zero, not as an age', async () => {
+    const view = renderHook(() => useTsumiki(LANGUAGE, progress));
+    act(() => view.result.current.tap(0));
+    act(() => view.result.current.check());
+
+    const key = itemKey(
+      LANGUAGE.code,
+      view.result.current.scenario.id,
+      view.result.current.item.id,
+    );
+    const [attempt] = await progress.attemptsFor(key);
+    expect(attempt?.durationMs).toBe(0);
+  });
+
   describe('tiles', () => {
     it('records one indirect attempt per answer tile when the item settles', async () => {
       const view = open();

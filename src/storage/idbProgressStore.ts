@@ -7,11 +7,7 @@
 
    Human review note: I'm not familiar with how this type of processing works*/
 
-import type {
-  NewAttempt,
-  ScheduleRecord,
-  StoredAttempt,
-} from '../lib/progress';
+import type { NewAttempt, ScheduleRecord, StoredAttempt } from '../lib/progress';
 import { hydrateAttempt, rollUp } from '../lib/progress';
 import {
   fromRequest,
