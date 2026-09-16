@@ -202,9 +202,22 @@ export function useTsumiki(language: LanguagePack, progress?: ProgressStore): Ts
     [progress, language.code, scenario.id, item, state.misses],
   );
 
-  /** Restart the clock for an item about to go on screen. */
+  /* What has already been written down, so a second click on the same button
+     cannot write it twice. Both are refs because they have to be true the
+     instant the handler runs — `state` is still the pre-dispatch value until
+     React re-renders, which is exactly the window a double click lands in.
+
+     `checkedPlacement` holds the array that was last checked. Every tap and
+     untap produces a new one, so "same array" means "nothing changed since I
+     checked it" — a real second check always has a new placement. */
+  const checkedPlacement = useRef<readonly number[] | null>(null);
+  const revealedThisItem = useRef(false);
+
+  /** Restart the clock for an item about to go on screen, and forget the last. */
   const present = useCallback(() => {
     presentedAt.current = Date.now();
+    checkedPlacement.current = null;
+    revealedThisItem.current = false;
   }, []);
 
   const openScenario = useCallback(
@@ -223,6 +236,9 @@ export function useTsumiki(language: LanguagePack, progress?: ProgressStore): Ts
        nothing placed, or the line already settled — would still be written down
        as an attempt the learner never made. */
     if (isDone(state) || state.placed.length === 0) return;
+    /* Already judged this exact placement — a second click, not a second try. */
+    if (checkedPlacement.current === state.placed) return;
+    checkedPlacement.current = state.placed;
 
     const right = isCorrect(
       item,
@@ -235,6 +251,10 @@ export function useTsumiki(language: LanguagePack, progress?: ProgressStore): Ts
 
   const reveal = useCallback(() => {
     if (isDone(state)) return;
+    /* An item is revealed once. Cleared by present(), so the next one can be. */
+    if (revealedThisItem.current) return;
+    revealedThisItem.current = true;
+
     record('shown', true);
     dispatch({ type: 'reveal', placed: revealIndices(item, bank) });
   }, [state, item, bank, record]);
