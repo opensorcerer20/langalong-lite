@@ -18,8 +18,6 @@ It shares `fonts/`, `icons/` and `_ds/` with the React app, so it must be served
 
 **A stale service worker serves the old app.** The prototype registered a cache-first service worker at the repository root. If you loaded it from a served origin, that worker is still installed and will serve the old cached shell over the new app. Unregister it in DevTools → Application → Service Workers.
 
-**`[plugin:unplugin-stylex] context method emitFile() is not supported in serve mode`** prints on every `npm run dev` and `npm test`. It is cosmetic — the plugin falls back to runtime style injection, which is normal StyleX dev behaviour. See the StyleX pin below.
-
 ## The one modification to the vendored design system
 
 `_ds/modernist-…/styles.css` is otherwise imported exactly as it was handed over. One line has been removed from it: the `@import` pulling Archivo from Google Fonts.
@@ -71,7 +69,13 @@ Bakery · 01 "One bread, please." — reveal put "で" where "ください" belo
 
 **Untracked `.DS_Store` files** at the repository root and in `_ds/`. Gitignored, so harmless, but still on disk.
 
-**StyleX is pinned to 0.18.3.** `unplugin-stylex` depends on `@stylexjs/babel-plugin: ^0.18.2`, which resolves below the current StyleX 0.19. Revisit when the plugin catches up or StyleX ships first-party Vite support. Related: the `emitFile()` warning under Troubleshooting above. It is cosmetic, but recurring warnings train you to stop reading warnings.
+**`vite.config.ts` strips the StyleX plugin's dev-server hook under Vitest.** A workaround for an upstream bug, not a preference:
+
+- `configureServer` starts a 150ms HMR poll, cleared on the http server's `close` event.
+- Vitest boots a Vite dev server but has no http server, so the interval never clears and the run hangs 10s on exit.
+- `devMode: 'off'` does not help — the interval is guarded by `if (shared)`, and `getSharedStore()` always returns a store.
+
+Keyed on `mode === 'test'`, so `vitest --mode something-else` gets the hang back. Drop `stylexFor` once `@stylexjs/unplugin` clears the interval itself.
 
 **`prototype/DESIGN.md` is stale in a confusing way.** Its "Not built yet" list includes "Real PWA plumbing: manifest, service worker, offline lesson cache" — written before the prototype existed. The prototype then built exactly that, and the React conversion dropped it again. The line is accidentally true for the wrong reason, which is worse than being plainly wrong.
 

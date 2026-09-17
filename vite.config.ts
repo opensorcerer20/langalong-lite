@@ -1,7 +1,27 @@
 /// <reference types="vitest/config" />
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
-import stylex from 'unplugin-stylex/vite';
+import stylex from '@stylexjs/unplugin/vite';
+
+/**
+ * The StyleX plugin, with its dev-server hooks removed under Vitest.
+ *
+ * Vitest boots a Vite dev server, so `configureServer` runs and starts a 150ms
+ * HMR poll. That interval is cleared on the http server's `close` event, and
+ * Vitest has no http server — so it never clears and the run hangs for ten
+ * seconds on exit. Tests need the transform, not the dev middleware.
+ *
+ * Keyed on `mode` rather than on `process.env.VITEST`, to keep the one Node
+ * global this file avoids out of it. `vitest --mode something-else` would lose
+ * the workaround and get the hang back, not a wrong result.
+ */
+function stylexFor(mode: string) {
+  const plugin = stylex();
+  if (mode !== 'test') return plugin;
+
+  const { configureServer: _configureServer, ...withoutDevServer } = plugin;
+  return withoutDevServer;
+}
 
 /* The config is a function so it can read .env files. Vite loads this file
    before it processes .env, so process.env does not carry their values here —
@@ -24,9 +44,12 @@ export default defineConfig(({ mode }) => {
 
   return {
     /* StyleX compiles away entirely: stylex.create() calls are replaced at build
-       time with atomic class names and the CSS is extracted. It has to run in the
-       test pipeline too — an uncompiled stylex.create() throws at runtime. */
-    plugins: [react(), stylex()],
+       time with atomic class names, and the CSS is appended to the app's own CSS
+       asset. It has to run in the test pipeline too — an uncompiled
+       stylex.create() throws at runtime.
+
+       Ahead of react(), as the plugin's own docs place it. */
+    plugins: [stylexFor(mode), react()],
 
     /* Relative asset urls, so dist/ runs wherever it is served from rather than
        only at a domain root. Safe here: there is no router, so no path is ever

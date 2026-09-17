@@ -51,7 +51,7 @@ npm run dev
 | --- | --- |
 | **React 19** + **TypeScript 5.7** | The app |
 | **Vite 7** | Dev server and build |
-| **StyleX 0.18** | Styles, colocated per component and compiled away at build time |
+| **StyleX 0.19** | Styles, colocated per component and compiled away at build time |
 | **Vitest** + **Testing Library** | Unit, component and storage tests |
 | **ESLint** + **Prettier** | Flat config; type correctness is `tsc`'s job, so the rules that earn their place are the React ones |
 

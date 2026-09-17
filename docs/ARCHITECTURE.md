@@ -115,7 +115,7 @@ const s = stylex.create({
 });
 ```
 
-It compiles away entirely: `stylex.create` is replaced at build time with atomic class names and the CSS is extracted to `dist/assets/stylex.css`. Nothing ships at runtime.
+It compiles away entirely: `stylex.create` is replaced at build time with atomic class names and the CSS is appended to the app's own CSS asset, after the design system. Nothing ships at runtime.
 
 Three consequences worth knowing before editing a stylesheet:
 

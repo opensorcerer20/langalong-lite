@@ -19,12 +19,13 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
-    "@stylexjs/stylex": "0.18.3",
+    "@stylexjs/stylex": "0.19.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@stylexjs/unplugin": "0.19.1",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
@@ -42,7 +43,6 @@
     "prettier": "^3.9.6",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.70.0",
-    "unplugin-stylex": "^0.6.3",
     "vite": "^7.0.0",
     "vite-node": "^3.0.0",
     "vitest": "^3.0.0",

@@ -4,6 +4,22 @@
 
 Notable changes, newest first. Entries record *why* and what carries forward, not every commit — `git log` has those.
 
+## 2026-09-17 — StyleX moves to the first-party plugin
+
+The exact `0.18.3` pin was load-bearing, not caution. `unplugin-stylex` (third-party) depends on `@stylexjs/babel-plugin: ^0.18.2` while its peer range on the runtime is a wide `"0.x"` — so bumping the runtime alone would have installed cleanly and silently paired a 0.19 runtime with a 0.18 compiler.
+
+`@stylexjs/unplugin` is first-party and pins the compiler *exactly*, which removes the mismatch the pin existed to prevent. Runtime, unplugin and babel-plugin are now all `0.19.1`.
+
+| | Before | After |
+| --- | --- | --- |
+| CSS assets | `index.css` + `stylex.css` | one, StyleX appended after the design system |
+| JS bundle | 251.18 kB | 228.02 kB |
+| `emitFile()` warning | every `dev` and `test` | gone |
+
+The CSS is provably unchanged: 217 rules before and after, atomic class names identical, the only four differences lightningcss value normalisation (`-0.03em` → `-.03em`, `transparent` → `#0000`).
+
+**One upstream bug had to be worked around.** The plugin's `configureServer` starts an HMR poll that Vitest never clears, hanging every run 10s on exit. `vite.config.ts` strips that hook in test mode — see [MAINTENANCE.md](MAINTENANCE.md#cleanup).
+
 ## 2026-09-12 — The docs catch up, and a formatter arrives
 
 Housekeeping after the rewrite, in four parts. None of it changes what the app does; the production bundle came out byte-identical through the formatting pass.
