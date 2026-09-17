@@ -12,17 +12,14 @@
    So "a text reads one way per pack" becomes a property of the file's shape
    rather than a rule a test enforces.
 
-   Errors throw with the text and its location. A pack loads at module scope, so
-   a bad one fails at import — dev server and suite go red together.
-
-   No schema library: a pack is compiled in, so tsc checks it against PackFile
-   and the throws below cover the rest. If content ever arrives at runtime
-   instead — fetched, or out of IndexedDB — it is untrusted input and zod is the
-   right answer.
-
-   Pure, and imports no content — it is handed a parsed file. It does reach into
-   lib/ for getVocabIn, which is a new edge but not a cycle: lib/ imports only
-   types from here, and never content. */
+   - Errors throw with the text and its location. A pack loads at module scope,
+     so a bad one fails at import — dev server and suite go red together.
+   - No schema library: a pack is compiled in, so tsc checks it against PackFile
+     and the throws below cover the rest. Content arriving at runtime instead —
+     fetched, or out of IndexedDB — would be untrusted input, and zod's job.
+   - Pure, and imports no content; it is handed a parsed file. It reaches into
+     lib/ for getVocabIn, which is an edge but not a cycle: lib/ imports only
+     types from here. */
 
 import { getVocabIn } from '../lib/tags';
 import type {
@@ -195,14 +192,13 @@ function resolveTeaches(
  * A situation's distractor vocabulary: the content words its own answers use,
  * then whatever extras it lists.
  *
- * Derived because the answers already contain them — asking for them again is
- * transcription. `words` in the pack file is only for what no answer supplies:
- * the spare counters and near-miss nouns that make a wrong tile plausible.
- *
- * Deduped by text, grammar-pool tiles excluded, so the distractor pool never
- * offers the same text twice. Deduping silently rather than rejecting a
- * redundant extra is deliberate: a new sentence must never turn an existing
- * `words` entry into an error.
+ * - Derived, because the answers already contain them; asking again is
+ *   transcription. `words` is only for what no answer supplies — the spare
+ *   counters and near-miss nouns that make a wrong tile plausible.
+ * - Deduped by text, grammar-pool tiles excluded, so the pool never offers the
+ *   same text twice.
+ * - Deduped silently rather than rejecting a redundant extra: a new sentence
+ *   must never turn an existing `words` entry into an error.
  */
 function deriveWords(
   items: readonly SentenceItem[],

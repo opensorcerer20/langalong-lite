@@ -1,27 +1,25 @@
-/* The seam.
+/* The seam — the single place content, logic, state and storage meet.
 
-   Everything else in src/ sits on one side or the other: data/ is inert
-   content, lib/ is pure logic that never imports content, appReducer imports
-   nothing whatever, and components/ are presentational. This hook is the single
-   place they meet — it looks the current scenario and item up in the content,
-   builds the tile bank for them, judges what the learner built, and hands the
-   reducer the verdict.
+   Everything else stays on one side: data/ is inert content, lib/ is pure logic
+   that never imports content, appReducer imports nothing, components/ are
+   presentational.
 
-   Judging here rather than in the reducer is not an arrangement of
-   convenience. A store write cannot wait for a re-render, so this hook has to
-   know whether the answer was right *before* it dispatches, in order to record
-   it. Having decided, telling the reducer is cheaper than having it work the
-   same thing out again — and it leaves the reducer with no reason to know what
-   a sentence is.
+   What this hook does:
 
-   Storage meets them here too, and only here. appReducer stays pure and knows
-   nothing about a database; the hook watches what it decides and writes that
-   down. The language pack arrives as an argument rather than being imported,
-   which is what lets main.tsx resolve it through a ContentSource that may one
-   day be asynchronous without anything below this line changing.
+   - looks the current scenario and item up in the content;
+   - builds the tile bank for them;
+   - judges what the learner built, and hands the reducer the verdict;
+   - writes the attempt down;
+   - applies the config dials, so no component knows what "two misses" means.
 
-   It is also where the config dials are applied, so no component has to know
-   what "two misses" means. */
+   Why judging happens here, not in the reducer: a store write cannot wait for a
+   re-render, so the verdict has to be known before dispatch. Having decided,
+   passing it on is cheaper than making the reducer work it out again — and it
+   leaves the reducer with no reason to know what a sentence is.
+
+   The language pack arrives as an argument rather than being imported, so
+   main.tsx can resolve it through a ContentSource that may one day be
+   asynchronous without anything below this line changing. */
 
 import { useCallback, useMemo, useReducer, useRef } from 'react';
 
@@ -171,16 +169,14 @@ export function useTsumiki(language: LanguagePack, progress?: ProgressStore): Ts
 
       if (!settled) return;
 
-      /* Indirect evidence, and marked as such by viaItem: building the sentence
-         correctly does not establish that every tile in it was known, nor that
-         the learner chose は for the reason the sentence is about. There is
-         also no way to tell which part was wrong — checkAnswer compares whole
-         joined strings — so a settled item can only give everything below it
-         the same outcome.
+      /* Indirect evidence, marked as such by viaItem.
 
-         The tags are the reason this is worth writing at all. A row against the
-         sentence says a learner missed sentence 3; a row against `ja:particle:ni`
-         is what can eventually say they keep missing に. */
+         - Building a sentence does not establish that every tile was known, nor
+           that は was chosen for the reason the sentence is about.
+         - checkAnswer compares whole joined strings, so nothing knows which
+           part was wrong — a settled item gives everything below it one outcome.
+         - Worth writing for the tags: a row against `ja:particle:ni` is what can
+           eventually say a learner keeps missing に. */
       /* Deduped by text: a sentence using the same word twice is one piece of
          evidence about that word, not two. tileKey is keyed on the text alone,
          so the repeats would land on one row anyway — as two concurrent
@@ -211,14 +207,12 @@ export function useTsumiki(language: LanguagePack, progress?: ProgressStore): Ts
     [progress, language.code, scenario.id, item, state.misses],
   );
 
-  /* What has already been written down, so a second click on the same button
-     cannot write it twice. Both are refs because they have to be true the
-     instant the handler runs — `state` is still the pre-dispatch value until
-     React re-renders, which is exactly the window a double click lands in.
+  /* What has already been written down, so a second click cannot write it
+     twice. Refs, not state: `state` is the pre-dispatch value until React
+     re-renders, which is the window a double click lands in.
 
-     `checkedPlacement` holds the array that was last checked. Every tap and
-     untap produces a new one, so "same array" means "nothing changed since I
-     checked it" — a real second check always has a new placement. */
+     `checkedPlacement` holds the last checked array. tap and untap each build a
+     new one, so "same array" means "nothing changed since I checked it". */
   const checkedPlacement = useRef<readonly number[] | null>(null);
   const revealedThisItem = useRef(false);
 
