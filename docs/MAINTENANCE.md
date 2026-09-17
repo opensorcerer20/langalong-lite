@@ -45,7 +45,18 @@ The hardcoded `STREAK = 'Day 12'` that used to sit beside them is gone. It was t
 
 **A display string doing double duty as an identifier.** `App.tsx` builds the drill header with `scenario.kicker.replace('Set ', '')`, so `Set 01` becomes `01`. The fragility this used to carry is gone — `kicker` is no longer authored but generated as `Set NN` from list position, so it cannot be renamed into breaking the header. What remains is the design smell: `kicker` is both the home-screen label and the header's set number, and those want to be two fields on `Scenario` rather than one parsed at the point of use.
 
-**Defensive fallbacks that hide real inconsistencies.** `revealPlacement.ts` returns index `0` for an answer tile missing from the bank, and `checkAnswer.ts` skips a placed index the bank cannot resolve. Both guard against content and bank drifting apart — which `buildBank` currently makes impossible, since it seeds the answer's own tiles first. As written, a genuine inconsistency would render a wrong sentence and call it the answer. Decide whether these should throw instead.
+**Defensive fallbacks, kept deliberately.** Resolved — no longer debt.
+
+- `revealPlacement.ts` returns index `0` for an answer tile missing from the bank.
+- `checkAnswer.ts` drops a placed index the bank cannot resolve.
+- Either firing would show a wrong sentence and call it the answer.
+- `tests/data/languages.test.ts` now asserts neither can, over every sentence in every pack.
+
+The guard stops a content bug crashing the drill; the test stops one reaching the drill. Throwing instead would trade the second for nothing. A fallback fails the suite as:
+
+```
+Bakery · 01 "One bread, please." — reveal put "で" where "ください" belongs
+```
 
 **Two copies of the Japanese.** `prototype/app.js` carries its own full copy of the sentences, and nothing enforces that it matches `content/ja/`. Nothing now depends on it either — the bank fixture generated from the prototype's copy is gone, so drift costs nothing but confusion for anyone reading `prototype/` as a reference. Either declare it a frozen artifact and stop treating it as one, or delete it once the React version is trusted enough.
 

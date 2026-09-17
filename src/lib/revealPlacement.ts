@@ -11,9 +11,9 @@ import type { SentenceItem, Tile } from '../data/types';
 /**
  * Indices into `bank`, in order, that spell out the item's canonical answer.
  *
- * A tile missing from the bank falls back to index 0. That should not happen —
- * buildBank seeds the answer's own tiles first — but the drill must not break
- * if content and bank ever drift apart.
+ * A tile missing from the bank falls back to index 0, so the drill cannot break
+ * if content and bank drift apart. buildBank seeds the answer's own tiles first,
+ * and tests/data/languages.test.ts asserts the fallback never fires.
  */
 export function revealIndices(item: SentenceItem, bank: readonly Tile[]): number[] {
   const claimed = new Set<number>();
