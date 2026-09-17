@@ -13,33 +13,13 @@ const BANK: readonly Tile[] = [
 ];
 
 const line = (placed: number[], props: Partial<Parameters<typeof AnswerLine>[0]> = {}) =>
-  render(<AnswerLine bank={BANK} placed={placed} length={3} onRemove={() => {}} {...props} />);
+  render(<AnswerLine bank={BANK} placed={placed} onRemove={() => {}} {...props} />);
 
 describe('AnswerLine', () => {
   it('shows the placed tiles in the order they were placed', () => {
     line([2, 3, 0]);
     const tiles = screen.getAllByRole('button').map((b) => b.textContent);
     expect(tiles).toEqual(['パンpan', 'をo', 'くださいkudasai']);
-  });
-
-  /* The empty rules are how the learner sees how much sentence is left. */
-  it('shows one empty slot per tile still to come', () => {
-    const { container } = line([2]);
-    expect(container.querySelectorAll('[data-slot]')).toHaveLength(2);
-  });
-
-  /* Full, and past full. Note that only the first half of this can fail: with
-     more placed than the sentence needs, `remaining` goes negative, and
-     Array.from({ length: -1 }) is already [] — so the Math.max(0, …) guard in
-     AnswerLine is unobservable from here and the overfull case documents the
-     intent rather than defending it. Kept for that reason, not mistaken for
-     coverage. */
-  it('shows no slots once the line is full, however many are placed', () => {
-    const { container: full } = line([2, 3, 0]);
-    expect(full.querySelectorAll('[data-slot]')).toHaveLength(0);
-
-    const { container: overfull } = line([2, 3, 0, 1]);
-    expect(overfull.querySelectorAll('[data-slot]')).toHaveLength(0);
   });
 
   it('removes a tile by its position on the line, not its bank index', async () => {
@@ -68,9 +48,20 @@ describe('AnswerLine', () => {
     expect(screen.getAllByRole('button')).toHaveLength(2);
   });
 
-  it('is all slots when nothing is placed yet', () => {
+  /* The line draws placed tiles and nothing else. Empty rules used to stand in
+     for the tiles still to come, which both leaked the answer's length and tied
+     the line to the canonical answer — so an alternate of another length was
+     drawn against the wrong count. */
+  it('is empty when nothing is placed, with no placeholder for what is coming', () => {
     const { container } = line([]);
     expect(screen.queryAllByRole('button')).toHaveLength(0);
-    expect(container.querySelectorAll('[data-slot]')).toHaveLength(3);
+    expect(container.querySelectorAll('[data-slot]')).toHaveLength(0);
+  });
+
+  it('draws no placeholders at any length, so an answer of any size fits', () => {
+    for (const placed of [[], [2], [2, 3], [2, 3, 0], [2, 3, 0, 1]]) {
+      const { container } = line(placed);
+      expect(container.querySelectorAll('[data-slot]')).toHaveLength(0);
+    }
   });
 });

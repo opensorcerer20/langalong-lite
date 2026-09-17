@@ -104,7 +104,7 @@ A short practice phrase needs only three fields:
 | `id` | Unique within its situation. **Permanent once shipped** — history is keyed on it, so editing one orphans everything recorded about that sentence. Ids may be non-contiguous; retire a deleted one rather than reusing it. Rewording `en`, fixing `ans` or adding an `alt` are all free. |
 | `en` | The English prompt. |
 | `ans` | The canonical answer, `\|` between tiles. Particles split out, conjugation endings as their own tile: `食べ\|たい`. Spaces around the separator are ignored. |
-| `alts` | Optional. Other accepted answers, written whole. The bank segments each one and seeds any tile the canonical answer lacks, so every accepted answer is always buildable. |
+| `alts` | Optional. Other accepted answers, written whole. The bank segments each one and seeds any tile the canonical answer lacks, so every accepted answer is always buildable. **An alternate may use any number of tiles** — it does not have to match `ans`. |
 | `note` | Optional. Shown after a second miss. A sentence teaching a particle or a form earns one; a short phrase usually has nothing to explain. Omit the field — never give it `""`. |
 | `teaches` | Optional. What the sentence **teaches**, not what it contains — almost every sentence has です in it and almost none are about です. Particle and pattern ids in one flat list; the loader sorts them into the right buckets. |
 
@@ -113,6 +113,12 @@ Every text in `ans` must be in a lexicon — the situation's or core's. A missin
 ```
 bakery 03 — "メロンパン" is not in the lexicon
 ```
+
+### Alternates are not tied to the canonical answer's length
+
+`パンをお願いします` can be accepted alongside `パン|を|ください` even though it segments into a different number of tiles. Write whatever is genuinely correct.
+
+The answer line used to draw one blank rule per tile still to come, counted from `ans`. That made the canonical answer's length authoritative — a shorter alternate left blanks showing after a correct answer — and it quietly told the learner how long the answer was. The blanks are gone: the line now shows the tiles placed and nothing more.
 
 ## Adding a situation
 
