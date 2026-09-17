@@ -43,7 +43,7 @@ npm run dev
 | `npm run import -- <file>` | Check a situation file and report what it would add |
 | `npm run font` | Regenerate the Japanese font subset from the pack |
 
-`dist/` is a folder of static files and deploys to any static host.
+`dist/` is a folder of static files and deploys to any static host. Asset urls are relative, so it works at a domain root or under a subpath — `example.com/` or `example.com/tsumiki/` — with no rebuild.
 
 ## Tech stack
 
