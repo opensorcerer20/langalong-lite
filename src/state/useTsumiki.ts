@@ -181,8 +181,17 @@ export function useTsumiki(language: LanguagePack, progress?: ProgressStore): Ts
          The tags are the reason this is worth writing at all. A row against the
          sentence says a learner missed sentence 3; a row against `ja:particle:ni`
          is what can eventually say they keep missing に. */
+      /* Deduped by text: a sentence using the same word twice is one piece of
+         evidence about that word, not two. tileKey is keyed on the text alone,
+         so the repeats would land on one row anyway — as two concurrent
+         transactions racing to roll up the same key. */
+      const distinctTiles = [...new Map(item.ans.map((tile) => [tile[0], tile])).values()];
+
       const indirect = [
-        ...item.ans.map((tile) => ({ key: tileKey(language.code, tile), unit: 'tile' as const })),
+        ...distinctTiles.map((tile) => ({
+          key: tileKey(language.code, tile),
+          unit: 'tile' as const,
+        })),
         ...item.tags.particles.map((id) => ({
           key: particleKey(language.code, id),
           unit: 'particle' as const,

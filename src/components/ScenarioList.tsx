@@ -13,11 +13,7 @@ export function ScenarioList({ scenarios, onOpen }: ScenarioListProps) {
   return (
     <nav aria-label="Situations">
       {scenarios.map((scenario, index) => (
-        <ScenarioRow
-          key={scenario.id}
-          scenario={scenario}
-          onOpen={() => onOpen(index)}
-        />
+        <ScenarioRow key={scenario.id} scenario={scenario} onOpen={() => onOpen(index)} />
       ))}
     </nav>
   );
