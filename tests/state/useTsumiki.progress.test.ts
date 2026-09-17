@@ -358,7 +358,7 @@ describe('useTsumiki recording', () => {
         {
           id: 'only',
           name: 'Only situation',
-          kicker: 'Set 01',
+          lessonNum: '01',
           blurb: 'The only one.',
           words: [
             ['パン', 'pan'],

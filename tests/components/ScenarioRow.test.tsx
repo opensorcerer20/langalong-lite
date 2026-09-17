@@ -16,7 +16,7 @@ const item = (id: string, en: string): SentenceItem => ({
 const BAKERY: Scenario = {
   id: 'bakery',
   name: 'Bakery',
-  kicker: 'Set 01',
+  lessonNum: '01',
   blurb: 'Asking for items, counting them, paying at the counter.',
   items: [item('01', 'One bread, please.'), item('02', 'How much is this?')],
   words: [['パン', 'pan']],

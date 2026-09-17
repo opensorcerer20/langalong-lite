@@ -24,7 +24,7 @@ describe('the ja pack', () => {
   });
 
   /* Exact set sizes were asserted here — [10, 8] — and, alongside them, the
-     exact situation list: ['Bakery', 'Train station'] and its kickers. Both
+     exact situation list: ['Bakery', 'Train station'] and its set numbers. Both
      failed every time content was written and neither ever indicated a bug, so
      both are gone. That each set is non-empty, internally sound and uniquely
      identified is languages.test.ts's job, and it does not care how many

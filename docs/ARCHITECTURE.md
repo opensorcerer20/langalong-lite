@@ -49,7 +49,7 @@ lexicon: { "パン": "pan" }   ─┐
                               ├──►  ans: [["パン","pan"], ["を","o"]]
 ans: "パン|を"               ─┘
 teaches: ["o", "tai"]         ──►  tags: { particles:["o"], conjugations:["tai"] }
-(list position)               ──►  kicker: "Set 01"
+(list position)               ──►  lessonNum: "01"
 items[].ans + words[]         ──►  words: [every content tile, deduped]
 ```
 

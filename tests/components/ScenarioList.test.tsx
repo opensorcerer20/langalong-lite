@@ -5,10 +5,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { ScenarioList } from '../../src/components/ScenarioList';
 import type { Scenario } from '../../src/data/types';
 
-const scenario = (name: string, kicker: string, id?: string): Scenario => ({
+const scenario = (name: string, lessonNum: string, id?: string): Scenario => ({
   id: id ?? name.toLowerCase().replace(/\W+/g, '-'),
   name,
-  kicker,
+  lessonNum,
   blurb: `About ${name}.`,
   items: [
     {
@@ -22,7 +22,7 @@ const scenario = (name: string, kicker: string, id?: string): Scenario => ({
   words: [['パン', 'pan']],
 });
 
-const SCENARIOS = [scenario('Bakery', 'Set 01'), scenario('Train station', 'Set 02')];
+const SCENARIOS = [scenario('Bakery', '01'), scenario('Train station', '02')];
 
 describe('ScenarioList', () => {
   it('is a navigation landmark listing every scenario in order', () => {
@@ -47,8 +47,8 @@ describe('ScenarioList', () => {
      made React treat these as one row. */
   describe('when two situations share a name', () => {
     const SAME_NAME = [
-      scenario('Market', 'Set 01', 'market-morning'),
-      scenario('Market', 'Set 02', 'market-evening'),
+      scenario('Market', '01', 'market-morning'),
+      scenario('Market', '02', 'market-evening'),
     ];
 
     it('renders both, and opens each by its own index', async () => {

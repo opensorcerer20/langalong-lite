@@ -159,7 +159,7 @@ scenarios: [JA_BAKERY, JA_STATION, JA_RESTAURANT, JA_MEETING, JA_CAFE],
 
 Distractors come from the pack's `grammar` plus the situation's vocabulary, and that vocabulary is *derived from the situation's own answers*. List only what no answer supplies — the spare counters and near-miss nouns that make a wrong tile plausible in the scene. A word already covered is dropped silently, so a new sentence never turns an existing entry into an error.
 
-There is no `kicker` field. `Set 01`, `Set 02` … follow from list position.
+There is no set-number field to author. `lessonNum` is `01`, `02` … from list position, and components add the word "Set".
 
 ## Adding a particle or a conjugation pattern
 

@@ -221,9 +221,9 @@ function deriveWords(
   return words;
 }
 
-/** `0` → `Set 01`. Position is the number, so reordering renumbers. */
-function kickerFor(index: number): string {
-  return `Set ${String(index + 1).padStart(2, '0')}`;
+/** `0` → `01`. Position is the number, so reordering renumbers. */
+function lessonNumFor(index: number): string {
+  return String(index + 1).padStart(2, '0');
 }
 
 /* ── Assembling the pack ─────────────────────────────────────────────────── */
@@ -278,7 +278,7 @@ export function loadPack(file: PackFile): LanguagePack {
     return {
       id: entry.id,
       name: entry.name,
-      kicker: kickerFor(index),
+      lessonNum: lessonNumFor(index),
       blurb: entry.blurb,
       items,
       words: deriveWords(items, tileList(lexicon, entry.words ?? [], `${entry.id} words`), grammar),

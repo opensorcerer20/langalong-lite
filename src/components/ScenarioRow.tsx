@@ -15,7 +15,7 @@ export function ScenarioRow({ scenario, onOpen }: ScenarioRowProps) {
   return (
     <button type="button" {...stylex.props(s.row)} onClick={onOpen}>
       <div {...stylex.props(s.top)}>
-        <span {...stylex.props(s.kicker)}>{scenario.kicker}</span>
+        <span {...stylex.props(s.kicker)}>Set {scenario.lessonNum}</span>
         <span {...stylex.props(s.count)}>
           {count} {count === 1 ? 'sentence' : 'sentences'}
         </span>

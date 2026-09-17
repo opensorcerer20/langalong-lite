@@ -57,7 +57,7 @@ const LANGUAGE: LanguagePack = {
     {
       id: 'first',
       name: 'First situation',
-      kicker: 'Set 01',
+      lessonNum: '01',
       blurb: 'The first one.',
       words: WORDS,
       items: [
@@ -94,7 +94,7 @@ const LANGUAGE: LanguagePack = {
     {
       id: 'second',
       name: 'Second situation',
-      kicker: 'Set 02',
+      lessonNum: '02',
       blurb: 'The second one.',
       words: WORDS,
       items: [

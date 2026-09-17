@@ -24,7 +24,7 @@ const SCENARIOS: readonly Scenario[] = [
   {
     id: 'first',
     name: 'First situation',
-    kicker: 'Set 01',
+    lessonNum: '01',
     blurb: 'What the first one covers.',
     items: [item('01'), item('02')],
     words: [],
@@ -32,7 +32,7 @@ const SCENARIOS: readonly Scenario[] = [
   {
     id: 'second',
     name: 'Second situation',
-    kicker: 'Set 02',
+    lessonNum: '02',
     blurb: 'What the second one covers.',
     items: [item('01')],
     words: [],

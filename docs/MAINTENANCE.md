@@ -43,7 +43,12 @@ Debt carried over from the conversions — the plain-JS PWA prototype to React, 
 
 The hardcoded `STREAK = 'Day 12'` that used to sit beside them is gone. It was the worst of the three because it asserted something false rather than merely forgetting something true; the header now shows nothing until there is a session row to derive a real streak from. See [ROADMAP.md](ROADMAP.md).
 
-**A display string doing double duty as an identifier.** `App.tsx` builds the drill header with `scenario.kicker.replace('Set ', '')`, so `Set 01` becomes `01`. The fragility this used to carry is gone — `kicker` is no longer authored but generated as `Set NN` from list position, so it cannot be renamed into breaking the header. What remains is the design smell: `kicker` is both the home-screen label and the header's set number, and those want to be two fields on `Scenario` rather than one parsed at the point of use.
+**A display string doing double duty as an identifier.** Resolved.
+
+- `Scenario.kicker` was `"Set 01"`, and `App.tsx` recovered the number with `.replace('Set ', '')`.
+- It is now `Scenario.lessonNum`, the bare `"01"`.
+- `ScenarioRow` renders `Set {lessonNum}`; the header uses the number directly.
+- The English word "Set" now lives in the component layer with the rest of the UI copy.
 
 **Defensive fallbacks, kept deliberately.** Resolved — no longer debt.
 
