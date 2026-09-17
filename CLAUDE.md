@@ -71,7 +71,9 @@ If a request is ambiguous, or implementing it would require acting in conflict w
 ## Markdown formatting
 - No forced line breaks
 
-## Explaining data structures & relationships
+## Code comments and documentation
+
+All comments and documentation should be low on prose, and documentation that requires long descriptions should be broken up into bullet points where possible; the goal is to prevent a long paragraph of information and speed up review of changes.
 
 Prose descriptions of how data fits together (nested objects, relationships between
 entities, data flow) don't work well for me. Rule of thumb: if a paragraph has more than 3 sentences, re-evaluate to shorten the content. When explaining these, prefer:

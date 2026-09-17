@@ -28,6 +28,11 @@ export default defineConfig(({ mode }) => {
        test pipeline too — an uncompiled stylex.create() throws at runtime. */
     plugins: [react(), stylex()],
 
+    /* Relative asset urls, so dist/ runs wherever it is served from rather than
+       only at a domain root. Safe here: there is no router, so no path is ever
+       resolved against the document url at runtime. */
+    base: './',
+
     /* No public/ directory. The shared assets at the repo root are pulled in
        through the bundler instead: fonts via relative url() in styles/fonts.css,
        the design system via a plain import in main.tsx, the favicon via a

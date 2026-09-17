@@ -47,7 +47,7 @@ const NOTELESS_ITEM: SentenceItem = {
 const SCENARIO = {
   id: 'bakery',
   name: 'Bakery',
-  kicker: 'Set 01',
+  lessonNum: '01',
   blurb: 'At the counter.',
   items: [ITEM],
   words: [],

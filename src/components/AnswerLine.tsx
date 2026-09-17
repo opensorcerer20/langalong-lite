@@ -1,8 +1,10 @@
-/* The line the sentence is built on.
+/* The line the sentence is built on. Tapping a placed tile sends it back.
 
-   Placed tiles first, then a short rule for each tile still missing, so the
-   learner can see how much of the sentence is left. Tapping a placed tile sends
-   it back to the bank. */
+   It used to draw a short rule for each tile still missing, sized from the
+   canonical answer. That made the canonical answer's length authoritative, so
+   an accepted alternate of a different length rendered against the wrong count
+   — and it told the learner how many tiles the answer takes. Both gone: the
+   line shows what has been placed and nothing else. */
 
 import * as stylex from '@stylexjs/stylex';
 
@@ -14,8 +16,6 @@ export interface AnswerLineProps {
   readonly bank: readonly TileData[];
   /** Bank positions the learner has placed, in order. */
   readonly placed: readonly number[];
-  /** Tiles the answer needs, which is how many slots the line shows. */
-  readonly length: number;
   readonly showReading?: boolean;
   /** The answer is settled: tiles stay put and stop responding. */
   readonly locked?: boolean;
@@ -26,13 +26,10 @@ export interface AnswerLineProps {
 export function AnswerLine({
   bank,
   placed,
-  length,
   showReading,
   locked = false,
   onRemove,
 }: AnswerLineProps) {
-  const remaining = Math.max(0, length - placed.length);
-
   return (
     <div {...stylex.props(s.answer)}>
       <div {...stylex.props(s.tiles)}>
@@ -52,10 +49,6 @@ export function AnswerLine({
             />
           );
         })}
-
-        {Array.from({ length: remaining }, (_, index) => (
-          <span key={`slot-${index}`} {...stylex.props(s.slot)} data-slot />
-        ))}
       </div>
     </div>
   );
@@ -83,14 +76,5 @@ const s = stylex.create({
     flexWrap: 'wrap',
     gap: 6,
     alignItems: 'flex-start',
-  },
-
-  /* A tile still to come. Sits on the tiles' baseline, not their top. */
-  slot: {
-    display: 'block',
-    width: 34,
-    height: 2,
-    backgroundColor: 'var(--color-neutral-400)',
-    marginTop: 26,
   },
 });

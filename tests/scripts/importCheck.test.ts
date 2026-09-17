@@ -48,7 +48,7 @@ describe('checkImport — a situation the pack does not list', () => {
     const { report } = check(CAFE);
     expect(report.situationId).toBe('cafe');
     expect(report.situationName).toBe('Café');
-    expect(report.kicker).toBe('Set 02');
+    expect(report.lessonNum).toBe('02');
     expect(report.replacing).toBe(false);
     expect(report.sentences).toBe(2);
   });
@@ -88,7 +88,7 @@ describe('checkImport — a situation the pack already lists', () => {
 
   it('keeps its position, so the set number does not move', () => {
     const { report } = check(BAKERY, [BAKERY, CAFE]);
-    expect(report.kicker).toBe('Set 01');
+    expect(report.lessonNum).toBe('01');
   });
 
   it('still measures first taught against the other situations only', () => {

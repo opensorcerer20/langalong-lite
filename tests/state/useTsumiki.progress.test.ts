@@ -8,6 +8,7 @@ import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { LANGUAGE } from '../../src/data/languages';
+import type { LanguagePack, Tile } from '../../src/data/types';
 import { conjugationKey, itemKey, particleKey, tileKey } from '../../src/lib/keys';
 import { revealIndices } from '../../src/lib/revealPlacement';
 import { createMemoryProgressStore } from '../../src/storage/memoryProgressStore';
@@ -42,6 +43,61 @@ const missOnce = (view: ReturnType<typeof open>) => {
   act(() => view.result.current.tap(0));
   act(() => view.result.current.check());
 };
+
+/* A double click lands before React re-renders, so both handlers see the same
+   pre-dispatch state and both pass the guards mirrored from the reducer. The
+   reducer itself is safe; what leaks is a row in the log for a retrieval the
+   learner never made. */
+describe('useTsumiki recording — a second click is not a second attempt', () => {
+  it('records one attempt when Check is clicked twice before a re-render', async () => {
+    const view = open();
+    const { item, bank } = view.result.current;
+    for (const index of revealIndices(item, bank)) act(() => view.result.current.tap(index));
+
+    act(() => {
+      view.result.current.check();
+      view.result.current.check();
+    });
+
+    const log = await progress.attemptsFor(FIRST_KEY);
+    expect(log).toHaveLength(1);
+  });
+
+  it('records one attempt when Reveal is clicked twice before a re-render', async () => {
+    const view = open();
+
+    act(() => {
+      view.result.current.reveal();
+      view.result.current.reveal();
+    });
+
+    const log = await progress.attemptsFor(FIRST_KEY);
+    expect(log).toHaveLength(1);
+    expect(log[0]).toMatchObject({ outcome: 'shown' });
+  });
+
+  /* The guard must not cost a real attempt. A second try always follows a tap,
+     which is what tells the two apart. */
+  it('still records a genuine second attempt after the line is rebuilt', async () => {
+    const view = open();
+    missOnce(view);
+    solve(view);
+
+    const log = await progress.attemptsFor(FIRST_KEY);
+    expect(log.map((a) => a.outcome)).toEqual(['wrong', 'right']);
+  });
+
+  /* Revealing after a miss involves no tap in between, so a guard keyed on
+     "anything recorded since the last input" would wrongly swallow this. */
+  it('still records a reveal that follows a wrong answer with no tap between', async () => {
+    const view = open();
+    missOnce(view);
+    act(() => view.result.current.reveal());
+
+    const log = await progress.attemptsFor(FIRST_KEY);
+    expect(log.map((a) => a.outcome)).toEqual(['wrong', 'shown']);
+  });
+});
 
 describe('useTsumiki recording', () => {
   it('records a right answer against the item', async () => {
@@ -283,5 +339,64 @@ describe('useTsumiki recording', () => {
     const second = itemKey(LANGUAGE.code, BAKERY.id, BAKERY.items[1]!.id);
     expect(await progress.attemptsFor(FIRST_KEY)).toHaveLength(1);
     expect(await progress.attemptsFor(second)).toHaveLength(1);
+  });
+
+  /* No shipped sentence repeats a tile, so this needs a stand-in pack. The
+     repeat is the point: tileKey is keyed on the text, so two rows would be two
+     transactions rolling up the same key. */
+  describe('a sentence that uses the same tile twice', () => {
+    const REPEATED: Tile = ['と', 'to'];
+    const REPEATER: LanguagePack = {
+      code: 'xx',
+      name: 'Test language',
+      joiner: '',
+      fontStack: 'serif',
+      grammar: [REPEATED],
+      particles: [],
+      conjugations: [],
+      scenarios: [
+        {
+          id: 'only',
+          name: 'Only situation',
+          lessonNum: '01',
+          blurb: 'The only one.',
+          words: [
+            ['パン', 'pan'],
+            ['水', 'mizu'],
+          ],
+          items: [
+            {
+              id: '01',
+              en: 'Bread and water and…',
+              /* と appears twice. */
+              ans: [['パン', 'pan'], REPEATED, ['水', 'mizu'], REPEATED],
+              tags: { particles: [], conjugations: [] },
+            },
+          ],
+        },
+      ],
+    };
+
+    it('writes one tile row for it, not one per position', async () => {
+      const view = renderHook(() => useTsumiki(REPEATER, progress));
+      act(() => view.result.current.openScenario(0));
+      const { item, bank } = view.result.current;
+      for (const index of revealIndices(item, bank)) act(() => view.result.current.tap(index));
+      act(() => view.result.current.check());
+
+      expect(view.result.current.state.status).toBe('right');
+      expect(await progress.attemptsFor(tileKey('xx', REPEATED))).toHaveLength(1);
+    });
+
+    it('still writes a row for every other tile in the answer', async () => {
+      const view = renderHook(() => useTsumiki(REPEATER, progress));
+      act(() => view.result.current.openScenario(0));
+      const { item, bank } = view.result.current;
+      for (const index of revealIndices(item, bank)) act(() => view.result.current.tap(index));
+      act(() => view.result.current.check());
+
+      expect(await progress.attemptsFor(tileKey('xx', ['パン', 'pan']))).toHaveLength(1);
+      expect(await progress.attemptsFor(tileKey('xx', ['水', 'mizu']))).toHaveLength(1);
+    });
   });
 });

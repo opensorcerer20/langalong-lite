@@ -27,7 +27,6 @@ export function DrillScreen({ tsumiki }: DrillScreenProps) {
       <AnswerLine
         bank={bank}
         placed={state.placed}
-        length={item.ans.length}
         showReading={SHOW_READING}
         locked={done}
         onRemove={tsumiki.untap}

@@ -128,7 +128,8 @@ export interface Scenario {
    */
   readonly id: string;
   readonly name: string;
-  readonly kicker: string;
+  /** Position in the pack, as `01`. Components decide how to say it. */
+  readonly lessonNum: string;
   readonly blurb: string;
   readonly items: readonly SentenceItem[];
   /** Scene vocabulary, mixed with the shared grammar pool to make distractors. */

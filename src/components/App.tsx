@@ -43,7 +43,7 @@ export function App({ language: pack, progress, durable = true }: AppProps) {
       <Header
         label={
           inDrill
-            ? `${scenario.name} · ${scenario.kicker.replace('Set ', '')}`
+            ? `${scenario.name} · ${scenario.lessonNum}`
             : /* The level is the app's, not the language's — every pack starts
                  a learner at the beginning. */
               `${language.name} · beginner`

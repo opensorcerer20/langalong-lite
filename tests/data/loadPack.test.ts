@@ -259,13 +259,13 @@ describe('loadPack — derived words', () => {
   });
 });
 
-describe('loadPack — kicker', () => {
+describe('loadPack — lessonNum', () => {
   it('numbers situations from their position, zero-padded', () => {
     const many = file();
     const pack = loadPack({
       ...many,
       scenarios: [many.scenarios[0]!, { ...many.scenarios[0]!, id: 'station' }],
     });
-    expect(pack.scenarios.map((scenario) => scenario.kicker)).toEqual(['Set 01', 'Set 02']);
+    expect(pack.scenarios.map((scenario) => scenario.lessonNum)).toEqual(['01', '02']);
   });
 });

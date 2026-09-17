@@ -20,8 +20,8 @@ import { TILE_SEPARATOR } from '../src/data/loadPack';
 export interface ImportReport {
   readonly situationId: string;
   readonly situationName: string;
-  /** `Set 03` — where it lands, derived the same way loadPack derives it. */
-  readonly kicker: string;
+  /** `03` — where it lands, derived the same way loadPack derives it. */
+  readonly lessonNum: string;
   /** The pack already lists this id, so the file replaces it rather than adding. */
   readonly replacing: boolean;
   readonly sentences: number;
@@ -66,7 +66,7 @@ export function checkImport(
     report: {
       situationId: candidate.id,
       situationName: candidate.name,
-      kicker: `Set ${String(withCandidate.indexOf(candidate) + 1).padStart(2, '0')}`,
+      lessonNum: String(withCandidate.indexOf(candidate) + 1).padStart(2, '0'),
       replacing,
       sentences: candidate.items.length,
       ...splitLexicon(candidate.lexicon, before.lexicon),
@@ -131,7 +131,7 @@ export function formatReport(report: ImportReport, source: string): string {
   const lines = [
     `${source}`,
     '',
-    row('situation', `${report.situationId} "${report.situationName}" → ${report.kicker}`),
+    row('situation', `${report.situationId} "${report.situationName}" → Set ${report.lessonNum}`),
     row('sentences', String(report.sentences)),
     row(
       'lexicon',

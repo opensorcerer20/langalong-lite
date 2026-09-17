@@ -15,7 +15,11 @@
 
 import { describe, expect, it } from 'vitest';
 
+import { TILE_MULTIPLIER } from '../../src/config';
 import { LANGUAGES } from '../../src/data/languages';
+import { buildBank } from '../../src/lib/buildBank';
+import { buildString } from '../../src/lib/checkAnswer';
+import { revealIndices } from '../../src/lib/revealPlacement';
 import { segmentLongestFirst } from '../../src/lib/segment';
 
 describe('LANGUAGES', () => {
@@ -144,6 +148,47 @@ describe.each(LANGUAGES)('$name', (language) => {
         expect(rest, `${where} — "${alt}" left "${rest}" unsegmented`).toBe('');
         expect(tiles.map((t) => t[0]).join(language.joiner), `${where} — "${alt}"`).toBe(alt);
       }
+    }
+  });
+
+  /* revealPlacement falls back to index 0 for an answer tile the bank does not
+     hold, and buildString drops an index that does not resolve.
+
+     - The guards stop a content/bank mismatch crashing the drill.
+     - A fired guard shows a wrong sentence and calls it the answer.
+     - buildBank seeds the answer's tiles first, so neither should ever fire.
+
+     This asserts that over the real content. */
+  it('spells every answer from its own bank, never falling back', () => {
+    for (const scenario of language.scenarios) {
+      scenario.items.forEach((item, index) => {
+        const where = `${scenario.name} · ${item.id} "${item.en}"`;
+        const bank = buildBank(
+          item,
+          index,
+          { grammar: language.grammar, words: scenario.words },
+          TILE_MULTIPLIER,
+          language.joiner,
+        );
+        const indices = revealIndices(item, bank);
+
+        /* Tile by tile, so a failure names the offending tile. */
+        item.ans.forEach((tile, position) => {
+          expect(
+            bank[indices[position]!]?.[0],
+            `${where} — reveal put "${bank[indices[position]!]?.[0]}" where "${tile[0]}" belongs`,
+          ).toBe(tile[0]);
+        });
+
+        expect(
+          new Set(indices).size,
+          `${where} — reveal used one bank position for two tiles`,
+        ).toBe(indices.length);
+
+        expect(buildString(bank, indices, language.joiner), `${where} — revealed sentence`).toBe(
+          item.ans.map((t) => t[0]).join(language.joiner),
+        );
+      });
     }
   });
 
