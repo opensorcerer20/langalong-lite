@@ -19,6 +19,7 @@ import './styles/fonts.css';
 import './styles/global.css';
 
 import { App } from './components/App';
+import { registerServiceWorker } from './pwa';
 import { openRepository } from './storage';
 
 const root = document.getElementById('root');
@@ -46,4 +47,8 @@ void openRepository().then(async (repository) => {
       <App language={language} progress={repository.progress} durable={repository.durable} />
     </StrictMode>,
   );
+
+  /* After the render, never before. The worker is for the next visit, and
+     precaching the bundle must not compete with drawing this one. */
+  registerServiceWorker();
 });

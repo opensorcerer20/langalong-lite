@@ -31,16 +31,28 @@ interface WorkerScope {
   addEventListener(type: 'install' | 'activate', listener: (event: WorkerEvent) => void): void;
   addEventListener(type: 'fetch', listener: (event: WorkerFetchEvent) => void): void;
   readonly clients: { claim(): Promise<void> };
+  skipWaiting(): Promise<void>;
 }
 
 const worker = self as unknown as WorkerScope;
 
 /* ── Lifecycle ───────────────────────────────────────────────────────────── */
 
-/* No skipWaiting: a new worker installs and then waits. Swapping the bundle
-   under a page that is already running is how you get a half-updated app. */
+/* skipWaiting, so a new build takes over on the next launch rather than waiting
+   for every tab to close. An installed app is rarely closed, and waiting can
+   mean running a stale build for weeks.
+
+   The usual objection — swapping assets under a running page — does not apply
+   here: the build is a single bundle with no code splitting, so the page
+   already holds its JS and CSS and asks for no further chunks. Revisit this if
+   a lazy import ever appears. */
 worker.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(__CACHE_NAME__).then((cache) => cache.addAll(__PRECACHE__)));
+  event.waitUntil(
+    caches
+      .open(__CACHE_NAME__)
+      .then((cache) => cache.addAll(__PRECACHE__))
+      .then(() => worker.skipWaiting()),
+  );
 });
 
 worker.addEventListener('activate', (event) => {
