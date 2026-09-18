@@ -56,7 +56,7 @@ Every few completed steps, or when a feature roadmap finishes, give a short summ
 
 ## Project structure
 - `src/` — implementation code
-- `tests/` — one test file per component
+- `tests/` — at most one test file per component
 - `prototype/` - holds original prototype for app, no further changes desired here
 
 ## Action scope
