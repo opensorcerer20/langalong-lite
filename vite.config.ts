@@ -1,10 +1,9 @@
 /// <reference types="vitest/config" />
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-
-import { defineConfig, loadEnv, type Plugin } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import stylex from '@stylexjs/unplugin/vite';
+
+import { pwa } from './tools/pwa';
 
 /**
  * The StyleX plugin, with its dev-server hooks removed under Vitest.
@@ -24,100 +23,6 @@ function stylexFor(mode: string) {
 
   const { configureServer: _configureServer, ...withoutDevServer } = plugin;
   return withoutDevServer;
-}
-
-/* ── The web app manifest ────────────────────────────────────────────────────
-
-   Ported from prototype/manifest.webmanifest, which the React conversion left
-   behind. `name`, `description` and `theme_color` must match index.html.
-
-   start_url and scope are "./" — resolved against the manifest's own url, so an
-   install works at a domain root or under a subpath, matching `base` below.
-
-   icon-180.png is deliberately absent: it is the apple-touch-icon, and the
-   apple-* meta tags are not being added. Nothing references it. */
-const MANIFEST = {
-  name: 'Tsumiki',
-  short_name: 'Tsumiki',
-  description: 'Build the Japanese sentences you will actually need.',
-  start_url: './',
-  scope: './',
-  display: 'standalone',
-  orientation: 'portrait',
-  background_color: '#f3f2f2',
-  theme_color: '#f3f2f2',
-  lang: 'en',
-};
-
-/** `purpose` is the only thing separating the two 512s. */
-const ICONS = [
-  { file: 'icon-192.png', sizes: '192x192', purpose: 'any' },
-  { file: 'icon-512.png', sizes: '512x512', purpose: 'any' },
-  { file: 'icon-maskable-512.png', sizes: '512x512', purpose: 'maskable' },
-] as const;
-
-function manifestJson(srcs: readonly string[]) {
-  const icons = ICONS.map((icon, index) => ({
-    src: srcs[index],
-    sizes: icon.sizes,
-    type: 'image/png',
-    purpose: icon.purpose,
-  }));
-
-  return JSON.stringify({ ...MANIFEST, icons }, null, 2);
-}
-
-/**
- * Emits the manifest and the icons it declares.
- *
- * - Icons go through emitFile rather than a public/ directory, so they are
- *   hashed like every other asset. publicDir is off; see the note below.
- * - The manifest's own filename is fixed, because index.html links it by name.
- *   The hashes it carries are in the icon urls inside it.
- * - Those urls are "./assets/…", resolved against the manifest — same reason
- *   start_url is relative.
- * - Dev serves it from memory: emitFile throws in serve mode, and a 404 on
- *   every page load is how you learn to stop reading the console.
- */
-function pwa(): Plugin {
-  let refs: string[] = [];
-  let isBuild = false;
-
-  return {
-    name: 'tsumiki-pwa',
-
-    configResolved(config) {
-      isBuild = config.command === 'build';
-    },
-
-    buildStart() {
-      if (!isBuild) return;
-
-      refs = ICONS.map((icon) =>
-        this.emitFile({
-          type: 'asset',
-          name: icon.file,
-          source: readFileSync(fileURLToPath(new URL(`./icons/${icon.file}`, import.meta.url))),
-        }),
-      );
-    },
-
-    generateBundle() {
-      this.emitFile({
-        type: 'asset',
-        fileName: 'manifest.webmanifest',
-        source: manifestJson(refs.map((ref) => `./${this.getFileName(ref)}`)),
-      });
-    },
-
-    configureServer(server) {
-      server.middlewares.use('/manifest.webmanifest', (_req, response) => {
-        response.setHeader('Content-Type', 'application/manifest+json');
-        /* Unhashed: the dev server reads icons/ off disk at its real path. */
-        response.end(manifestJson(ICONS.map((icon) => `./icons/${icon.file}`)));
-      });
-    },
-  };
 }
 
 /* The config is a function so it can read .env files. Vite loads this file
