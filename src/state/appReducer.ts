@@ -56,10 +56,8 @@ export type AppAction =
   | { type: 'goHome' }
   | { type: 'tap'; bankIndex: number }
   | { type: 'untap'; position: number }
-  /* The verdict, not the evidence. useTsumiki already computed this to decide
-     what to record before dispatching — it had to, because a store write
-     cannot wait for a re-render — so passing it in removes a second, separate
-     judgement of the same answer rather than moving work around. */
+  /* The verdict, not the evidence. useTsumiki judges the answer, so this file
+     never needs to know what a sentence is. */
   | { type: 'check'; correct: boolean }
   /* The bank positions that spell the answer, worked out by the caller. Which
      positions those are depends on what kind of exercise this is; that the
