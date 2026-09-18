@@ -4,6 +4,8 @@ A Japanese sentence-building app for English-speaking learners. An English promp
 
 32 sentences across four situations: **Bakery** (10), **Train station** (8), **Restaurant** (7) and **Meeting someone** (7).
 
+It installs to a home screen and works offline — the lessons are in the bundle, so there is nothing to download once it is on the device.
+
 > The repository is `langalong-lite`; the app inside it is **Tsumiki**. Same thing.
 
 <!-- Badges deliberately omitted: React / TypeScript / Vite versions are still moving, and a stale badge is worse than none. Add once the stack is pinned. -->
@@ -43,7 +45,12 @@ npm run dev
 | `npm run import -- <file>` | Check a situation file and report what it would add |
 | `npm run font` | Regenerate the Japanese font subset from the pack |
 
-`dist/` is a folder of static files and deploys to any static host. Asset urls are relative, so it works at a domain root or under a subpath — `example.com/` or `example.com/tsumiki/` — with no rebuild.
+`dist/` is a folder of static files and deploys to any static host. Every url it contains is relative — assets, the manifest, and the service worker's precache list — so it works at a domain root or under a subpath with no rebuild.
+
+The target is **GitHub Pages**, at a project path: `opensorcerer20.github.io/langalong-lite/`. Two things that follow from it:
+
+- **It must be served over HTTPS.** Service workers only register in a secure context, so the app is installable and offline from Pages, and from `localhost` while you develop. Serving `dist/` over plain http to a phone on the LAN gives you the app without either.
+- **The subpath is why urls are relative.** `base: './'` in `vite.config.ts` is load-bearing, not a preference.
 
 ## Tech stack
 
@@ -79,7 +86,9 @@ The app is organised so each piece can be read on its own: the language content 
 | `src/state/` | The reducer holding every drill rule, and the hook that joins it to content and storage |
 | `src/components/` | One component and its StyleX styles per file |
 | `src/config.ts` | The four difficulty and display dials |
+| `src/sw.ts`, `src/pwa.ts` | The service worker, and the code that registers it |
 | `scripts/` | `npm run import` and `npm run font`, plus the pure halves they are tested through |
+| `tools/` | Build-time code Vite calls — currently the plugin emitting the manifest and `sw.js` |
 | `tests/` | One file per component and per module, mirroring `src/` |
 | `fonts/`, `icons/` | Vendored Archivo and Noto Sans JP subsets, and the app icons |
 | `_ds/modernist-…/` | The Modernist design system — the source of every colour, space and radius token |

@@ -125,6 +125,31 @@ Three consequences worth knowing before editing a stylesheet:
 
 Values still come from the design system: `var(--color-accent)` and friends are ordinary strings to StyleX, so `_ds/…/styles.css` remains the single source of every colour and space, and its `.btn` and `.hr` stay plain global classes.
 
+## Offline and installing
+
+The app installs from a web manifest and opens offline from a precached shell. Both are emitted by `tools/pwa.ts`, a Vite plugin — there is no `public/` directory and no PWA dependency.
+
+```
+tools/pwa.ts          emits, at build time
+  ├─ icons, hashed        →  dist/assets/icon-…png
+  ├─ manifest.webmanifest →  fixed name, hashed icon urls inside
+  └─ sw.js                →  fixed name, precache list inlined
+
+src/sw.ts             the worker. transpiled alone, imports nothing
+src/lib/precache.ts   bundle filenames → the list, and the cache name
+src/pwa.ts            registers it, in production only
+```
+
+**Precaching the shell precaches the lessons.** `content/ja/*.json` is statically imported, so the packs are inside the JS bundle. There is no separate content cache, and no runtime fetch of content to make offline-safe.
+
+**The cache name is a hash of the precache list.** The list carries Vite's content hashes, so every build is a new cache and `activate` drops the ones that no longer match. `prototype/sw.js` used a hand-bumped `tsumiki-v3` constant, which was one forgotten edit away from serving a stale app forever.
+
+**Every url is relative** — `start_url`, `scope`, the icon `src`s and the precache entries. `caches.addAll()` resolves them against the worker's own location, so one build runs at a domain root or under a subpath. This is the same constraint `base: './'` exists for, and it is what lets the app deploy to a GitHub Pages project path.
+
+**The worker calls `skipWaiting()`.** A new build takes over on next launch rather than waiting for every tab to close, which an installed app rarely gets. That is safe here only because the build is a single bundle with no code splitting: a running page already holds its JS and CSS and requests no further chunks. A lazy import would make it unsafe.
+
+**Registration is production-only, and gives up quietly.** In dev a cache-first worker serves back the file you just fixed. Outside a secure context `navigator.serviceWorker` is simply absent — plain http to a phone on the LAN — and the app runs without offline support rather than failing.
+
 ## File map
 
 | Path | What it is |
@@ -149,6 +174,10 @@ Values still come from the design system: `var(--color-accent)` and friends are 
 | `src/storage/index.ts` | Assembles the repository and owns the fallback |
 | `src/state/` | The reducer and the hook |
 | `src/components/<Name>.tsx` | One component and its StyleX styles, in one file |
+| `src/lib/precache.ts` | The precache list and the cache name derived from it |
+| `src/sw.ts` | The service worker. Imports nothing; transpiled on its own |
+| `src/pwa.ts` | Registers the worker, and drops a foreign one controlling the page |
+| `tools/pwa.ts` | The Vite plugin emitting the manifest, the icons and `sw.js` |
 | `src/styles/shared.ts` | The two styles used by more than one component: `screen` and `kicker` |
 | `src/styles/global.css` | The page ground — `html`, `body`, `button`. No element owns these, so they stay CSS |
 | `src/styles/fonts.css` | The two `@font-face` rules |

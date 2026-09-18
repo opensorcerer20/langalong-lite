@@ -4,6 +4,27 @@
 
 Notable changes, newest first. Entries record *why* and what carries forward, not every commit — `git log` has those.
 
+## 2026-09-18 — The app installs and works offline
+
+The prototype was installable; the React conversion dropped the manifest and service worker in `prototype/` and never ported them. Both are back, generated rather than hand-written.
+
+```
+tools/pwa.ts   a Vite plugin, no dependency added
+  ├─ icons, hashed
+  ├─ manifest.webmanifest   fixed name, hashed icon urls inside
+  └─ sw.js                  fixed name, precache list inlined
+```
+
+**The precache list could not be ported.** Vite hashes filenames, so the prototype's hand-written 12-entry list was unportable by construction — it is now derived from what the build emitted. The cache name is a hash of that list, so every build is a new cache and `activate` drops the old one. `prototype/sw.js` used a hand-bumped `tsumiki-v3`, one forgotten edit away from serving a stale app forever.
+
+**Offline came free.** `content/ja/*.json` is statically imported, so the lessons are inside the JS bundle. Precaching the shell precaches them; there was no content cache to design.
+
+**Every url is relative**, precache entries included, so one build runs at a domain root or under a subpath. That is what makes GitHub Pages at a project path work, and it is why `base: './'` is load-bearing rather than tidy.
+
+**Scope was cut halfway through, deliberately.** The original plan had an update-prompt component, an install-prompt component and an offline-verification script. For one user on one device, Chrome's own install button and a one-line `skipWaiting()` do the same work — so those three were dropped rather than built. `skipWaiting()` is safe here only because the build is a single bundle with no code splitting; a lazy import would change that, and the comment in `src/sw.ts` says so.
+
+iOS meta tags were left out — the target is Android, where they do nothing. Recorded in [MAINTENANCE.md](MAINTENANCE.md) with what breaks if that changes.
+
 ## 2026-09-17 — StyleX moves to the first-party plugin
 
 The exact `0.18.3` pin was load-bearing, not caution. `unplugin-stylex` (third-party) depends on `@stylexjs/babel-plugin: ^0.18.2` while its peer range on the runtime is a wide `"0.x"` — so bumping the runtime alone would have installed cleanly and silently paired a 0.19 runtime with a 0.18 compiler.
