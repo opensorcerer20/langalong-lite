@@ -4,14 +4,15 @@
 
 Two lists at two levels of finish. **Planned** is decided work that hasn't been built. **Todo** is working notes — ideas in the order they occurred, not commitments.
 
+> **The scope of this app is expected to narrow.** Nothing below is cancelled yet, and no detail is decided — but treat the lists as wider than what will be built, and weigh new work against that before starting it.
+
 ## Planned
 
-- **PWA support.** The prototype was installable and worked fully offline; the React app is not and does not. The service worker and manifest were left behind in `prototype/` during the conversion rather than being ported, to be re-added once the component tree settled. Vite hashes built filenames, so the hand-maintained precache list needs replacing with a generated one. Progress is already in IndexedDB rather than `localStorage` partly for this: a service worker can read the former and not the latter, which is what a daily reminder needs.
 - The **response level** — a Japanese line is spoken in a social situation and the learner assembles a reply, ranked by politeness register rather than judged literally.
 - **Spaced repetition.** The groundwork is in: every sentence and situation carries a stable id, attempts are written to IndexedDB as an append-only log, and each reviewable thing has a rolled-up row carrying the fields a scheduler needs — see [ARCHITECTURE.md](ARCHITECTURE.md#where-progress-lives). What is missing is the scheduler itself and the review queue in front of it. Every row is stamped `schedulerVersion: 0`, so the first real scheduler can find them all and initialise them by replaying the log rather than starting a learner from nothing. Keeping the log is what makes the choice of algorithm reversible — SM-2, an Anki variant and FSRS are all fitted against review history, and only rolled-up state would have foreclosed on all three.
 - **The streak.** Deliberately left out of the storage schema for now: a streak is a property of the days a learner studied, not of what they answered, so it needs a session row rather than a review row. Nothing is shown in the meantime — a hardcoded `Day 12` used to sit in the header, which asserted something false to the learner, and it was removed rather than left standing until the session row exists.
 - **Progress on the home screen** — per-situation completion, best score and the three-star system below. Needs a scenario row, also left out for now; the ids it would key on already exist.
-- **Notifications** and the daily reminder.
+- **Notifications** and the daily reminder. The service worker that landed with PWA support is what makes this reachable — it can read IndexedDB with no page open.
 - **Audio** playback of prompts, and a kana keyboard fallback.
 - **A second language.** The content is already isolated behind a `LanguagePack` and the app reads one active pack, so a new language is a folder plus a registry entry — see [AUTHORING.md](AUTHORING.md#adding-a-language). What is still missing is an in-app picker and a font subset per pack; progress is already stored per language, since the pack code is the first segment of every storage key. Grammar itself is the open question — the drill teaches word order and particles, which suits Japanese; a language whose difficulty sits in conjugation or agreement may want a different exercise rather than the same one with different tiles.
 

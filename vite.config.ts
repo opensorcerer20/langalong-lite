@@ -3,6 +3,8 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import stylex from '@stylexjs/unplugin/vite';
 
+import { pwa } from './tools/pwa';
+
 /**
  * The StyleX plugin, with its dev-server hooks removed under Vitest.
  *
@@ -49,7 +51,7 @@ export default defineConfig(({ mode }) => {
        stylex.create() throws at runtime.
 
        Ahead of react(), as the plugin's own docs place it. */
-    plugins: [stylexFor(mode), react()],
+    plugins: [stylexFor(mode), react(), pwa()],
 
     /* Relative asset urls, so dist/ runs wherever it is served from rather than
        only at a domain root. Safe here: there is no router, so no path is ever

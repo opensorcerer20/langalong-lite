@@ -16,7 +16,9 @@ It shares `fonts/`, `icons/` and `_ds/` with the React app, so it must be served
 
 ## Troubleshooting
 
-**A stale service worker serves the old app.** The prototype registered a cache-first service worker at the repository root. If you loaded it from a served origin, that worker is still installed and will serve the old cached shell over the new app. Unregister it in DevTools → Application → Service Workers.
+**A stale service worker serves the old app.** The prototype registered a cache-first worker at the repository root; if you ever loaded it from a served origin, it may still be installed. The app now unregisters a worker that is controlling its page and is not its own, so this should heal itself on one load — see `src/pwa.ts`. Manual fix if it does not: DevTools → Application → Service Workers.
+
+**Nothing you changed appears in the browser.** The app's own worker is cache-first. It only registers in a production build, so `npm run dev` is unaffected, but `npm run preview` will serve a previous build until the new one activates. DevTools → Application → Service Workers → Update on reload, or Unregister.
 
 ## The one modification to the vendored design system
 
@@ -65,7 +67,14 @@ Bakery · 01 "One bread, please." — reveal put "で" where "ください" belo
 
 **The Claude Design handoff.** `prototype/Sentence Builder.dc.html` and `prototype/support.js` are the original handoff — 91 KB, tracked, referenced by nothing that runs. They sat at the repository root and have since moved into `prototype/`, which is the right place for them; `prototype/DESIGN.md` supersedes them as the record of intent.
 
-**Orphaned icons.** `icons/` holds four files; the React app references only `icon-192.png`, as the favicon. The 512, maskable-512 and 180 variants exist for the web manifest, which now lives in `prototype/`. Keep them — re-adding PWA support needs them — but they are not currently in use by anything you build.
+**`icon-180.png` is orphaned.** The other three are in the web manifest now. The 180 is the `apple-touch-icon`, which goes with the missing iOS meta tags below. Keep it; it is 716 bytes and is what that entry needs.
+
+**No iOS meta tags.** `index.html` has no `apple-touch-icon` and no `apple-mobile-web-app-*`. The install target is Android, where they do nothing, so they were left out deliberately rather than missed. The consequence if that changes:
+
+- home-screen icon becomes a screenshot of the page rather than `icon-180.png`
+- launches with Safari chrome visible instead of standalone
+
+Four lines in `index.html` whenever iOS matters.
 
 **Untracked `.DS_Store` files** at the repository root and in `_ds/`. Gitignored, so harmless, but still on disk.
 
