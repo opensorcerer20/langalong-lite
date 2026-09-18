@@ -1,8 +1,7 @@
 /* What the service worker precaches, derived from the filenames Vite emitted.
 
-   Build-time only: vite.config.ts calls this, injects the result into sw.ts,
-   and nothing in the running app imports it. It lives here rather than inside
-   the plugin so the part with rules in it can be tested. */
+   Build-time only: tools/pwa.ts calls this and injects the result into sw.ts.
+   Kept out of the plugin so it can be tested. */
 
 /** Emitted files that must never be precached. */
 const SKIP = new Set(['sw.js']);
@@ -26,15 +25,9 @@ export function precacheList(fileNames: Iterable<string>): string[] {
 }
 
 /**
- * A cache name that changes whenever the precached set does.
- *
- * The entries already carry Vite's content hashes, so hashing the list is
- * enough to make every build a new cache — and `activate` drops the ones that
- * no longer match. That replaces the hand-bumped `tsumiki-v3` in the prototype,
- * which was one forgotten edit away from serving a stale app forever.
- *
- * FNV-1a rather than a crypto hash: cache busting is not a security property,
- * and this stays a plain function with no node imports.
+ * A cache name that changes whenever the precached set does. The entries carry
+ * Vite's content hashes, so every build gets a new cache and `activate` drops
+ * the old one. FNV-1a: cache busting needs no crypto hash.
  */
 export function cacheName(entries: readonly string[]): string {
   let hash = 2166136261;

@@ -15,8 +15,5 @@ export const NOTE_AFTER_MISSES = 2;
 /** Misses before the "Show me the answer" button appears. */
 export const REVEAL_AFTER_MISSES = 3;
 
-/**
- * The reading beneath the text on every tile — romaji for Japanese, pinyin for
- * Mandarin, whatever latin-script reading the language pack supplies.
- */
+/** The romaji beneath the text on every tile. */
 export const SHOW_READING = true;

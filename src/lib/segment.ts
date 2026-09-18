@@ -29,10 +29,7 @@ export interface Segmentation {
  * `rest` rather than throwing, so callers can decide whether a partial
  * segmentation is a problem.
  *
- * @param joiner What sits between tiles in this language's script; see
- *               LanguagePack.joiner. Empty for Japanese. A required argument
- *               rather than a default, so no caller can quietly inherit the
- *               no-separator assumption that only Japanese satisfies.
+ * @param joiner See LanguagePack.joiner. Empty for Japanese.
  */
 export function segmentLongestFirst(
   text: string,

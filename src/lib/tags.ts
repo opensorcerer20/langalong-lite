@@ -1,17 +1,6 @@
-/* Which vocabulary a sentence uses.
-
-   The one tag that is derived rather than authored. A sentence's particles and
-   conjugation patterns are what it was written to *teach*, which its tiles do
-   not reveal — every bakery sentence contains です and almost none are about
-   です. Its vocabulary is the opposite: the content words in the answer simply
-   are the words it uses, and asking an author to list them again would be
-   transcription with an opportunity for drift attached.
-
-   "Content word" here means "not in the shared grammar pool", which is exactly
-   the split the pool already encodes: particles, endings and set phrases on one
-   side, the things a scene is about on the other.
-
-   Pure, and free of content imports like everything else in lib/. */
+/* Which vocabulary a sentence uses: its answer tiles minus the shared grammar
+   pool. Derived rather than authored, unlike `teaches`. loadPack uses it to
+   build each situation's distractor words. */
 
 import type { SentenceItem, Tile } from '../data/types';
 
