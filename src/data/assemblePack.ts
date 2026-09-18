@@ -7,14 +7,10 @@
               ▼  assemblePack()
            PackFile  ──loadPack──►  LanguagePack
 
-   A situation file carries the readings for its own words, so adding one is
-   writing one file rather than editing a shared one in three places. The
-   lexicons are merged here, which is the only thing the split makes harder and
-   the reason this throws on a disagreement.
-
-   Order is the caller's: position decides Set 01, Set 02, and so on.
-
-   Pure, and knows nothing about files — languages.ts hands it parsed JSON. */
+   - Each situation file carries its own readings; they are merged here, and a
+     disagreement throws.
+   - Order is the caller's: position decides Set 01, Set 02, and so on.
+   - Pure: languages.ts hands it parsed JSON. */
 
 import type { PackFile, ScenarioEntry } from './loadPack';
 
@@ -23,12 +19,7 @@ type Lexicon = Readonly<Record<string, string>>;
 /** Everything shared between scenarios. A PackFile without the content. */
 export type CoreFile = Omit<PackFile, 'scenarios'>;
 
-/**
- * A scenario file: a scenario, plus the readings only it needs.
- *
- * The lexicon is the one thing a file adds to what the pack already holds —
- * everything else is the scenario itself, so it is written at the top level.
- */
+/** A scenario file: a scenario, plus the readings only it needs. */
 export type ScenarioFile = ScenarioEntry & { readonly lexicon: Lexicon };
 
 export function assemblePack(core: CoreFile, scenarios: readonly ScenarioFile[]): PackFile {
@@ -36,8 +27,7 @@ export function assemblePack(core: CoreFile, scenarios: readonly ScenarioFile[])
   const seen = new Set<string>();
 
   for (const file of scenarios) {
-    /* Ids are storage keys — two scenarios sharing one would merge a learner's
-       progress across both. */
+    /* The id is the home screen's React key. */
     if (seen.has(file.id)) throw new Error(`two scenario files both use the id "${file.id}"`);
     seen.add(file.id);
 
@@ -57,11 +47,8 @@ function withoutLexicon(file: ScenarioFile): ScenarioEntry {
 /**
  * Two lexicons as one, or a throw naming the disagreement.
  *
- * A text two files read differently is the one conflict the split introduces,
- * and it matters past this run: progress is keyed on the text, so quietly
- * taking one reading over the other would attach a learner's history to a word
- * that now reads differently. Repeating a reading identically is fine and
- * expected — 友達 belongs to every situation that uses it.
+ * Quietly taking one reading would show the wrong romaji under a tile in the
+ * other situation. Repeating a reading identically is fine.
  */
 function mergeLexicon(into: Lexicon, incoming: Lexicon, where: string): Lexicon {
   const merged: Record<string, string> = { ...into };
@@ -81,7 +68,7 @@ function mergeLexicon(into: Lexicon, incoming: Lexicon, where: string): Lexicon 
   return merged;
 }
 
-/** Within a scenario an id must be unique: it is half of the progress key. */
+/** Unique within a scenario, so a load error names one sentence. */
 function rejectRepeatedItemIds(scenario: ScenarioEntry): void {
   const seen = new Set<string>();
 
