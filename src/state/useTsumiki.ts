@@ -40,11 +40,8 @@ export interface Tsumiki {
   /** The current item is the last in the set. */
   readonly isLastItem: boolean;
   /**
-   * Show the grammar note: the item has one, and either enough misses have
-   * accumulated or the answer is settled.
-   *
-   * An item without a note never sets this, which is what keeps the status line
-   * from pointing at help that is not on screen.
+   * The item has a note, and enough misses or a settled answer. Never true
+   * without a note, so the status line never points at missing help.
    */
   readonly showNote: boolean;
   /** Show the "Show me the answer" button. */

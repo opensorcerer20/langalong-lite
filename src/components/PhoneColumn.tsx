@@ -1,11 +1,7 @@
-/* The app surface: a 460px column with ruled edges on a darker ground, so it
-   reads as a phone even on a desktop screen.
+/* The app surface: a 460px column, so it reads as a phone on a desktop too.
 
-   It is also where the active language's font stack enters the tree. StyleX
-   values are static — a family cannot be interpolated into a rule at runtime —
-   so the pack sets --font-target here and Tile's rule reads it. The inline
-   style has to be merged onto what stylex.props returns, which already carries
-   a style object of its own. */
+   Sets --font-target from the language pack, because StyleX values are static.
+   The inline style merges onto the one stylex.props already returns. */
 
 import * as stylex from '@stylexjs/stylex';
 import type { CSSProperties, ReactNode } from 'react';

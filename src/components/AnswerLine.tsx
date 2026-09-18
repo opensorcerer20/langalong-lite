@@ -1,10 +1,7 @@
 /* The line the sentence is built on. Tapping a placed tile sends it back.
 
-   It used to draw a short rule for each tile still missing, sized from the
-   canonical answer. That made the canonical answer's length authoritative, so
-   an accepted alternate of a different length rendered against the wrong count
-   — and it told the learner how many tiles the answer takes. Both gone: the
-   line shows what has been placed and nothing else. */
+   No placeholder slots: they would give away the answer's length, and an
+   alternate answer may be a different length anyway. */
 
 import * as stylex from '@stylexjs/stylex';
 
