@@ -59,7 +59,7 @@ The target is **GitHub Pages**, at a project path: `opensorcerer20.github.io/lan
 | **React 19** + **TypeScript 5.7** | The app |
 | **Vite 7** | Dev server and build |
 | **StyleX 0.19** | Styles, colocated per component and compiled away at build time |
-| **Vitest** + **Testing Library** | Unit, component and storage tests |
+| **Vitest** + **Testing Library** | Unit and component tests |
 | **ESLint** + **Prettier** | Flat config; type correctness is `tsc`'s job, so the rules that earn their place are the React ones |
 
 The app is organised so each piece can be read on its own: the language content is inert data that imports nothing, the drill rules are pure functions that import no content, and the components are presentational — one file each, styles included. The Japanese is authored in `content/ja/` — a shared core file plus one per situation — and expanded into a `LanguagePack` at load, so a second language is a folder plus a registry entry rather than a rewrite. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) has the dependency rule and the StyleX gotchas.
@@ -81,15 +81,14 @@ The app is organised so each piece can be read on its own: the language content 
 | --- | --- |
 | `content/<code>/` | The authored content: a shared `core.json` plus one file per situation |
 | `src/data/` | The shapes content takes, and the loader that merges and expands it into a `LanguagePack` |
-| `src/lib/` | Bank generation, segmentation, answer checking, storage keys, progress roll-up. Pure, and never imports `data/` |
-| `src/storage/` | Progress in IndexedDB, behind interfaces. The only layer with side effects |
-| `src/state/` | The reducer holding every drill rule, and the hook that joins it to content and storage |
+| `src/lib/` | Bank generation, segmentation, answer checking, reveal placement. Pure, and never imports `data/` |
+| `src/state/` | The reducer holding every drill rule, and the hook that joins it to the content |
 | `src/components/` | One component and its StyleX styles per file |
 | `src/config.ts` | The four difficulty and display dials |
 | `src/sw.ts`, `src/pwa.ts` | The service worker, and the code that registers it |
 | `scripts/` | `npm run import` and `npm run font`, plus the pure halves they are tested through |
 | `tools/` | Build-time code Vite calls — currently the plugin emitting the manifest and `sw.js` |
-| `tests/` | One file per component and per module, mirroring `src/` |
+| `tests/` | Behaviour that would be noticeable in the app; not one file per component |
 | `fonts/`, `icons/` | Vendored Archivo and Noto Sans JP subsets, and the app icons |
 | `_ds/modernist-…/` | The Modernist design system — the source of every colour, space and radius token |
 | `prototype/` | The pre-React app, kept for reference. Not part of the build |
@@ -119,7 +118,7 @@ Content is in `content/ja/` — one file per situation, plus a shared `core.json
 
 A short practice phrase is just `{ "id": "12", "en": "Two, please.", "ans": "二つ|ください" }`.
 
-Readings live once in a `lexicon`, so a tile is named by its text everywhere else. Each situation file carries the readings only it needs; two files disagreeing about one is an error rather than a silent win for either. `teaches` is what the sentence *teaches* rather than what it contains, which is why it is authored rather than inferred. A situation's distractor vocabulary is derived from its own answers — `words` lists only extras.
+Readings live once in a `lexicon`, so a tile is named by its text everywhere else. Each situation file carries the readings only it needs; two files disagreeing about one is an error rather than a silent win for either. `teaches` is what the sentence *teaches* rather than what it contains — authored for a later exercise, and not read by the app today. A situation's distractor vocabulary is derived from its own answers — `words` lists only extras.
 
 `npm test` verifies the tags resolve, the tiles are well formed, and every alternate is actually buildable from the bank. `npm run import -- content/ja/<id>.json` reports what a new situation file would add and whether the pack still loads with it. A new situation is one file plus a line in `src/data/languages.ts`; a new language is a folder plus an entry in `LANGUAGES`. Full guide, including the difficulty dials and regenerating the font subset: [docs/AUTHORING.md](docs/AUTHORING.md).
 

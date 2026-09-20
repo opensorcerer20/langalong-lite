@@ -101,12 +101,12 @@ A short practice phrase needs only three fields:
 
 | Field | |
 | --- | --- |
-| `id` | Unique within its situation. **Permanent once shipped** — history is keyed on it, so editing one orphans everything recorded about that sentence. Ids may be non-contiguous; retire a deleted one rather than reusing it. Rewording `en`, fixing `ans` or adding an `alt` are all free. |
+| `id` | Unique within its situation, and `:`-free. Nothing is stored against it now, so changing one is safe; keeping them stable still costs nothing if progress ever returns. Ids may be non-contiguous. |
 | `en` | The English prompt. |
 | `ans` | The canonical answer, `\|` between tiles. Particles split out, conjugation endings as their own tile: `食べ\|たい`. Spaces around the separator are ignored. |
 | `alts` | Optional. Other accepted answers, written whole. The bank segments each one and seeds any tile the canonical answer lacks, so every accepted answer is always buildable. **An alternate may use any number of tiles** — it does not have to match `ans`. |
 | `note` | Optional. Shown after a second miss. A sentence teaching a particle or a form earns one; a short phrase usually has nothing to explain. Omit the field — never give it `""`. |
-| `teaches` | Optional. What the sentence **teaches**, not what it contains — almost every sentence has です in it and almost none are about です. Particle and pattern ids in one flat list; the loader sorts them into the right buckets. |
+| `teaches` | Optional, and **nothing reads it yet** — it is authored for a later exercise. What the sentence **teaches**, not what it contains: almost every sentence has です in it and almost none are about です. Particle and pattern ids in one flat list; the loader checks each id and sorts it into the right bucket. |
 
 Every text in `ans` must be in a lexicon — the situation's or core's. A missing one fails the build with the sentence named:
 
@@ -116,13 +116,11 @@ bakery 03 — "メロンパン" is not in the lexicon
 
 ### Alternates are not tied to the canonical answer's length
 
-`パンをお願いします` can be accepted alongside `パン|を|ください` even though it segments into a different number of tiles. Write whatever is genuinely correct.
-
-The answer line used to draw one blank rule per tile still to come, counted from `ans`. That made the canonical answer's length authoritative — a shorter alternate left blanks showing after a correct answer — and it quietly told the learner how long the answer was. The blanks are gone: the line now shows the tiles placed and nothing more.
+`パンをお願いします` can be accepted alongside `パン|を|ください` even though it segments into a different number of tiles. Write whatever is genuinely correct — the answer line draws only the tiles placed, so nothing counts against `ans`.
 
 ## Adding a situation
 
-**1. Write `content/ja/<id>.json`** in the shape above. `id` is lowercase, `:`-free, unique in the pack, and permanent for the same reason a sentence's is — it is only ever seen in a storage key, so it is free to differ from `name`.
+**1. Write `content/ja/<id>.json`** in the shape above. `id` is lowercase, `:`-free and unique in the pack. It is never shown to the learner, so it is free to differ from `name`.
 
 **2. Check it.** Nothing is written; this reports what the file would add and then loads the pack it would make.
 
@@ -163,7 +161,7 @@ There is no set-number field to author. `lessonNum` is `01`, `02` … from list 
 
 ## Adding a particle or a conjugation pattern
 
-Both live in `core.json`, keyed by id. **An id is permanent once shipped** — progress is stored against `ja:particle:o` and `ja:conjugation:tai`.
+Both live in `core.json`, keyed by id. An id is latin and `:`-free, and is what `teaches` names.
 
 ```json
 "particles":    { "ni":  { "tile": "に", "gloss": "marks a destination or a point in time" } },
@@ -172,7 +170,9 @@ Both live in `core.json`, keyed by id. **An id is permanent once shipped** — p
 
 A particle's `tile` must also be in the `grammar` pool — the pool is what feeds distractors into the drill, so a particle missing from it is never offered as a wrong answer. Adding or reordering a pool entry reshuffles the generated banks, which is harmless: banks are generated per render and never stored.
 
-Only add a pattern a sentence actually teaches. A pattern nothing is tagged with is a row that can never be scored, and it reads later as a gap in the learner's knowledge rather than a gap in the content.
+Only add a pattern a sentence actually teaches. One nothing is tagged with is a declaration with nothing behind it.
+
+Neither the gloss nor the pattern note appears in the app today — they are here for the exercises on [ROADMAP.md](ROADMAP.md).
 
 ## What `npm test` checks
 
