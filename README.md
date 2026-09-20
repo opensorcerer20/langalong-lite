@@ -47,10 +47,33 @@ npm run dev
 
 `dist/` is a folder of static files and deploys to any static host. Every url it contains is relative — assets, the manifest, and the service worker's precache list — so it works at a domain root or under a subpath with no rebuild.
 
-The target is **GitHub Pages**, at a project path: `opensorcerer20.github.io/langalong-lite/`. Two things that follow from it:
+## Deploying
 
-- **It must be served over HTTPS.** Service workers only register in a secure context, so the app is installable and offline from Pages, and from `localhost` while you develop. Serving `dist/` over plain http to a phone on the LAN gives you the app without either.
-- **The subpath is why urls are relative.** `base: './'` in `vite.config.ts` is load-bearing, not a preference.
+The app lives at **https://opensorcerer20.github.io/langalong-lite/**, published by [.github/workflows/deploy.yml](.github/workflows/deploy.yml) on every push. `workflow_dispatch` runs it by hand from the Actions tab. A repo has one Pages site, so the most recent run wins — which is what makes install-testing a branch possible.
+
+Two settings live in the GitHub UI rather than in this repo, and both are invisible from a checkout:
+
+- **Settings → Pages → Source: GitHub Actions.** Left on "Deploy from a branch", Pages serves the repository root instead of the build: `index.html` then points at `/src/main.tsx`, so the app is a blank screen with no manifest and no install prompt.
+- **Settings → Environments → `github-pages` → Deployment branches.** Only the default branch may deploy until another is added, otherwise the run fails with "Branch is not allowed to deploy to github-pages".
+
+A deploy is serving the build when `manifest.webmanifest` and `sw.js` return 200 and `package.json` returns 404:
+
+```
+curl -s -o /dev/null -w "%{http_code}\n" https://opensorcerer20.github.io/langalong-lite/sw.js
+```
+
+**Pages on a private repo is public by default.** Anyone with the url can read whatever is served. Settings → Pages → Private site access restricts it to accounts with repo access, at the cost of a GitHub sign-in on the phone.
+
+### Installing on the phone
+
+Open the url in Chrome on Android, then menu (⋮) → **Add to Home screen**. It launches standalone and works offline: the lessons are inside the precached bundle, so there is nothing to download after the first visit.
+
+**After a deploy, fully close the installed app and reopen it.** `src/sw.ts` calls `skipWaiting()`, so the new build takes over on the next launch; reloading in place can keep serving the old one.
+
+### Why the urls are relative
+
+- **It must be HTTPS.** Service workers only register in a secure context, so the app is installable and offline from Pages, and from `localhost` while you develop. Serving `dist/` over plain http to a phone on the LAN gives you the app without either.
+- **The subpath is why urls are relative.** `base: './'` in `vite.config.ts` is load-bearing, not a preference. It covers assets, the manifest, and the worker's precache list, so the same `dist/` runs at a domain root or under a project path with no rebuild.
 
 ## Tech stack
 
@@ -88,6 +111,7 @@ The app is organised so each piece can be read on its own: the language content 
 | `src/sw.ts`, `src/pwa.ts` | The service worker, and the code that registers it |
 | `scripts/` | `npm run import` and `npm run font`, plus the pure halves they are tested through |
 | `tools/` | Build-time code Vite calls — currently the plugin emitting the manifest and `sw.js` |
+| `.github/workflows/` | The Pages deploy — see [Deploying](#deploying) |
 | `tests/` | Behaviour that would be noticeable in the app; not one file per component |
 | `fonts/`, `icons/` | Vendored Archivo and Noto Sans JP subsets, and the app icons |
 | `_ds/modernist-…/` | The Modernist design system — the source of every colour, space and radius token |
