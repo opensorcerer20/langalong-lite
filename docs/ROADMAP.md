@@ -6,7 +6,27 @@ Three lists. **Planned** is work that could start as things stand. **Needs progr
 
 > **The scope of this app is one person practising Japanese on one phone.** Weigh anything below against that before starting it.
 
-## Planned
+## Definite planned changes
+
+- Fix issues found testing on phone
+  - romaji hard to read, maybe make bold
+  - need to keep check button / hint / etc at bottom of screen
+
+- Evaluate whether to act on these thoughts from developer:
+  - Osusume wa nan desu ka?: add alts, and add the note "this is the more natural phrasing as opposed to 'nani ga osusume desu ka'".
+  - For answers with alternates, give a chance to get the best answer.
+  - Clicking a tile that was placed removes only that tile, and the next tile clicked goes in that spot.
+  - Star system:
+    - one star: finished with zero incorrect
+    - two stars: finished with zero misses
+    - three stars: finished all sections with zero misses
+  - Highlight incorrect tile(s) after 2nd incorrect answer, accounting for alternate answers
+  - Increased difficulty options
+    - 1) (my current preference) totally based on scenarios, thus the content of each dictates difficulty directly
+    - 2) more complex sentences or exercise formulation in code
+    - 3) utilize user right/wrong frequency to determine what is difficult for player
+
+## Features not yet planned
 
 - The **response level** — a Japanese line is spoken in a social situation and the learner assembles a reply, ranked by politeness register rather than judged literally.
 - **Audio** playback of prompts, and a kana keyboard fallback.
@@ -22,23 +42,6 @@ Each of these wants a record of what the learner has done, which the app no long
 - **Progress on the home screen** — per-situation completion, best score and the three-star system below.
 - **Notifications** and the daily reminder. The service worker makes this reachable with no page open, but it needs something to read.
 - **Cross-scenario review and targeted remediation** — a review mix drawn from several situations, and a dismissible "you keep mixing up は and が" when the per-tag error rate says so consistently. The `teaches` tags make the second a query rather than a guess, once errors are recorded.
-
-## Todo
-
-Rough notes.
-
-- Osusume wa nan desu ka?: add alts, and add the note "this is the more natural phrasing as opposed to 'nani ga osusume desu ka'".
-- For answers with alternates, give a chance to get the best answer.
-- Clicking a tile that was placed removes only that tile, and the next tile clicked goes in that spot.
-- Star system:
-  - one star: finished with zero incorrect
-  - two stars: finished with zero misses
-  - three stars: finished all sections with zero misses
-- Highlight incorrect tile(s) after 2nd incorrect answer, accounting for alternate answers
-- Increased difficulty options
-  - 1) (my current preference) totally based on scenarios, thus the content of each dictates difficulty directly
-  - 2) more complex sentences or exercise formulation in code
-  - 3) utilize user right/wrong frequency to determine what is difficult for player
 
 ## What the current design assumes
 
