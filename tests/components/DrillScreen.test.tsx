@@ -68,13 +68,9 @@ const LANGUAGE: LanguagePack = {
 
 /** A stand-in view model, so the screen can be driven directly.
 
-    Nothing here is derived. An earlier version computed `done`, `showNote` and
-    `showReveal` from the state the test passed in, which meant a test setting
-    `misses: 2` and asserting the note appeared was really asserting that this
-    function could compare two numbers — the screen would have passed it however
-    it was wired. The flags are plain defaults now, and a test that cares about
-    one sets it explicitly. Where those flags come from is useTsumiki's business
-    and is tested there. */
+    Nothing here is derived: a test that cares about `done`, `showNote` or
+    `showReveal` sets it explicitly. Deriving them from `misses` would test this
+    helper's arithmetic rather than the screen. */
 function view(state: Partial<AppState> = {}, over: Partial<Tsumiki> = {}): Tsumiki {
   return {
     state: { ...initialState, screen: 'drill', ...state },
@@ -145,9 +141,8 @@ describe('DrillScreen', () => {
     expect(screen.getByText(NOTE)).toBeInTheDocument();
   });
 
-  /* An item with no note is not a broken item — it is a short phrase with
-     nothing to explain. Missing it repeatedly must not put an empty panel on
-     screen, and must not send the learner looking for help that is not there. */
+  /* A short phrase has nothing to explain. Missing it repeatedly must not put
+     an empty panel on screen, or promise help that is not there. */
   it('renders no note, and promises none, for an item without one', () => {
     render(
       <DrillScreen

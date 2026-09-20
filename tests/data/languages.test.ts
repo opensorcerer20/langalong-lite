@@ -1,17 +1,9 @@
-/* Content integrity, run over every pack the app ships.
+/* Content integrity over every pack: the net that catches a typo in a new
+   sentence before it becomes a drill that cannot be completed.
 
-   These do not test code so much as they test the content: they are the net
-   that catches a typo in a new sentence before it reaches a learner as a drill
-   that cannot be completed. Driving them off LANGUAGES rather than off one
-   language means a pack added later inherits the whole net for free.
-
-   One test per invariant, looping over the content — not one test per sentence.
-   A pack is a few hundred sentences eventually, and a describe.each over the
-   items would report that as a few hundred tests all making the same check.
-   What a failure has to tell you is which sentence broke, and that is what the
-   assertion message carries; see `where` below.
-
-   Anything true only of Japanese belongs in ja.test.ts, not here. */
+   - One test per invariant, looping over the content. The assertion message
+     names the sentence that broke; see `where` below.
+   - Anything true only of Japanese belongs in ja.test.ts. */
 
 import { describe, expect, it } from 'vitest';
 
@@ -61,15 +53,13 @@ describe.each(LANGUAGES)('$name', (language) => {
     expect(new Set(texts).size).toBe(texts.length);
   });
 
-  /* Progress is stored against a composed key, and parseKey splits it on the
-     separator. An id containing one would read back as a different scenario. */
+  /* Ids stay ":"-free so they remain usable as key segments, which is what they
+     were when progress was stored and what they would be again. */
   it('gives every situation an id, unique within the pack and free of ":"', () => {
     const ids = language.scenarios.map((s) => s.id);
     for (const scenario of language.scenarios) {
       expect(scenario.id.trim(), `"${scenario.name}" has no id`).not.toBe('');
-      expect(scenario.id, `"${scenario.name}" — ":" is the storage key separator`).not.toContain(
-        ':',
-      );
+      expect(scenario.id, `"${scenario.name}" — an id may not contain ":"`).not.toContain(':');
     }
     expect(new Set(ids).size, 'two situations share an id').toBe(ids.length);
   });
@@ -87,15 +77,14 @@ describe.each(LANGUAGES)('$name', (language) => {
       for (const item of scenario.items) {
         const where = `${scenario.name} "${item.en}"`;
         expect(item.id.trim(), `${where} has no id`).not.toBe('');
-        expect(item.id, `${where} — ":" is the storage key separator`).not.toContain(':');
+        expect(item.id, `${where} — an id may not contain ":"`).not.toContain(':');
       }
       expect(new Set(ids).size, `"${scenario.name}" repeats a sentence id`).toBe(ids.length);
     }
   });
 
-  /* The invariant the tile-level history depends on. Two tiles sharing text but
-     spelling the reading differently would collapse into one row, and the
-     learner's record for パン would silently be a record of two things. */
+  /* Otherwise the same word shows one romaji in one situation and another
+     elsewhere, and assemblePack's merge has nothing to catch. */
   it('reads a given tile text exactly one way, everywhere it appears', () => {
     const readings = new Map<string, string>();
     const everyTile = [
@@ -196,9 +185,7 @@ describe.each(LANGUAGES)('$name', (language) => {
     const particleIds = new Set(language.particles.map((p) => p.id));
     const patternIds = new Set(language.conjugations.map((c) => c.id));
 
-    /* Same rule as a scenario or sentence id, for the same reason: these are
-       storage key segments, so a change orphans everything recorded under the
-       old one and a ":" would read back as a different key entirely. */
+    /* Same ":"-free rule as a scenario or sentence id. */
     it('gives every particle and pattern an id, unique and free of ":"', () => {
       for (const particle of language.particles) {
         expect(particle.id.trim(), `a particle has no id`).not.toBe('');
@@ -218,10 +205,8 @@ describe.each(LANGUAGES)('$name', (language) => {
       expect(patternIds.size, 'two patterns share an id').toBe(language.conjugations.length);
     });
 
-    /* The two lists overlap by design and must not drift. The grammar pool is
-       what the sentence drill draws distractors from, so particles.ts
-       re-declares its tiles rather than the pool being derived from it — which
-       is exactly the arrangement that lets them fall out of step, hence this. */
+    /* The declared particles and the distractor pool overlap by design, and
+       nothing derives one from the other, so they can drift. */
     it('declares every particle with the same tile the grammar pool holds', () => {
       const pool = new Map(language.grammar.map((tile) => [tile[0], tile[1]]));
 
@@ -231,17 +216,10 @@ describe.each(LANGUAGES)('$name', (language) => {
         expect(pool.get(text), `particle "${id}" (${text}) is read two ways`).toBe(reading);
       }
     });
-
-    /* Two tests over `confusedWith` stood here — that every id resolved to a
-       declared particle, and that the relation was symmetrical. The field is
-       gone: nothing but these read it, it was authored for a particle exercise
-       that does not exist, and symmetry meant adding one particle obliged you
-       to edit others. Reinstate both alongside whatever the drill declares. */
   });
 
-  /* Tags are what a later exercise selects on and what remediation reports
-     against, so a tag naming something that does not exist is a drill that
-     silently has nothing in it. */
+  /* Nothing reads tags yet, so this is what keeps the authored data correct
+     until something does. */
   it('tags every sentence with particles and patterns the pack declares', () => {
     const particleIds = new Set(language.particles.map((p) => p.id));
     const patternIds = new Set(language.conjugations.map((c) => c.id));
@@ -262,18 +240,13 @@ describe.each(LANGUAGES)('$name', (language) => {
     }
   });
 
-  /* A tagged particle the sentence does not contain would be a claim about
-     grammar the learner never sees — and, once it is recorded, a row saying
-     they got に right in a sentence with no に in it. The reverse is fine and
-     expected: every sentence contains です and almost none are about it.
+  /* A tagged particle the sentence never puts on screen is a claim about
+     grammar the learner never sees. The reverse is fine: every sentence
+     contains です and almost none are about it.
 
-     An accepted alternate counts. Station 08 is tagged へ and answers with に,
-     because the pair is the whole point of the sentence and either is correct;
-     the bank seeds へ from the alternate, so the learner really can be shown
-     it. Alternates are plain strings with no tile structure, so this is a
-     substring test rather than a tile lookup — loose enough to admit a false
-     positive, which is the right way round for a check whose job is to catch a
-     tag naming grammar that is simply not there. */
+     Alternates count — station 08 is tagged へ and answers with に — and they
+     are plain strings, so this is a substring test. Loose on purpose: its job
+     is to catch a tag for grammar that is simply absent. */
   it('tags a sentence only with particles it actually puts in front of the learner', () => {
     const textOf = new Map(language.particles.map((p) => [p.id, p.tile[0]]));
 

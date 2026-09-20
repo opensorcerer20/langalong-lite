@@ -96,9 +96,8 @@ describe('App', () => {
     expect(screen.getByText('Additional grammar tips')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /show me/i })).not.toBeInTheDocument();
 
-    /* That a reveal forfeits the first-try credit is appReducer's rule, and is
-       asserted there — playing out the remaining nine sentences here to read it
-       off the done screen costs a second and proves nothing extra. */
+    /* A reveal forfeiting first-try credit is appReducer's rule, asserted there
+       rather than by playing out nine more sentences here. */
   });
 
   it('accepts a correct answer and counts it', async () => {
@@ -156,9 +155,8 @@ describe('App', () => {
     expect(screen.getByRole('status')).toHaveTextContent('');
   });
 
-  /* A whole set, start to finish, then round again — one journey rather than
-     three that each replay the same ten sentences to make one assertion. The
-     replay is the expensive thing in this file, so it happens once. */
+  /* One journey through a whole set, because replaying ten sentences is the
+     expensive thing in this file. */
   it('finishes the set, scores it, and practises it again from the top', async () => {
     const user = userEvent.setup();
     render(<App language={LANGUAGE} />);

@@ -1,16 +1,9 @@
-/* The one authoring mistake the compiler cannot see.
+/* The one authoring mistake the compiler cannot see: a typo'd *optional* key.
+   `"nte"` for `"note"` leaves `note` absent, which is legal, so the sentence
+   quietly loses its explanation.
 
-   `resolveJsonModule` checks an imported pack file against `PackFile`, so a
-   missing required field or a wrong type is a build error. A typo'd *optional*
-   key is not: `"nte"` for `"note"` leaves `note` absent, which is legal, and
-   the sentence quietly loses its explanation.
-
-     "note":  "…"   ✓
-     "nte":   "…"   ✗ silent — note is optional, so nothing is missing
-
-   The allowed keys are listed here rather than in src/: they are a test's
-   business, and a field added to PackFile without being added here fails loudly
-   the first time content uses it, which is the safe direction to fail. */
+   The allowed keys are listed here, not in src/. A field added to PackFile but
+   not here fails the first time content uses it, which is the safe direction. */
 
 import { describe, expect, it } from 'vitest';
 
@@ -40,11 +33,8 @@ function strayKeys(object: object, allowed: readonly string[], where: string): s
 }
 
 /**
- * Every key in `pack` that no authored shape declares.
- *
- * Walks the five levels by hand rather than generically. A generic walker would
- * need the shape described in data — which is the schema library this file
- * exists to avoid needing.
+ * Every key in `pack` that no authored shape declares. Walks the five levels by
+ * hand: a generic walker would need the shapes as data, i.e. a schema library.
  */
 export function unknownKeys(pack: PackFile): string[] {
   const problems = strayKeys(pack, PACK_KEYS, 'the pack');

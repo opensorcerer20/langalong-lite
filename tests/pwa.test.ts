@@ -1,11 +1,6 @@
-/* Service worker registration.
-
-   None of this is observable in the app — it either leaves offline support
-   behind for the next visit or it does not — so the tests are the only place
-   the behaviour is stated. The case worth the most is the narrow one: a foreign
-   worker gets unregistered, and a worker that merely exists does not.
-
-   jsdom has no serviceWorker at all, which is the unsupported case for free. */
+/* Service worker registration, which is invisible in the app until the next
+   visit. The case worth the most: a foreign worker controlling the page gets
+   unregistered, and one that merely exists does not. */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
