@@ -1,15 +1,10 @@
 /* npm run font
 
    Regenerates fonts/noto-sans-jp-subset.woff2 to cover exactly the Japanese in
-   the pack, and writes the character list beside it as .txt.
+   the pack, plus a .txt of the characters so coverage is greppable.
 
-   The .txt is the point of keeping this a script rather than a note in the
-   docs: nothing else records what the subset covers, so "is 肉 in there?" was
-   unanswerable without parsing the binary. With it, the answer is a grep.
-
-   Run it after adding vocabulary. Skipping it does not break the build — the
-   glyph falls back to the OS Japanese font, which reads as one tile in a bank
-   being subtly the wrong shape. */
+   Run it after adding vocabulary. Skipping it does not break the build: a
+   missing glyph falls back to the OS font, so one tile looks subtly off. */
 
 import { readFileSync, writeFileSync } from 'node:fs';
 
@@ -20,8 +15,8 @@ import { compareSubsets, japaneseCharacters, woff2UrlIn } from './fontSubset';
 const WOFF2_PATH = 'fonts/noto-sans-jp-subset.woff2';
 const TEXT_PATH = 'fonts/noto-sans-jp-subset.txt';
 
-/* Without this, css2 serves TrueType across nine static weights instead of one
-   variable woff2. It is the single most breakable thing here. */
+/* Without a browser User-Agent, css2 serves nine static TrueType faces instead
+   of one variable woff2. The most breakable thing here. */
 const BROWSER =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 ' +
   '(KHTML, like Gecko) Chrome/120.0 Safari/537.36';
@@ -58,11 +53,10 @@ function previousCharacters(): string[] {
 }
 
 /**
- * The one variable woff2 Google Fonts cuts for exactly these characters.
+ * The variable woff2 Google Fonts cuts for exactly these characters.
  *
- * Two requests: the stylesheet, then the file it points at. The result is
- * checked for the woff2 signature before anything is written, so a redirect to
- * an error page cannot quietly replace the vendored font with HTML.
+ * Checked for the woff2 signature before writing, so an error page can never
+ * replace the vendored font.
  */
 async function download(text: string): Promise<Buffer> {
   const query = new URLSearchParams({ family: 'Noto Sans JP:wght@100..900', text });

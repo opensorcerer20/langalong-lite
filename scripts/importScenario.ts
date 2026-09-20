@@ -1,13 +1,10 @@
 /* npm run import -- content/ja/restaurant.json
 
-   Checks one situation file and reports what it would add. Nothing is written:
-   a situation joins the pack by being listed in src/data/languages.ts, and this
-   says whether it is ready to be.
+   Checks one situation file and reports what it would add. Writes nothing; a
+   situation joins the pack by being listed in src/data/languages.ts.
 
-   Two checks, in order. contentSchema parses the file, since tsc has never seen
-   it — that catches a missing field or a typo'd key with its path. Then
-   loadPack runs on the pack the file would make, which is the same throw the app
-   boots on, so the script cannot drift from what the app accepts. */
+   1. contentSchema: shape and typo'd keys.
+   2. loadPack on the resulting pack: the same check the app boots with. */
 
 import { readFileSync } from 'node:fs';
 

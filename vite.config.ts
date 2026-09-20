@@ -6,14 +6,15 @@ import stylex from '@stylexjs/unplugin/vite';
 import { pwa } from './tools/pwa';
 
 /**
- * The StyleX plugin, minus its dev-server hook under Vitest.
+ * The StyleX plugin, with its dev-server hook kept only for `npm run dev`.
  *
- * That hook starts an HMR poll that Vitest never clears, hanging every test
- * run for ten seconds on exit. Tests only need the transform.
+ * The hook starts an HMR poll that is only cleared when a listening http
+ * server closes. Vitest (`test`) and vite-node scripts (`script`) never
+ * listen, so the poll keeps the process alive after it finishes.
  */
 function stylexFor(mode: string) {
   const plugin = stylex();
-  if (mode !== 'test') return plugin;
+  if (mode === 'development') return plugin;
 
   const { configureServer: _configureServer, ...withoutDevServer } = plugin;
   return withoutDevServer;
