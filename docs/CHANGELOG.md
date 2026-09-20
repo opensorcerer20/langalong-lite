@@ -4,6 +4,20 @@
 
 Notable changes, newest first. Entries record *why* and what carries forward, not every commit — `git log` has those.
 
+## 2026-09-20 — Two fixes from 17 September, recorded late
+
+Both were closed on **2026-09-17** in the `cleanup-03` branch and never written up here. They were carried on [MAINTENANCE.md](MAINTENANCE.md) as "Resolved" entries instead; trimming that file is what surfaced them. Dates below are from `git log`.
+
+**`Scenario.kicker` was `"Set 01"`, and `App.tsx` recovered the number with `.replace('Set ', '')`** — a display string doing double duty as data. It is now `Scenario.lessonNum`, the bare `"01"`; `ScenarioRow` renders `Set {lessonNum}`, and the header uses the number directly. The English word "Set" now lives in the component layer with the rest of the UI copy.
+
+**Two defensive fallbacks had nothing checking they never fire.** `revealPlacement.ts` returns index `0` for an answer tile missing from the bank, and `checkAnswer.ts` drops a placed index the bank cannot resolve — both dating from the 2026-08-25 React conversion. Either firing would show a wrong sentence and call it the answer. `tests/data/languages.test.ts` now asserts neither can, over every sentence in every pack:
+
+```
+Bakery · 01 "One bread, please." — reveal put "で" where "ください" belongs
+```
+
+The guard stops a content bug crashing the drill; the test stops one reaching the drill. Throwing instead would trade the second for nothing.
+
 ## 2026-09-20 — Scope cut back to one person drilling Japanese
 
 The app had grown scaffolding for things that were never built: a progress database for a spaced-repetition scheduler, three unwritten exercise modes, and a test suite larger than the app. All of it was removed. The drill itself, the content, the language-pack layer and offline support are untouched.
