@@ -11,10 +11,10 @@ Three lists. **Planned** is work that could start as things stand. **Needs progr
 - Fix issues found testing on phone
   - romaji hard to read, maybe make bold
   - need to keep check button / hint / etc at bottom of screen
-- Osusume wa nan desu ka?: add alts, and add the note "this is the more natural phrasing as opposed to 'nani ga osusume desu ka'".
-- For answers with alternates, give a chance to get the best answer.
-- Clicking a tile that was placed removes only that tile, and the next tile clicked goes in that spot.
-- Highlight incorrect tile(s) after 2nd incorrect answer, accounting for alternate answers
+- bakery exercise id 10
+  - add the note "this is the more natural phrasing as opposed to 'nani ga osusume desu ka'".
+- when a tile in the answer is clicked to remove it, all tiles to the right of it are also removed. this prevents removing a tile and then clicking the replacement only to see it added behind a tile that was originally behind the one that was removed (this may seem unclear, i can try to make more clear on request)
+- Highlight incorrect tile(s) in the answer after the 2nd incorrect answer, accounting for alternate answers
 
 ## Features not yet planned
 
