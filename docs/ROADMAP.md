@@ -16,6 +16,9 @@ Three lists. **Planned** is work that could start as things stand. **Needs progr
 - Clicking a tile that was placed removes only that tile, and the next tile clicked goes in that spot.
 - Highlight incorrect tile(s) after 2nd incorrect answer, accounting for alternate answers
 
+## Immediate future plans
+- Prefer hint to not be part of scroll
+
 ## Features not yet planned
 
 - The **response level** — a Japanese line is spoken in a social situation and the learner assembles a reply, ranked by politeness register rather than judged literally.
