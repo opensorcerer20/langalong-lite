@@ -46,6 +46,7 @@ export type AppAction =
   | { type: 'openScenario'; scenario: number }
   | { type: 'goHome' }
   | { type: 'tap'; bankIndex: number }
+  /* Clears the line from this position on. */
   | { type: 'untap'; position: number }
   | { type: 'check'; correct: boolean }
   /* The bank positions that spell the answer. */
@@ -89,7 +90,9 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       if (isDone(state)) return state;
       return {
         ...state,
-        placed: state.placed.filter((_, position) => position !== action.position),
+        /* Takes the tile and everything after it, so the next tap lands in the
+           spot just vacated. Nothing has to remember where the gap was. */
+        placed: state.placed.slice(0, action.position),
         status: 'idle',
       };
 

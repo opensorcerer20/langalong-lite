@@ -1,4 +1,5 @@
-/* The line the sentence is built on. Tapping a placed tile sends it back.
+/* The line the sentence is built on. Tapping a placed tile sends it back, along
+   with everything after it, so the next tile tapped lands in that spot.
 
    No placeholder slots: they would give away the answer's length, and an
    alternate answer may be a different length anyway. */

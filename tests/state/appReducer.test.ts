@@ -65,7 +65,22 @@ describe('placing tiles', () => {
 
   it('removes a placed tile by its position, not its bank index', () => {
     const state = place(drilling(), [2, 3, 0]);
-    expect(appReducer(state, { type: 'untap', position: 1 }).placed).toEqual([2, 0]);
+    expect(appReducer(state, { type: 'untap', position: 2 }).placed).toEqual([2, 3]);
+  });
+
+  it('takes the tiles after the one removed with it, so the next tap lands there', () => {
+    const state = place(drilling(), [2, 3, 0]);
+    expect(appReducer(state, { type: 'untap', position: 1 }).placed).toEqual([2]);
+  });
+
+  it('empties the line when the first tile is removed', () => {
+    const state = place(drilling(), [2, 3, 0]);
+    expect(appReducer(state, { type: 'untap', position: 0 }).placed).toEqual([]);
+  });
+
+  it('frees a removed tile to be placed again', () => {
+    const emptied = appReducer(place(drilling(), [2, 3, 0]), { type: 'untap', position: 1 });
+    expect(appReducer(emptied, { type: 'tap', bankIndex: 0 }).placed).toEqual([2, 0]);
   });
 
   it('ignores a tile that is already placed', () => {
