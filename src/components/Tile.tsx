@@ -78,7 +78,8 @@ const s = stylex.create({
   },
 
   reading: {
-    fontSize: 10,
+    fontSize: 12,
+    fontWeight: 600,
     letterSpacing: '0.06em',
   },
 
@@ -103,7 +104,7 @@ const s = stylex.create({
   },
 
   readingPlaced: {
-    opacity: 0.7,
+    opacity: 0.85,
   },
 
   /* Bank tiles are surface with a 2px rule, taking the accent on hover. */
@@ -122,7 +123,7 @@ const s = stylex.create({
   },
 
   readingBank: {
-    color: 'var(--color-neutral-600)',
+    color: 'var(--color-neutral-700)',
   },
 
   /* A placed tile's slot in the bank: hidden, but still occupying its space so
