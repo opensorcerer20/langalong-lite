@@ -3,7 +3,6 @@
 
 import type { LanguagePack } from '../data/types';
 import { useTsumiki } from '../state/useTsumiki';
-import type { ProgressStore } from '../storage/types';
 import { DoneScreen } from './DoneScreen';
 import { DrillScreen } from './DrillScreen';
 import { Header } from './Header';
@@ -12,28 +11,11 @@ import { PhoneColumn } from './PhoneColumn';
 import { ProgressBar } from './ProgressBar';
 
 export interface AppProps {
-  /** The pack to drill, resolved by the caller from a ContentSource. */
   readonly language: LanguagePack;
-  /** Where attempts are recorded. Omitted, the drill runs and records nothing. */
-  readonly progress?: ProgressStore;
-  /**
-   * Whether that store survives the session — `Repository.durable`. False when
-   * IndexedDB could not be opened and progress is being kept in memory, which
-   * the header then says out loud.
-   *
-   * Defaults to true, so a caller that has no store to speak of — a component
-   * test, mainly — does not accidentally claim the app is failing to save.
-   */
-  readonly durable?: boolean;
 }
 
-/* Short enough for the header's uppercase slot, and about the consequence
-   rather than the cause: "IndexedDB is unavailable" is not the learner's
-   problem to hold. */
-const NOT_SAVING = 'Not saving';
-
-export function App({ language: pack, progress, durable = true }: AppProps) {
-  const tsumiki = useTsumiki(pack, progress);
+export function App({ language: pack }: AppProps) {
+  const tsumiki = useTsumiki(pack);
   const { state, language, scenario, scenarios, total } = tsumiki;
 
   const inDrill = state.screen === 'drill';
@@ -48,7 +30,6 @@ export function App({ language: pack, progress, durable = true }: AppProps) {
                  a learner at the beginning. */
               `${language.name} · beginner`
         }
-        notice={durable ? undefined : NOT_SAVING}
         onBack={inDrill ? tsumiki.goHome : undefined}
       />
 

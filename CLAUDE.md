@@ -56,7 +56,7 @@ Every few completed steps, or when a feature roadmap finishes, give a short summ
 
 ## Project structure
 - `src/` — implementation code
-- `tests/` — one test file per component
+- `tests/` — at most one test file per component
 - `prototype/` - holds original prototype for app, no further changes desired here
 
 ## Action scope
@@ -104,3 +104,5 @@ When in doubt, default to a code/diagram representation even for simple structur
 - Don't use unicode characters like ’ when it's more typical to use '
 - Try to avoid needing to escape ' or " unless there's a strong reason to do so.
 
+## Running scripts to test them
+- Apply a 15 second timeout in case a script does not exit properly, which prevents the tool from waiting forever for it to finish.

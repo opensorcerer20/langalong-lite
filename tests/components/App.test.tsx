@@ -96,9 +96,8 @@ describe('App', () => {
     expect(screen.getByText('Additional grammar tips')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /show me/i })).not.toBeInTheDocument();
 
-    /* That a reveal forfeits the first-try credit is appReducer's rule, and is
-       asserted there — playing out the remaining nine sentences here to read it
-       off the done screen costs a second and proves nothing extra. */
+    /* A reveal forfeiting first-try credit is appReducer's rule, asserted there
+       rather than by playing out nine more sentences here. */
   });
 
   it('accepts a correct answer and counts it', async () => {
@@ -156,9 +155,8 @@ describe('App', () => {
     expect(screen.getByRole('status')).toHaveTextContent('');
   });
 
-  /* A whole set, start to finish, then round again — one journey rather than
-     three that each replay the same ten sentences to make one assertion. The
-     replay is the expensive thing in this file, so it happens once. */
+  /* One journey through a whole set, because replaying ten sentences is the
+     expensive thing in this file. */
   it('finishes the set, scores it, and practises it again from the top', async () => {
     const user = userEvent.setup();
     render(<App language={LANGUAGE} />);
@@ -217,42 +215,6 @@ describe('App', () => {
 
     const needed = FIRST.items[0]!.ans.length;
     expect(bankTiles().length).toBeGreaterThan(needed * 2);
-  });
-
-  /* The app is allowed to forget a session; it is not allowed to do so
-     silently. See Repository.durable. */
-  describe('when progress will not survive the session', () => {
-    it('says so', () => {
-      render(<App language={LANGUAGE} durable={false} />);
-      expect(screen.getByText(/not saving/i)).toBeInTheDocument();
-    });
-
-    it('says nothing when storage is durable', () => {
-      render(<App language={LANGUAGE} durable />);
-      expect(screen.queryByText(/not saving/i)).not.toBeInTheDocument();
-    });
-
-    /* Omitting the prop must not read as a failure — most callers, tests
-       included, have no store to speak of. */
-    it('says nothing when durability is not stated', () => {
-      render(<App language={LANGUAGE} />);
-      expect(screen.queryByText(/not saving/i)).not.toBeInTheDocument();
-    });
-
-    /* The notice sits in the header for the whole session, including inside a
-       drill — where the status line is the page's one live region. Two would
-       make `getByRole('status')` ambiguous, and would announce a standing
-       condition as though it had just changed. */
-    it('keeps the drill playable, and leaves the status line the only live region', async () => {
-      const user = userEvent.setup();
-      render(<App language={LANGUAGE} durable={false} />);
-      await user.click(screen.getByText(FIRST.name));
-      await solve(user, 0);
-      await user.click(primary());
-
-      expect(screen.getByText(/not saving/i)).toBeInTheDocument();
-      expect(screen.getByRole('status')).toHaveTextContent('Correct');
-    });
   });
 
   it('renders the romaji under the kana', async () => {

@@ -1,16 +1,7 @@
-/* The whole of the app's behaviour, as one pure function.
+/* The drill rules, as one pure function. Imports nothing.
 
-   This file imports nothing at all, which is the strongest form of the rule it
-   was already following. Where a transition needs to know what the answer is —
-   `check` and `reveal` — the caller puts the *verdict* in the action rather
-   than the material to reach one: `check` carries whether the answer was right,
-   `reveal` carries the positions to fill. Judging is useTsumiki's job, where
-   the content and the language's joiner already are.
-
-   That split is what makes these rules exercise-agnostic. Nothing below knows
-   what a sentence is, so the miss ladder, the first-try score and advancing
-   through a set work identically for a vocabulary cloze or a conjugation drill
-   — the pieces that differ are the ones that were never in here. */
+   Actions carry verdicts, not evidence: `check` says whether the answer was
+   right, `reveal` gives the positions to fill. useTsumiki does the judging. */
 
 /** Which screen is showing. */
 export type Screen = 'home' | 'drill';
@@ -25,7 +16,7 @@ export type DrillStatus = 'idle' | 'wrong' | 'right' | 'shown';
 
 export interface AppState {
   readonly screen: Screen;
-  /** Index into SCENARIOS. */
+  /** Index into the language's scenarios. */
   readonly scenario: number;
   /** Index of the current item within that scenario's set. */
   readonly item: number;
@@ -56,14 +47,8 @@ export type AppAction =
   | { type: 'goHome' }
   | { type: 'tap'; bankIndex: number }
   | { type: 'untap'; position: number }
-  /* The verdict, not the evidence. useTsumiki already computed this to decide
-     what to record before dispatching — it had to, because a store write
-     cannot wait for a re-render — so passing it in removes a second, separate
-     judgement of the same answer rather than moving work around. */
   | { type: 'check'; correct: boolean }
-  /* The bank positions that spell the answer, worked out by the caller. Which
-     positions those are depends on what kind of exercise this is; that the
-     line then locks does not. */
+  /* The bank positions that spell the answer. */
   | { type: 'reveal'; placed: readonly number[] }
   | { type: 'next'; itemCount: number }
   | { type: 'restart' };
@@ -73,7 +58,7 @@ export function isDone(state: AppState): boolean {
   return state.status === 'right' || state.status === 'shown';
 }
 
-/** The state an item starts in. Keeps the four per-item fields in one place. */
+/** The state an item starts in. */
 const FRESH_ITEM = { placed: [], misses: 0, status: 'idle' } as const;
 
 export function appReducer(state: AppState, action: AppAction): AppState {

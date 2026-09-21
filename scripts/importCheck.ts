@@ -1,16 +1,10 @@
 /* What a situation file would do to the pack, and how to say it.
 
-   Pure. The CLI beside this file reads, prints and exits.
+   Pure; importScenario.ts is the CLI.
 
-   A candidate is checked *in place*: if the pack already has a situation with
-   its id, the file stands in for that one rather than being appended. So the
-   same command answers both questions —
-
-     before wiring it in   what would this add?
-     after wiring it in    is this file still sound?
-
-   — and neither is a duplicate-id error. Nothing is written either way; a
-   situation joins the pack by being listed in src/data/languages.ts. */
+   Checked in place: a file whose id the pack already lists replaces that
+   situation rather than being appended, so re-checking a wired-in file is not
+   a duplicate-id error. */
 
 import type { CoreFile, ScenarioFile } from '../src/data/assemblePack';
 import { assemblePack } from '../src/data/assemblePack';
@@ -105,12 +99,7 @@ function reusedFrom(items: readonly ItemEntry[], grammar: readonly string[]): st
   return [...seen];
 }
 
-/**
- * Grammar ids no other situation teaches.
- *
- * The line worth reading: `teaches` is declared per sentence, so nothing else
- * says whether a new situation broadens the pack's coverage or repeats it.
- */
+/** Grammar ids no other situation teaches. */
 function firstTaughtBy(items: readonly ItemEntry[], others: readonly ScenarioFile[]): string[] {
   const already = new Set(
     others.flatMap((file) => file.items.flatMap((item) => item.teaches ?? [])),

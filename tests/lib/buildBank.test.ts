@@ -1,14 +1,8 @@
-/* The bank generator.
+/* The bank generator, against its own fixtures rather than shipped content —
+   editing a sentence must not fail a test about buildBank.
 
-   Its own fixtures, not the shipped pack. Two rounds of borrowed content have
-   been removed from this file: a JSON fixture pinning all 18 banks tile for
-   tile against the prototype's bankFor(), and, after that, tests reaching into
-   `LANGUAGE.scenarios[0].items[5]` for a long answer and `items[6]` for one
-   with an alternate. Both made editing a sentence fail a test about buildBank.
-
-   What is asserted here is the generator's contract, which content growth does
-   not disturb: the same item and index give the same bank, every answer tile is
-   in it, no text repeats, and it is oversupplied by the multiplier. */
+   The contract: same item and index give the same bank, every answer tile is in
+   it, no text repeats, and it is oversupplied by the multiplier. */
 
 import { describe, expect, it } from 'vitest';
 

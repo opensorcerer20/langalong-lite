@@ -1,0 +1,55 @@
+# Builds the app and publishes dist/ to GitHub Pages.
+#
+# - Runs on every branch: a repo has one Pages site, so the latest run wins.
+#   That is what makes install-testing a branch on the phone possible.
+# - `npm run build` runs `tsc --noEmit` first, so a type error blocks the deploy.
+# - Pages must be set to "GitHub Actions" as its source, and the github-pages
+#   environment must allow this branch — see docs/MAINTENANCE.md.
+
+name: Deploy to Pages
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time; a newer push supersedes one still running.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+
+      # Injects the Pages url as `base`, which vite.config.ts overrides with
+      # './' — every url in the build is relative, so the subpath needs nothing.
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

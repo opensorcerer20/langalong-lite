@@ -45,8 +45,7 @@ describe('getVocabIn', () => {
     expect(texts(getVocabIn(sentence, GRAMMAR))).toEqual(['ケーキ', 'パン']);
   });
 
-  /* One word used twice is one word. A vocabulary exercise built from this
-     would otherwise offer the same tile as two separate questions. */
+  /* One word used twice is one word, so a situation lists it as one distractor. */
   it('returns a repeated word once', () => {
     const sentence = item([
       ['パン', 'pan'],
@@ -68,9 +67,8 @@ describe('getVocabIn', () => {
     ).toEqual([]);
   });
 
-  /* The pool is the whole definition, so the same sentence splits differently
-     against a different one — which is what lets each pack decide for itself
-     what counts as vocabulary. */
+  /* The pool is the whole definition, so each pack decides what counts as
+     vocabulary. */
   it('follows the pool it is given, not a fixed idea of a function word', () => {
     const sentence = item([
       ['パン', 'pan'],
@@ -91,9 +89,7 @@ describe('getVocabIn', () => {
   });
 
   describe('over the shipped content', () => {
-    /* The property that matters for the vocabulary exercise: every sentence in
-       the app has at least one word to be about. A sentence made entirely of
-       particles and endings would compile to an empty question set. */
+    /* Every sentence contributes at least one distractor word. */
     it('finds vocabulary in every sentence of every situation', () => {
       for (const scenario of LANGUAGE.scenarios) {
         for (const sentence of scenario.items) {

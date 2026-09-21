@@ -1,30 +1,18 @@
-/* Working out what the Japanese font has to cover. Pure; font.ts fetches.
-
-   The vendored face is subset to the characters actually in use, so anything
-   the pack gains that the subset lacks falls back to the OS Japanese font —
-   which looks like a weight or shape mismatch between two tiles in one bank,
-   not like a missing glyph.
-
-   So the character set is derived from the whole pack, not from the tiles: a
-   note reading "を marks the direct object" and a gloss reading "softer than に"
-   put Japanese on the screen exactly as an answer does. */
+/* Working out what the Japanese font has to cover. Pure; font.ts fetches. */
 
 import type { PackFile } from '../src/data/loadPack';
 
 /**
  * Every Japanese character in a pack, deduped, in code-point order.
  *
- * Walks the file as JSON rather than field by field. Lexicon keys, answers,
- * notes, glosses and blurbs all end up on screen, and a field added later is
- * covered without anyone remembering to come back here.
+ * Scans the whole file as JSON, not just the tiles: notes show Japanese too,
+ * and a field added later is covered automatically.
  */
 export function japaneseCharacters(pack: PackFile): string[] {
-  /* CJK punctuation and kana, both ideograph blocks, compatibility ideographs,
-     fullwidth forms. Latin is Archivo's job.
+  /* Kana, CJK punctuation, ideographs, fullwidth forms. Latin is Archivo's job.
 
-     Escapes, not the characters: U+3000 is invisible, and the U+F900 bound is
-     a lookalike for the ordinary ideograph at U+8C48 — typing that one instead
-     widens the class by ~20k code points and nothing fails. */
+     Escapes, not the characters: U+3000 is invisible, and U+F900 looks like
+     U+8C48 — typing that one widens the class by ~20k code points silently. */
   const japanese = /[\u3000-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF\uFF00-\uFFEF]/gu;
   const found = new Set(JSON.stringify(pack).match(japanese) ?? []);
 
@@ -34,12 +22,7 @@ export function japaneseCharacters(pack: PackFile): string[] {
 /**
  * The single woff2 url in a Google Fonts stylesheet.
  *
- * Matched on `format('woff2')` rather than on the url, which carries no
- * extension: a cut subset arrives as `fonts.gstatic.com/l/font?kit=…`.
- *
- * Asked for with a browser User-Agent, css2 returns exactly one variable woff2.
- * Asked for without, it returns nine static TrueType faces and no woff2 at all
- * — which is what an empty result here almost always means.
+ * Matched on `format('woff2')`: a subset's url has no file extension.
  */
 export function woff2UrlIn(css: string): string {
   const pattern = /url\((https:\/\/[^)]+)\)\s*format\('woff2'\)/g;

@@ -1,16 +1,7 @@
-/* One tile — the only place a piece of the target language is drawn.
+/* One tile, for both rows: tap a `bank` tile to place it, a `placed` tile to
+   send it back.
 
-   The same component serves both rows: a `bank` tile is surface with a rule and
-   is tapped to place it, a `placed` tile is inverted ink-on-ground and is tapped
-   to send it back.
-
-   Styles are StyleX, which puts every rule on the element it applies to — there
-   are no descendant selectors, so the reading span picks its own style rather
-   than inheriting one from the button.
-
-   The face is --font-target, set on the app root from the active language pack:
-   StyleX values are static, so the pack reaches this rule through a custom
-   property rather than by naming a family here. */
+   The face is --font-target, set by PhoneColumn from the language pack. */
 
 import * as stylex from '@stylexjs/stylex';
 
@@ -47,8 +38,7 @@ export function Tile({
     <button
       type="button"
       {...stylex.props(s.tile, isBank ? s.bank : s.placed, used && s.used)}
-      /* Part of the component's contract, not test scaffolding: the variant is
-         what the tile is, and the hashed class names no longer say so. */
+      /* StyleX class names are hashed, so this is how tests find a tile's row. */
       data-variant={variant}
       data-used={used || undefined}
       /* Hidden tiles must leave the tab order too, or focus lands on nothing. */
@@ -94,13 +84,10 @@ const s = stylex.create({
 
   /* Placed tiles invert to ink-on-ground.
 
-     Hover is guarded by :not(:disabled) so a settled answer does not light up
-     under the cursor. StyleX takes the chained selector as a condition key —
-     undocumented, but it compiles to exactly the selector the CSS used to have.
-     Note the guard has to live inside each property alongside its resting
-     value: a separate hover-only style composed later would *replace* the
-     resting value rather than adding to it, because StyleX merges per property
-     and the last one applied wins. */
+     - `:hover:not(:disabled)` as a condition key is undocumented StyleX, but
+       compiles to that exact selector.
+     - The hover value must sit inside each property with its default: StyleX
+       merges per property, so a separate hover style would replace the default. */
   placed: {
     backgroundColor: {
       default: 'var(--color-text)',

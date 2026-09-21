@@ -20,9 +20,7 @@ export function ProgressBar({ value }: ProgressBarProps) {
       aria-valuemin={0}
       aria-valuemax={100}
     >
-      {/* The width is the one genuinely dynamic value here, so it stays an
-          inline style — the same split React Native uses. Everything static
-          about the fill is in the stylesheet below. */}
+      {/* Width is the only dynamic value, so it is the only inline style. */}
       <div {...stylex.props(s.fill)} style={{ width: `${percent}%` }} />
     </div>
   );

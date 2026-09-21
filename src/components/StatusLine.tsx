@@ -10,15 +10,7 @@ import type { DrillStatus } from '../state/appReducer';
 
 export interface StatusLineProps {
   readonly status: DrillStatus;
-  /**
-   * Whether the grammar note is on screen, which is the only thing the wrong
-   * message needs to know.
-   *
-   * The miss count and the note threshold were passed in separately and
-   * compared here, which meant this line worked out for itself whether the note
-   * was showing — and got it wrong for an item that has no note to show,
-   * promising help that was not there. The caller already knows the answer.
-   */
+  /** Passed in, not worked out here, so a note-less item never promises one. */
   readonly noteOnScreen: boolean;
 }
 
@@ -39,7 +31,7 @@ export function StatusLine({ status, noteOnScreen }: StatusLineProps) {
   );
 }
 
-/** What each settled status says. `wrong` depends on the miss count. */
+/** What each status says. `wrong` depends on whether the note is showing. */
 const MESSAGES: Record<Exclude<DrillStatus, 'wrong'>, string> = {
   idle: '',
   right: 'Correct',
@@ -65,12 +57,9 @@ const s = stylex.create({
   shown: { color: 'var(--color-neutral-700)' },
 });
 
-/* The ink for each status, kept beside the messages it goes with.
-
-   `satisfies` rather than a type annotation: StyleX types every style by its
-   literal value, so annotating this as a Record of one style type would make
-   the four mutually unassignable. This still fails the build if a status is
-   ever added without a colour. */
+/* `satisfies`, not a type annotation: StyleX types each style by its literal
+   value, so one Record type would not fit all four. Still fails the build if a
+   status is added without a colour. */
 const TONE = {
   idle: s.idle,
   wrong: s.wrong,

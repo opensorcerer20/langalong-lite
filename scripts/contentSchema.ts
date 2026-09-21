@@ -1,20 +1,8 @@
-/* Runtime shapes for the content files, for scripts only.
+/* Runtime shapes for content files a script reads by path, which tsc never sees.
 
-   The app never needs this. It imports content/ja/*.json as literals, so tsc
-   checks them against CoreFile and ScenarioFile before anything runs. A script
-   handed a path reads a file tsc has never seen, and that is the one boundary
-   in the repo where the types are a claim rather than a fact.
-
-     app     content/ja/*.json ──import──►  tsc checks it
-     script  <any path>        ──read────►  parseScenarioFile checks it
-
-   The interfaces in src/data/ stay authoritative; these mirror them. Two things
-   keep the mirror honest: the assertions below fail to compile if a schema stops
-   producing what the interface requires, and the tests parse the real content
-   files, which fails if a schema asks for more than the app does.
-
-   Objects are strict, so a typo'd optional key — "nte" for "note" — is an error
-   here rather than a field silently dropped. */
+   - Mirrors the interfaces in src/data/, which stay authoritative. The
+     assertions below stop compiling if the two drift.
+   - Strict objects, so a typo'd optional key ("nte") is an error. */
 
 import { z } from 'zod';
 
@@ -58,20 +46,15 @@ export const CoreFileSchema = z
   .strict();
 
 /**
- * A zod output type, comparable with the app's interfaces.
- *
- * zod types an optional field as `words?: string[] | undefined`. Under
- * exactOptionalPropertyTypes the app means `words?: readonly string[]` — an
- * absent key, never a present undefined. JSON has no undefined, so parsed data
- * never carries one; the difference is in the types alone. This drops the
- * `| undefined` at every depth so the two can be compared.
+ * Strips zod's `| undefined` from optional fields at every depth, so its types
+ * compare with the app's under exactOptionalPropertyTypes. Parsed JSON never
+ * holds undefined, so this is sound.
  */
 type AsAuthored<T> = T extends object
   ? { [K in keyof T]: AsAuthored<Exclude<T[K], undefined>> }
   : T;
 
-/* Compile-time: a parsed file must satisfy what the app requires. Drop a field
-   from a schema above, or change its type, and these stop compiling. */
+/* Compile-time drift check against the app's types. */
 const _scenario: ScenarioFile = {} as AsAuthored<z.infer<typeof ScenarioFileSchema>>;
 const _core: CoreFile = {} as AsAuthored<z.infer<typeof CoreFileSchema>>;
 void _scenario;
@@ -90,12 +73,7 @@ export function parseCoreFile(value: unknown, where: string): CoreFile {
   return parse(CoreFileSchema, value, where);
 }
 
-/**
- * All of a file's problems, one per line, each naming its path in the JSON.
- *
- * Reported together rather than one at a time: fixing a content file one throw
- * per run is the kind of friction this whole effort exists to remove.
- */
+/** All of a file's problems at once, one per line, each with its JSON path. */
 function parse<S extends z.ZodType>(
   schema: S,
   value: unknown,
@@ -103,7 +81,6 @@ function parse<S extends z.ZodType>(
 ): AsAuthored<z.infer<S>> {
   const result = schema.safeParse(value);
 
-  /* Sound for the reason AsAuthored gives: parsed JSON never holds undefined. */
   if (result.success) return result.data as AsAuthored<z.infer<S>>;
 
   const problems = result.error.issues.map((issue) => {

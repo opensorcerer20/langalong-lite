@@ -4,6 +4,40 @@
 
 Notable changes, newest first. Entries record *why* and what carries forward, not every commit — `git log` has those.
 
+## 2026-09-20 — Two fixes from 17 September, recorded late
+
+Both were closed on **2026-09-17** in the `cleanup-03` branch and never written up here. They were carried on [MAINTENANCE.md](MAINTENANCE.md) as "Resolved" entries instead; trimming that file is what surfaced them. Dates below are from `git log`.
+
+**`Scenario.kicker` was `"Set 01"`, and `App.tsx` recovered the number with `.replace('Set ', '')`** — a display string doing double duty as data. It is now `Scenario.lessonNum`, the bare `"01"`; `ScenarioRow` renders `Set {lessonNum}`, and the header uses the number directly. The English word "Set" now lives in the component layer with the rest of the UI copy.
+
+**Two defensive fallbacks had nothing checking they never fire.** `revealPlacement.ts` returns index `0` for an answer tile missing from the bank, and `checkAnswer.ts` drops a placed index the bank cannot resolve — both dating from the 2026-08-25 React conversion. Either firing would show a wrong sentence and call it the answer. `tests/data/languages.test.ts` now asserts neither can, over every sentence in every pack:
+
+```
+Bakery · 01 "One bread, please." — reveal put "で" where "ください" belongs
+```
+
+The guard stops a content bug crashing the drill; the test stops one reaching the drill. Throwing instead would trade the second for nothing.
+
+## 2026-09-20 — Scope cut back to one person drilling Japanese
+
+The app had grown scaffolding for things that were never built: a progress database for a spaced-repetition scheduler, three unwritten exercise modes, and a test suite larger than the app. All of it was removed. The drill itself, the content, the language-pack layer and offline support are untouched.
+
+| | Before | After |
+| --- | --- | --- |
+| `src/` | 44 files, 3,661 lines | 36 files, 2,468 lines |
+| Tests | 38 files, 384 tests | 19 files, 212 tests |
+| Dev dependencies | `fake-indexeddb` | removed |
+
+**Progress tracking is gone, not disabled.** `src/storage/` (IndexedDB, both `ProgressStore`s, `ContentSource`), `lib/progress.ts` and `lib/keys.ts` are deleted. Every check used to write an attempt row, plus indirect rows for each tile, particle and pattern in the sentence — and nothing ever read any of it back. A reload now starts a fresh session, which was already true of the score and the current set. `main.tsx` renders with `LANGUAGE` directly rather than opening a repository first, so the "Not saving" header notice went with it.
+
+**`teaches` stays, deliberately.** The tags name grammar for a future exercise. Nothing reads them, but `loadPack` still checks every id against the pack's particle and conjugation registries, so the data cannot rot while it waits.
+
+**Tests now cover what is noticeable while practising.** Per-component tests went — `App.test` and `DrillScreen.test` already drive those components through real content. So did the loader unit tests, since a broken pack throws at import and fails everything. What stays: whole drills, content integrity, bank generation, answer checking, and the service worker.
+
+**`npm run import` and `npm run font` hung after finishing.** StyleX's dev-server hook starts an HMR poll that is only cleared when a listening http server closes, and `vite-node` never listens. The hook is now kept only for `npm run dev`; the scripts run with `--mode script`. Vitest had the same hang and the same workaround, keyed on `test` alone.
+
+**Comments were cut throughout.** The rule: state the decision or the trap, never how the platform works in general, and never the history of how the code got here.
+
 ## 2026-09-18 — The app installs and works offline
 
 The prototype was installable; the React conversion dropped the manifest and service worker in `prototype/` and never ported them. Both are back, generated rather than hand-written.

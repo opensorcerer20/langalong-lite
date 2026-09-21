@@ -1,10 +1,5 @@
-/* A set is over. The score is answers given on the first try — not answers
-   given — so revealing an answer or missing once does not count.
-
-   The copy is props with the sentence drill's wording as defaults, because
-   every exercise mode ends here and they do not all finish "sentences". The
-   score itself never varies: a first-try count out of a total is what the
-   reducer keeps for any exercise, so it stays the fixed part of the layout. */
+/* A set is over. The score counts answers right on the first try, so a miss or
+   a reveal does not count. */
 
 import * as stylex from '@stylexjs/stylex';
 

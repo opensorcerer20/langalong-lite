@@ -1,9 +1,5 @@
-/* What is true of the Japanese pack specifically.
-
-   The shape checks every pack has to pass live in languages.test.ts. This file
-   is for the things that are Japanese's business alone: the sets it ships, the
-   particles its distractors depend on, and the fact that it is written without
-   spaces. A second language gets a file like this one of its own. */
+/* What is true of the Japanese pack alone. The checks every pack must pass are
+   in languages.test.ts. */
 
 import { describe, expect, it } from 'vitest';
 
@@ -23,12 +19,8 @@ describe('the ja pack', () => {
     expect(JA.fontStack).toContain('Noto Sans JP');
   });
 
-  /* Exact set sizes were asserted here — [10, 8] — and, alongside them, the
-     exact situation list: ['Bakery', 'Train station'] and its set numbers. Both
-     failed every time content was written and neither ever indicated a bug, so
-     both are gone. That each set is non-empty, internally sound and uniquely
-     identified is languages.test.ts's job, and it does not care how many
-     situations there are. */
+  /* No assertions on set sizes or situation names: they failed on every
+     content edit and never caught a bug. */
 
   it('carries the near-miss particles the distractors rely on', () => {
     const texts = JA.grammar.map((t) => t[0]);
