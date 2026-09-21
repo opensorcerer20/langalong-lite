@@ -21,7 +21,7 @@ export function DrillScreen({ tsumiki }: DrillScreenProps) {
   const { state, language, item, bank, total, done, isLastItem, showNote, showReveal } = tsumiki;
 
   return (
-    <section {...stylex.props(shared.screen)}>
+    <section {...stylex.props(shared.screen, s.drill)}>
       <PromptBand prompt={item.en} language={language.name} index={state.item} total={total} />
 
       <AnswerLine
@@ -32,19 +32,23 @@ export function DrillScreen({ tsumiki }: DrillScreenProps) {
         onRemove={tsumiki.untap}
       />
 
-      <TileBank
-        bank={bank}
-        placed={state.placed}
-        showReading={SHOW_READING}
-        locked={done}
-        onPlace={tsumiki.tap}
-      />
+      {/* The only part that scrolls, so the status line and the buttons stay on
+          screen however long the bank and the note get. */}
+      <div {...stylex.props(s.middle)}>
+        <TileBank
+          bank={bank}
+          placed={state.placed}
+          showReading={SHOW_READING}
+          locked={done}
+          onPlace={tsumiki.tap}
+        />
+
+        {/* `item.note` narrows for the compiler; `showNote` is already false
+            without one. */}
+        {showNote && item.note && <GrammarNote note={item.note} done={done} />}
+      </div>
 
       <StatusLine status={state.status} noteOnScreen={showNote} />
-
-      {/* `item.note` narrows for the compiler; `showNote` is already false
-          without one. */}
-      {showNote && item.note && <GrammarNote note={item.note} done={done} />}
 
       <DrillActions
         done={done}
@@ -58,3 +62,18 @@ export function DrillScreen({ tsumiki }: DrillScreenProps) {
     </section>
   );
 }
+
+const s = stylex.create({
+  /* The screen itself does not scroll — the middle does. */
+  drill: {
+    overflowY: 'hidden',
+  },
+
+  middle: {
+    flex: 1,
+    minHeight: 0,
+    overflowY: 'auto',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+});
