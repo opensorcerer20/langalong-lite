@@ -11,20 +11,10 @@ Three lists. **Planned** is work that could start as things stand. **Needs progr
 - Fix issues found testing on phone
   - romaji hard to read, maybe make bold
   - need to keep check button / hint / etc at bottom of screen
-
-- Evaluate whether to act on these thoughts from developer:
-  - Osusume wa nan desu ka?: add alts, and add the note "this is the more natural phrasing as opposed to 'nani ga osusume desu ka'".
-  - For answers with alternates, give a chance to get the best answer.
-  - Clicking a tile that was placed removes only that tile, and the next tile clicked goes in that spot.
-  - Star system:
-    - one star: finished with zero incorrect
-    - two stars: finished with zero misses
-    - three stars: finished all sections with zero misses
-  - Highlight incorrect tile(s) after 2nd incorrect answer, accounting for alternate answers
-  - Increased difficulty options
-    - 1) (my current preference) totally based on scenarios, thus the content of each dictates difficulty directly
-    - 2) more complex sentences or exercise formulation in code
-    - 3) utilize user right/wrong frequency to determine what is difficult for player
+- Osusume wa nan desu ka?: add alts, and add the note "this is the more natural phrasing as opposed to 'nani ga osusume desu ka'".
+- For answers with alternates, give a chance to get the best answer.
+- Clicking a tile that was placed removes only that tile, and the next tile clicked goes in that spot.
+- Highlight incorrect tile(s) after 2nd incorrect answer, accounting for alternate answers
 
 ## Features not yet planned
 
@@ -32,6 +22,15 @@ Three lists. **Planned** is work that could start as things stand. **Needs progr
 - **Audio** playback of prompts, and a kana keyboard fallback.
 - **A second language.** The content is already isolated behind a `LanguagePack` and the app reads one active pack, so a new language is a folder plus a registry entry — see [AUTHORING.md](AUTHORING.md#adding-a-language). What is missing is an in-app picker and a font subset per pack. Grammar itself is the open question: the drill teaches word order and particles, which suits Japanese; a language whose difficulty sits in conjugation or agreement may want a different exercise rather than the same one with different tiles.
 - **The exercise modes.** Vocabulary, particle practice and verb conjugation as their own exercises, optionally chained per situation. Two things survive from the groundwork: `appReducer` states its rules in terms of attempts rather than sentences, and every sentence still carries the `teaches` tags an exercise would select on. Everything else — the exercises, an entry point per mode, the flow between them — is unbuilt.
+- Star system:
+  - one star: finished with zero incorrect
+  - two stars: finished with zero misses
+  - three stars: finished all sections with zero misses
+- Increased difficulty options
+  - 1) (my current preference) totally based on scenarios, thus the content of each dictates difficulty directly
+  - 2) more complex sentences or exercise formulation in code
+  - 3) utilize user right/wrong frequency to determine what is difficult for player
+
 
 ## Needs progress tracking again
 
