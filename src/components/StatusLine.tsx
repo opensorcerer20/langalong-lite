@@ -34,7 +34,7 @@ export function StatusLine({ status, noteOnScreen }: StatusLineProps) {
 /** What each status says. `wrong` depends on whether the note is showing. */
 const MESSAGES: Record<Exclude<DrillStatus, 'wrong'>, string> = {
   idle: '',
-  alt: 'That works — there is a more natural phrasing. Click check again to keep it.',
+  alt: 'Acceptable, but there is more natural phrasing. Retry or tap Check to continue.',
   right: 'Correct',
   accepted: 'Accepted',
   shown: 'Answer shown',
