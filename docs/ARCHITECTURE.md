@@ -135,7 +135,7 @@ past the end of want         -> everything left on the line is wrong
 | `content/<code>/<id>.json` | One situation: its sentences, its extra distractors, and the readings only it needs |
 | `src/data/assemblePack.ts` | Merging the core file and the situation files into one `PackFile` |
 | `src/data/loadPack.ts` | The authored shapes, and expanding one into a `LanguagePack` |
-| `src/config.ts` | The four difficulty and display dials |
+| `src/config.ts` | The difficulty and display dials |
 | `src/lib/buildBank.ts` | The deterministic tile bank |
 | `src/lib/segment.ts` | Splitting a written-out sentence back into tiles, longest match first |
 | `src/lib/checkAnswer.ts` | Building the answer string and judging it |

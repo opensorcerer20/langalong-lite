@@ -77,6 +77,8 @@ Code comments should only be added for a decision that is either not obvious or 
 
 Documentation that requires long descriptions should be broken up into bullet points where possible; the goal is to prevent a long paragraph of information and speed up review of changes.
 
+When documenting, unless there is a strong reason, do not specify a count of any group of items; if the number changes, then the documentation requires updating.
+
 Prose descriptions of how data fits together (nested objects, relationships between
 entities, data flow) don't work well for me. Rule of thumb: if a paragraph has more than 3 sentences, re-evaluate to shorten the content. When explaining these, prefer:
 
@@ -106,5 +108,6 @@ When in doubt, default to a code/diagram representation even for simple structur
 - Don't use unicode characters like ’ when it's more typical to use '
 - Try to avoid needing to escape ' or " unless there's a strong reason to do so.
 
-## Running scripts to test them
-- Apply a 15 second timeout in case a script does not exit properly, which prevents the tool from waiting forever for it to finish.
+## Testing
+- When running a script to test it, apply a 15 second timeout in case a script does not exit properly, which prevents the tool from waiting forever for it to finish.
+- Unit tests should be high value; do not add tests just for the sake of having at least one test that pings the function/component

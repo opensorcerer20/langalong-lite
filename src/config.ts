@@ -1,5 +1,4 @@
-/* The four dials that change how the drill feels — three difficulty, one
-   display. Everything else about the difficulty is a property of the content
+/* The dials that change how the drill feels. Everything else about the difficulty is a property of the content
    itself. */
 
 /**
@@ -11,6 +10,9 @@ export const TILE_MULTIPLIER = 3;
 
 /** Misses before the grammar note appears. The first miss is a silent retry. */
 export const NOTE_AFTER_MISSES = 2;
+
+/** Misses before the wrong tiles on the line are marked. */
+export const HIGHLIGHT_AFTER_MISSES = 2;
 
 /** Misses before the "Show me the answer" button appears. */
 export const REVEAL_AFTER_MISSES = 3;

@@ -5,7 +5,11 @@
    The allowed keys are listed here, not in src/. A field added to PackFile but
    not here fails the first time content uses it, which is the safe direction. */
 
-import { describe, expect, it } from 'vitest';
+import {
+  describe,
+  expect,
+  it,
+} from 'vitest';
 
 import type { PackFile } from '../../src/data/loadPack';
 
@@ -33,7 +37,7 @@ function strayKeys(object: object, allowed: readonly string[], where: string): s
 }
 
 /**
- * Every key in `pack` that no authored shape declares. Walks the five levels by
+ * Every key in `pack` that no authored shape declares. Walks the levels by
  * hand: a generic walker would need the shapes as data, i.e. a schema library.
  */
 export function unknownKeys(pack: PackFile): string[] {

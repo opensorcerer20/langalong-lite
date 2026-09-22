@@ -9,7 +9,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { NOTE_AFTER_MISSES, REVEAL_AFTER_MISSES } from '../../src/config';
+import { HIGHLIGHT_AFTER_MISSES, NOTE_AFTER_MISSES, REVEAL_AFTER_MISSES } from '../../src/config';
 import type { LanguagePack, SentenceItem, Tile } from '../../src/data/types';
 import { revealIndices } from '../../src/lib/revealPlacement';
 import { useTsumiki } from '../../src/state/useTsumiki';
@@ -162,6 +162,23 @@ const guessWrong = (view: ReturnType<typeof open>) => {
   act(() => view.result.current.check());
 };
 
+/* By property, not by position: tap(0) might happen to be an answer tile, which
+   would leave nothing for the marks to point at. */
+/** A bank index holding a tile the current answer does not use. */
+const distractor = (view: ReturnType<typeof open>) => {
+  const { item, bank } = view.result.current;
+  const wanted = item.ans.map((tile) => tile[0]);
+  const index = bank.findIndex((tile) => !wanted.includes(tile[0]));
+  expect(index, 'bank has no distractor').toBeGreaterThanOrEqual(0);
+  return index;
+};
+
+/** Place `bankIndex` on its own and check it, for one guaranteed miss. */
+const missWith = (view: ReturnType<typeof open>, bankIndex: number) => {
+  act(() => view.result.current.tap(bankIndex));
+  act(() => view.result.current.check());
+};
+
 describe('useTsumiki', () => {
   it('starts on the home screen with every scenario available', () => {
     const { result } = renderHook(() => useTsumiki(LANGUAGE));
@@ -252,6 +269,51 @@ describe('useTsumiki', () => {
     for (let miss = 0; miss < REVEAL_AFTER_MISSES; miss++) guessWrong(view);
     act(() => view.result.current.reveal());
     expect(view.result.current.showReveal).toBe(false);
+  });
+
+  it('holds the wrong-tile marks back until the configured miss count', () => {
+    const view = open();
+    const bad = distractor(view);
+
+    for (let miss = 1; miss < HIGHLIGHT_AFTER_MISSES; miss++) {
+      missWith(view, bad);
+      expect(view.result.current.wrongPositions).toEqual([]);
+    }
+    missWith(view, bad);
+    expect(view.result.current.state.misses).toBe(HIGHLIGHT_AFTER_MISSES);
+    expect(view.result.current.wrongPositions).toEqual([0]);
+  });
+
+  it('clears the marks when a tile is taken off the line', () => {
+    const view = open();
+    const bad = distractor(view);
+    for (let miss = 0; miss < HIGHLIGHT_AFTER_MISSES; miss++) missWith(view, bad);
+    expect(view.result.current.wrongPositions).not.toEqual([]);
+
+    act(() => view.result.current.untap(0));
+    expect(view.result.current.wrongPositions).toEqual([]);
+  });
+
+  it('clears the marks when another tile is added to the line', () => {
+    const view = open();
+    const bad = distractor(view);
+    for (let miss = 0; miss < HIGHLIGHT_AFTER_MISSES; miss++) missWith(view, bad);
+
+    /* A different tile: tapping one already on the line is a no-op, so it would
+       not reset the status. */
+    const other = view.result.current.bank.findIndex((_, index) => index !== bad);
+    act(() => view.result.current.tap(other));
+    expect(view.result.current.wrongPositions).toEqual([]);
+  });
+
+  it('marks nothing once the answer is settled', () => {
+    const view = open();
+    const bad = distractor(view);
+    for (let miss = 0; miss < HIGHLIGHT_AFTER_MISSES; miss++) missWith(view, bad);
+
+    act(() => view.result.current.reveal());
+    expect(view.result.current.done).toBe(true);
+    expect(view.result.current.wrongPositions).toEqual([]);
   });
 
   it('tracks progress across the set and reads full when finished', () => {

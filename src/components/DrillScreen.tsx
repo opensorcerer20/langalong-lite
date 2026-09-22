@@ -30,6 +30,7 @@ export function DrillScreen({ tsumiki }: DrillScreenProps) {
         placed={state.placed}
         showReading={SHOW_READING}
         locked={done}
+        wrongPositions={tsumiki.wrongPositions}
         onRemove={tsumiki.untap}
       />
 

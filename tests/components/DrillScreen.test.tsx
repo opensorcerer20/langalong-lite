@@ -84,6 +84,7 @@ function view(state: Partial<AppState> = {}, over: Partial<Tsumiki> = {}): Tsumi
     isLastItem: false,
     showNote: false,
     showReveal: false,
+    wrongPositions: [],
     progress: 0,
     openScenario: vi.fn(),
     goHome: vi.fn(),
@@ -119,6 +120,17 @@ describe('DrillScreen', () => {
     const placed = screen.getAllByText('を')[0];
     await userEvent.click(placed!);
     expect(tsumiki.untap).toHaveBeenCalledWith(1);
+  });
+
+  /* Marks land on the answer line, never on the tile's slot in the bank. */
+  it('marks the wrong tiles the view model names', () => {
+    const { container } = render(
+      <DrillScreen tsumiki={view({ placed: [2, 3] }, { wrongPositions: [1] })} />,
+    );
+    const marked = [...container.querySelectorAll('[data-wrong]')];
+    expect(marked).toHaveLength(1);
+    expect(marked[0]).toHaveAttribute('data-variant', 'placed');
+    expect(marked[0]).toHaveTextContent('を');
   });
 
   /* The screen's own derivation, rather than a flag handed to it: there is

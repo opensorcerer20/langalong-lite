@@ -20,6 +20,8 @@ export interface TileProps {
   readonly used?: boolean;
   /** Locked — the answer is settled, so the tile no longer responds. */
   readonly disabled?: boolean;
+  /** Placed tiles only: this tile is not part of the answer. */
+  readonly wrong?: boolean;
   readonly onClick?: () => void;
 }
 
@@ -29,6 +31,7 @@ export function Tile({
   showReading = true,
   used = false,
   disabled = false,
+  wrong = false,
   onClick,
 }: TileProps) {
   const [text, reading] = tile;
@@ -37,10 +40,11 @@ export function Tile({
   return (
     <button
       type="button"
-      {...stylex.props(s.tile, isBank ? s.bank : s.placed, used && s.used)}
+      {...stylex.props(s.tile, isBank ? s.bank : s.placed, wrong && s.wrong, used && s.used)}
       /* StyleX class names are hashed, so this is how tests find a tile's row. */
       data-variant={variant}
       data-used={used || undefined}
+      data-wrong={wrong || undefined}
       /* Hidden tiles must leave the tab order too, or focus lands on nothing. */
       tabIndex={used ? -1 : undefined}
       aria-hidden={used || undefined}
@@ -124,6 +128,18 @@ const s = stylex.create({
 
   readingBank: {
     color: 'var(--color-neutral-700)',
+  },
+
+  /* A placed tile that does not belong. The fill is dropped as well as the
+     border recoloured, so the mark survives without colour vision.
+
+     Flat values, unlike `placed` above: StyleX merges per property, so these
+     drop that rule's hover pair on purpose — a marked tile is meant to look
+     unfinished until it is tapped away. */
+  wrong: {
+    backgroundColor: 'var(--color-surface)',
+    color: 'var(--color-text)',
+    borderColor: 'var(--color-accent-700)',
   },
 
   /* A placed tile's slot in the bank: hidden, but still occupying its space so

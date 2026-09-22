@@ -17,6 +17,8 @@ export interface AnswerLineProps {
   readonly showReading?: boolean;
   /** The answer is settled: tiles stay put and stop responding. */
   readonly locked?: boolean;
+  /** Line positions to mark as not belonging. See HIGHLIGHT_AFTER_MISSES. */
+  readonly wrongPositions?: readonly number[];
   /** Called with the tile's position on the line, not its bank index. */
   readonly onRemove: (position: number) => void;
 }
@@ -26,6 +28,7 @@ export function AnswerLine({
   placed,
   showReading,
   locked = false,
+  wrongPositions = [],
   onRemove,
 }: AnswerLineProps) {
   return (
@@ -43,6 +46,7 @@ export function AnswerLine({
               variant="placed"
               showReading={showReading ?? true}
               disabled={locked}
+              wrong={wrongPositions.includes(position)}
               onClick={() => onRemove(position)}
             />
           );
