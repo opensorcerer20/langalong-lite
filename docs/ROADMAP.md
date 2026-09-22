@@ -8,13 +8,7 @@ Three lists. **Planned** is work that could start as things stand. **Needs progr
 
 ## Definite planned changes
 
-- Fix issues found testing on phone
-  - romaji hard to read, maybe make bold
-  - need to keep check button / hint / etc at bottom of screen
-- Osusume wa nan desu ka?: add alts, and add the note "this is the more natural phrasing as opposed to 'nani ga osusume desu ka'".
-- For answers with alternates, give a chance to get the best answer.
-- Clicking a tile that was placed removes only that tile, and the next tile clicked goes in that spot.
-- Highlight incorrect tile(s) after 2nd incorrect answer, accounting for alternate answers
+Nothing outstanding — the last set closed on the `maintenance-01` branch, see [CHANGELOG.md](CHANGELOG.md).
 
 ## Immediate future plans
 - Prefer hint to not be part of scroll

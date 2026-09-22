@@ -4,6 +4,31 @@
 
 Notable changes, newest first. Entries record *why* and what carries forward, not every commit — `git log` has those.
 
+## 2026-09-22 — A near miss now teaches, and the drill fits a phone
+
+Everything under "Definite planned changes" in [ROADMAP.md](ROADMAP.md), closed on the `maintenance-01` branch. Most of it came out of practising on an actual phone.
+
+**An alternate answer offers another go instead of quietly passing.** `alts` used to be accepted outright, so a learner who built the understood-but-less-idiomatic phrasing never met the one the sentence teaches.
+
+```
+build an alt ─► Check ─► "That works — there's a more natural way"   (not a miss)
+                            │
+                            ├─ Check again         ─► accepted, the ans phrasing shown
+                            └─ build the canonical ─► correct
+```
+
+Accepting an alternate still scores as a first try — misses are what count, not which phrasing they landed on. This changes what authoring an `alts` entry means, so [AUTHORING.md](AUTHORING.md) now calls them second-best answers.
+
+**The wrong tiles are marked from the second miss.** The first miss still wipes the line; from the second it stays put and the tiles that do not belong lose their fill and take an accent border. They clear on the next tap. Which tiles are wrong is worked out against every accepted answer, not just `ans`, so a line most of the way to an alternate is marked against that alternate — see [ARCHITECTURE.md](ARCHITECTURE.md).
+
+**Tapping a placed tile now takes it and everything after it off the line.** Removing from the middle used to close the gap, so fixing one particle meant re-tapping the whole tail. Now the next tile tapped lands in the spot just vacated, and no gap or placeholder state has to exist.
+
+**The actions stay on screen.** The drill column is a fixed viewport height with only the bank and the note scrolling. With a note showing, Check and "Show me the answer" had been falling below the fold on a phone.
+
+**Romaji is larger, bolder and darker.** It was hard to read at arm's length.
+
+**おすすめは何ですか is now the canonical answer** for "What do you recommend?", with 何がおすすめですか as an alternate and a note on why the question word stays where the answer would go.
+
 ## 2026-09-20 — Two fixes from 17 September, recorded late
 
 Both were closed on **2026-09-17** in the `cleanup-03` branch and never written up here. They were carried on [MAINTENANCE.md](MAINTENANCE.md) as "Resolved" entries instead; trimming that file is what surfaced them. Dates below are from `git log`.
