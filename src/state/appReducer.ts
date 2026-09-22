@@ -1,7 +1,9 @@
-/* The drill rules, as one pure function. Imports nothing.
+/* The drill rules, as one pure function. Nothing reaches it at runtime — the
+   single import is a type.
 
-   Actions carry verdicts, not evidence: `check` says whether the answer was
-   right, `reveal` gives the positions to fill. useTsumiki does the judging. */
+   Actions carry verdicts, not evidence: useTsumiki does the judging. */
+
+import type { Verdict } from '../lib/checkAnswer';
 
 /** Which screen is showing. */
 export type Screen = 'home' | 'drill';
@@ -9,10 +11,10 @@ export type Screen = 'home' | 'drill';
 /**
  * How the last Check went.
  *
- * `right` and `shown` are the two "done" states — the answer line is locked and
- * the primary button advances instead of checking.
+ * - `alt` — accepted, but not the phrasing being taught. Offered, not settled.
+ * - `right`, `accepted`, `shown` — done: the line locks and the button advances.
  */
-export type DrillStatus = 'idle' | 'wrong' | 'right' | 'shown';
+export type DrillStatus = 'idle' | 'wrong' | 'alt' | 'right' | 'accepted' | 'shown';
 
 export interface AppState {
   readonly screen: Screen;
@@ -46,9 +48,8 @@ export type AppAction =
   | { type: 'openScenario'; scenario: number }
   | { type: 'goHome' }
   | { type: 'tap'; bankIndex: number }
-  /* Clears the line from this position on. */
   | { type: 'untap'; position: number }
-  | { type: 'check'; correct: boolean }
+  | { type: 'check'; verdict: Verdict }
   /* The bank positions that spell the answer. */
   | { type: 'reveal'; placed: readonly number[] }
   | { type: 'next'; itemCount: number }
@@ -56,7 +57,7 @@ export type AppAction =
 
 /** True once the answer is settled, right or revealed: the line stops accepting taps. */
 export function isDone(state: AppState): boolean {
-  return state.status === 'right' || state.status === 'shown';
+  return state.status === 'right' || state.status === 'accepted' || state.status === 'shown';
 }
 
 /** The state an item starts in. */
@@ -90,8 +91,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       if (isDone(state)) return state;
       return {
         ...state,
-        /* Takes the tile and everything after it, so the next tap lands in the
-           spot just vacated. Nothing has to remember where the gap was. */
+        /* The tile and everything after it, so the next tap lands in the spot
+           just vacated without anything having to remember the gap. */
         placed: state.placed.slice(0, action.position),
         status: 'idle',
       };
@@ -100,20 +101,29 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       if (isDone(state)) return state;
       if (state.placed.length === 0) return state;
 
-      if (action.correct) {
-        return {
-          ...state,
-          status: 'right',
-          /* Credit only if they had not already missed this one. */
-          firstTry: state.misses === 0 ? state.firstTry + 1 : state.firstTry,
-        };
+      /* An alternate taken on the offer scores like any other clean answer:
+         misses are what count, not which phrasing they landed on. */
+      const scored = {
+        ...state,
+        firstTry: state.misses === 0 ? state.firstTry + 1 : state.firstTry,
+      };
+
+      if (action.verdict === 'canonical') return { ...scored, status: 'right' };
+
+      if (action.verdict === 'alt') {
+        /* A tap or an untap would have reset the status, so a check still in
+           `alt` can only be the answer that was offered. */
+        if (state.status === 'alt') return { ...scored, status: 'accepted' };
+        return { ...state, status: 'alt' };
       }
+
       return {
         ...state,
         status: 'wrong',
         misses: state.misses + 1,
-        /* A wrong answer clears the line — they rebuild rather than edit. */
-        placed: [],
+        /* The first miss clears the line; later ones leave it standing to be
+           marked up. */
+        placed: state.misses === 0 ? [] : state.placed,
       };
     }
 

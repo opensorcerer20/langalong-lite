@@ -44,9 +44,8 @@ const s = stylex.create({
   column: {
     width: '100%',
     maxWidth: 460,
-    /* Fixed, not minimum: the column is the viewport, and the screen inside it
-       decides what scrolls. Without this the drill grows past the fold and the
-       Check button goes with it. */
+    /* Fixed, not minimum: the screen inside decides what scrolls, so the drill
+       cannot grow past the fold and take the Check button with it. */
     height: '100dvh',
     overflow: 'hidden',
     backgroundColor: 'var(--color-bg)',

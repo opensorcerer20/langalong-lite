@@ -28,13 +28,25 @@ export function buildString(
     .join(joiner);
 }
 
+/** The item's own answer — the phrasing it is teaching. */
+export function canonicalAnswer(item: SentenceItem, joiner: string): string {
+  return item.ans.map((tile) => tile[0]).join(joiner);
+}
+
 /** Every answer this item accepts: the canonical one first, then its alternates. */
 export function acceptedAnswers(item: SentenceItem, joiner: string): string[] {
-  const canonical = item.ans.map((tile) => tile[0]).join(joiner);
-  return [canonical, ...(item.alts ?? [])];
+  return [canonicalAnswer(item, joiner), ...(item.alts ?? [])];
 }
 
 /** Whether `built` is one of the answers this item accepts. */
 export function isCorrect(item: SentenceItem, built: string, joiner: string): boolean {
   return acceptedAnswers(item, joiner).includes(built);
+}
+
+/** `alt` is accepted but not the phrasing being taught, so the drill can offer another go. */
+export type Verdict = 'canonical' | 'alt' | 'wrong';
+
+export function judge(item: SentenceItem, built: string, joiner: string): Verdict {
+  if (built === canonicalAnswer(item, joiner)) return 'canonical';
+  return (item.alts ?? []).includes(built) ? 'alt' : 'wrong';
 }

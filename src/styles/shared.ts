@@ -15,9 +15,8 @@ import * as stylex from '@stylexjs/stylex';
 export const shared = stylex.create({
   /* One screen fills the column below the header and progress rule.
 
-     - `minHeight: 0` because a flex child otherwise refuses to shrink below its
-       content, and nothing below it could ever scroll.
-     - Scrolls by default; a screen that pins its own footer overrides this. */
+     `minHeight: 0` because a flex child otherwise refuses to shrink below its
+     content, and nothing inside it could ever scroll. */
   screen: {
     flex: 1,
     minHeight: 0,

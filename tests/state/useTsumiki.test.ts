@@ -118,6 +118,25 @@ const LANGUAGE: LanguagePack = {
         ),
       ],
     },
+    /* Situation 2 exists for the alternate path. */
+    {
+      id: 'third',
+      name: 'Third situation',
+      lessonNum: '03',
+      blurb: 'The third one.',
+      words: WORDS,
+      items: [
+        {
+          ...item('01', [
+            ['これ', 'kore'],
+            ['は', 'wa'],
+            ['甘い', 'amai'],
+            ['です', 'desu'],
+          ]),
+          alts: ['これが甘いです'],
+        },
+      ],
+    },
   ],
 };
 
@@ -272,5 +291,45 @@ describe('useTsumiki', () => {
 
     act(() => view.result.current.openScenario(0));
     expect(view.result.current.state).toMatchObject({ item: 0, misses: 0, placed: [] });
+  });
+});
+
+describe('an answer the item accepts but does not teach', () => {
+  const ALT = ['これ', 'が', '甘い', 'です'];
+
+  /* By tile text, not bank position: buildBank decides where a seeded tile lands. */
+  const buildAlt = (view: ReturnType<typeof open>) => {
+    for (const text of ALT) {
+      const index = view.result.current.bank.findIndex((tile) => tile[0] === text);
+      expect(index, `bank is missing ${text}`).toBeGreaterThanOrEqual(0);
+      act(() => view.result.current.tap(index));
+    }
+  };
+
+  it('offers another go instead of settling, and costs nothing', () => {
+    const view = open(2);
+    buildAlt(view);
+    act(() => view.result.current.check());
+    expect(view.result.current.state).toMatchObject({ status: 'alt', misses: 0 });
+    expect(view.result.current.done).toBe(false);
+  });
+
+  it('is taken by a second check, and still scores as a first try', () => {
+    const view = open(2);
+    buildAlt(view);
+    act(() => view.result.current.check());
+    act(() => view.result.current.check());
+    expect(view.result.current.state).toMatchObject({ status: 'accepted', firstTry: 1 });
+    expect(view.result.current.done).toBe(true);
+  });
+
+  it('settles as right when the taught phrasing is built after the offer', () => {
+    const view = open(2);
+    buildAlt(view);
+    act(() => view.result.current.check());
+    act(() => view.result.current.untap(0));
+    solve(view);
+    act(() => view.result.current.check());
+    expect(view.result.current.state.status).toBe('right');
   });
 });

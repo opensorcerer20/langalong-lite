@@ -32,8 +32,8 @@ export function DrillScreen({ tsumiki }: DrillScreenProps) {
         onRemove={tsumiki.untap}
       />
 
-      {/* The only part that scrolls, so the status line and the buttons stay on
-          screen however long the bank and the note get. */}
+      {/* The only part that scrolls, so the buttons stay on screen however long
+          the bank and the note get. */}
       <div {...stylex.props(s.middle)}>
         <TileBank
           bank={bank}
@@ -64,7 +64,7 @@ export function DrillScreen({ tsumiki }: DrillScreenProps) {
 }
 
 const s = stylex.create({
-  /* The screen itself does not scroll — the middle does. */
+  /* Overrides the scrolling shared.screen gives every other screen. */
   drill: {
     overflowY: 'hidden',
   },

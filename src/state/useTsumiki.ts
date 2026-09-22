@@ -1,8 +1,8 @@
 /* The seam — the single place content, logic and state meet.
 
    Everything else stays on one side: data/ is inert content, lib/ is pure logic
-   that never imports content, appReducer imports nothing, components/ are
-   presentational.
+   that never imports content, appReducer takes nothing at runtime, components/
+   are presentational.
 
    What this hook does:
 
@@ -16,7 +16,7 @@ import { useCallback, useMemo, useReducer } from 'react';
 import { NOTE_AFTER_MISSES, REVEAL_AFTER_MISSES, TILE_MULTIPLIER } from '../config';
 import type { LanguagePack, Scenario, SentenceItem, Tile } from '../data/types';
 import { buildBank } from '../lib/buildBank';
-import { buildString, isCorrect } from '../lib/checkAnswer';
+import { buildString, judge } from '../lib/checkAnswer';
 import { revealIndices } from '../lib/revealPlacement';
 import { appReducer, initialState, isDone } from './appReducer';
 import type { AppState } from './appReducer';
@@ -106,15 +106,11 @@ export function useTsumiki(language: LanguagePack): Tsumiki {
   const tap = useCallback((bankIndex: number) => dispatch({ type: 'tap', bankIndex }), []);
   const untap = useCallback((position: number) => dispatch({ type: 'untap', position }), []);
 
-  /* A repeated check or reveal needs no guard here: the reducer ignores one on
-     a settled item, and a wrong check empties the line so a second finds nothing. */
+  /* No guard against a repeated check: the reducer reads a second one on an
+     offered alternate as taking it. */
   const check = useCallback(() => {
-    const right = isCorrect(
-      item,
-      buildString(bank, state.placed, language.joiner),
-      language.joiner,
-    );
-    dispatch({ type: 'check', correct: right });
+    const verdict = judge(item, buildString(bank, state.placed, language.joiner), language.joiner);
+    dispatch({ type: 'check', verdict });
   }, [state.placed, item, bank, language.joiner]);
 
   const reveal = useCallback(

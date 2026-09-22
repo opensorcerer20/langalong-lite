@@ -18,6 +18,7 @@ Three lists. **Planned** is work that could start as things stand. **Needs progr
 
 ## Immediate future plans
 - Prefer hint to not be part of scroll
+  - suggestion: "additional info..." is a minimized block where the user clicks on it to get more info. it is in the same container as the button at the bottom, thus expanding upward and keeping the button at the bottom
 
 ## Features not yet planned
 
