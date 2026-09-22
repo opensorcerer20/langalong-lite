@@ -28,8 +28,9 @@ const place = (state: AppState, positions: number[]) =>
 /* The verdict, not the answer. The reducer no longer judges anything — that is
    useTsumiki's job and is tested there — so a "check" here is simply told how
    it went, and a "reveal" is told which positions to fill. */
-const CHECK: AppAction = { type: 'check', correct: true };
-const CHECK_WRONG: AppAction = { type: 'check', correct: false };
+const CHECK: AppAction = { type: 'check', verdict: 'canonical' };
+const CHECK_ALT: AppAction = { type: 'check', verdict: 'alt' };
+const CHECK_WRONG: AppAction = { type: 'check', verdict: 'wrong' };
 const REVEAL: AppAction = { type: 'reveal', placed: RIGHT };
 
 describe('navigation', () => {
@@ -65,7 +66,22 @@ describe('placing tiles', () => {
 
   it('removes a placed tile by its position, not its bank index', () => {
     const state = place(drilling(), [2, 3, 0]);
-    expect(appReducer(state, { type: 'untap', position: 1 }).placed).toEqual([2, 0]);
+    expect(appReducer(state, { type: 'untap', position: 2 }).placed).toEqual([2, 3]);
+  });
+
+  it('takes the tiles after the one removed with it, so the next tap lands there', () => {
+    const state = place(drilling(), [2, 3, 0]);
+    expect(appReducer(state, { type: 'untap', position: 1 }).placed).toEqual([2]);
+  });
+
+  it('empties the line when the first tile is removed', () => {
+    const state = place(drilling(), [2, 3, 0]);
+    expect(appReducer(state, { type: 'untap', position: 0 }).placed).toEqual([]);
+  });
+
+  it('frees a removed tile to be placed again', () => {
+    const emptied = appReducer(place(drilling(), [2, 3, 0]), { type: 'untap', position: 1 });
+    expect(appReducer(emptied, { type: 'tap', bankIndex: 0 }).placed).toEqual([2, 0]);
   });
 
   it('ignores a tile that is already placed', () => {
@@ -97,9 +113,15 @@ describe('checking', () => {
     expect(run(place(drilling(), RIGHT), CHECK).status).toBe('right');
   });
 
-  it('clears the answer line and counts a miss when wrong', () => {
+  it('clears the answer line and counts a miss on the first wrong answer', () => {
     const state = run(place(drilling(), WRONG), CHECK_WRONG);
     expect(state).toMatchObject({ status: 'wrong', misses: 1, placed: [] });
+  });
+
+  it('leaves the line standing from the second wrong answer on, to be marked up', () => {
+    const once = run(place(drilling(), WRONG), CHECK_WRONG);
+    const twice = run(place(once, WRONG), CHECK_WRONG);
+    expect(twice).toMatchObject({ status: 'wrong', misses: 2, placed: WRONG });
   });
 
   it('accumulates misses across attempts', () => {
@@ -115,6 +137,43 @@ describe('checking', () => {
   it('does nothing once the answer is settled', () => {
     const settled = drilling({ status: 'right', placed: RIGHT, firstTry: 1 });
     expect(appReducer(settled, CHECK)).toBe(settled);
+  });
+});
+
+describe('an accepted alternate', () => {
+  const ALT = [3, 2, 0];
+
+  it('offers another go rather than settling, and does not count a miss', () => {
+    const state = run(place(drilling(), ALT), CHECK_ALT);
+    expect(state).toMatchObject({ status: 'alt', misses: 0, placed: ALT });
+    expect(isDone(state)).toBe(false);
+  });
+
+  it('is taken by a second check on the same tiles', () => {
+    const state = run(place(drilling(), ALT), CHECK_ALT, CHECK_ALT);
+    expect(state.status).toBe('accepted');
+    expect(isDone(state)).toBe(true);
+  });
+
+  it('still scores as a first try when nothing was missed', () => {
+    expect(run(place(drilling(), ALT), CHECK_ALT, CHECK_ALT).firstTry).toBe(1);
+  });
+
+  it('withholds credit when the offer follows a miss', () => {
+    const afterMiss = run(place(drilling(), WRONG), CHECK_WRONG);
+    expect(run(place(afterMiss, ALT), CHECK_ALT, CHECK_ALT).firstTry).toBe(0);
+  });
+
+  it('goes back to being open as soon as the line is touched', () => {
+    const offered = run(place(drilling(), ALT), CHECK_ALT);
+    expect(appReducer(offered, { type: 'untap', position: 0 }).status).toBe('idle');
+    expect(appReducer(offered, { type: 'tap', bankIndex: 1 }).status).toBe('idle');
+  });
+
+  it('settles as right when the canonical answer is built after the offer', () => {
+    const offered = run(place(drilling(), ALT), CHECK_ALT);
+    const rebuilt = place(appReducer(offered, { type: 'untap', position: 0 }), RIGHT);
+    expect(run(rebuilt, CHECK).status).toBe('right');
   });
 });
 
@@ -193,7 +252,9 @@ describe('isDone', () => {
   it('is true only once the answer is settled', () => {
     expect(isDone(drilling({ status: 'idle' }))).toBe(false);
     expect(isDone(drilling({ status: 'wrong' }))).toBe(false);
+    expect(isDone(drilling({ status: 'alt' }))).toBe(false);
     expect(isDone(drilling({ status: 'right' }))).toBe(true);
+    expect(isDone(drilling({ status: 'accepted' }))).toBe(true);
     expect(isDone(drilling({ status: 'shown' }))).toBe(true);
   });
 });

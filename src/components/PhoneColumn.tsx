@@ -44,7 +44,10 @@ const s = stylex.create({
   column: {
     width: '100%',
     maxWidth: 460,
-    minHeight: '100dvh',
+    /* Fixed, not minimum: the screen inside decides what scrolls, so the drill
+       cannot grow past the fold and take the Check button with it. */
+    height: '100dvh',
+    overflow: 'hidden',
     backgroundColor: 'var(--color-bg)',
     borderLeftWidth: 2,
     borderLeftStyle: 'solid',

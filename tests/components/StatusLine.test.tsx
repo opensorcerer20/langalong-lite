@@ -40,6 +40,17 @@ describe('StatusLine', () => {
     expect(line()).toHaveAttribute('aria-live', 'polite');
   });
 
+  it('offers another go at an answer it accepts but does not teach', () => {
+    render(<StatusLine status="alt" noteOnScreen={false} />);
+    expect(line()).toHaveTextContent('Acceptable, but there is more natural phrasing.');
+    expect(line()).toHaveTextContent('Retry or tap Check to continue.');
+  });
+
+  it('marks a taken alternate apart from a right answer', () => {
+    render(<StatusLine status="accepted" noteOnScreen={false} />);
+    expect(line()).toHaveTextContent('Accepted');
+  });
+
   it('says so when the answer was revealed rather than built', () => {
     render(<StatusLine status="shown" noteOnScreen={false} />);
     expect(line()).toHaveTextContent('Answer shown');

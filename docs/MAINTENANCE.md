@@ -2,7 +2,7 @@
 
 [← README](../README.md)
 
-Known debt, the original prototype, and the two things most likely to confuse someone running the app for the first time.
+Known debt, the original prototype, the deploy setup, and what is most likely to confuse someone running the app for the first time.
 
 ## The original prototype
 
@@ -13,6 +13,50 @@ python3 -m http.server 8000
 ```
 
 It shares `fonts/`, `icons/` and `_ds/` with the React app, so it must be served from the repository root rather than from inside `prototype/`.
+
+## Deploying to GitHub Pages
+
+[deploy.yml](../.github/workflows/deploy.yml) builds the app and publishes `dist/` on every push, from any branch. Two settings outside the repository have to agree with it, and neither is in version control — a fresh clone or a transferred repo has neither.
+
+### 1. Pages source
+
+**Settings → Pages → Build and deployment → Source: `GitHub Actions`**
+
+The default, "Deploy from a branch", expects a `gh-pages` branch or a `/docs` folder. The workflow uploads an artifact instead, so with the wrong source the deploy job has nothing to publish to.
+
+### 2. The `github-pages` environment
+
+**Settings → Environments → `github-pages` → Deployment branches and tags: `No restriction`**
+
+GitHub creates this environment on its own, with a policy that allows the default branch only. Deploying from any branch is deliberate here — it is what lets a branch build be installed on the phone before it reaches `main` — so the policy has to be widened by hand.
+
+**The trap: whether that policy is enforced depends on repository visibility.**
+
+| Repo | Plan | Branch policy |
+| --- | --- | --- |
+| Private | Free | Not enforced — every branch deploys |
+| Public | any | Enforced |
+
+Deployment branch policies are a paid feature on private repos. So a repo that had been deploying happily from any branch starts failing the moment it is made public, with nothing in the repository having changed:
+
+```
+Branch "maintenance-01" is not allowed to deploy to github-pages due to environment protection rules.
+The deployment was rejected or didn't satisfy other protection rules.
+```
+
+The `build` job still passes — only `deploy` is rejected. The alternative fix, if the restriction is wanted, is to gate the workflow instead and give up branch previews:
+
+```yaml
+on:
+  push:
+    branches: [main]
+```
+
+### What the workflow already handles
+
+- **One site, latest push wins.** `concurrency: group: pages` with `cancel-in-progress`. A branch push replaces whatever was published last, whichever branch it came from. Worth remembering while the repo is public: a branch build *is* the live public site until something supersedes it.
+- **A type error blocks the deploy.** `npm run build` runs `tsc --noEmit` first.
+- **The project subpath needs no configuration.** `configure-pages` injects the Pages url as `base`, and `vite.config.ts` overrides it with `./` — every url in the build is relative, which is the same constraint that lets the service worker resolve its precache list.
 
 ## Troubleshooting
 

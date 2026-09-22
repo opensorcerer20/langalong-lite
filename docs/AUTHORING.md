@@ -74,6 +74,7 @@ Repeating a reading identically across files is fine and expected.
 ```ts
 export const TILE_MULTIPLIER = 3; /* distractor density, 1.5–4.5 */
 export const NOTE_AFTER_MISSES = 2; /* misses before the grammar note appears */
+export const HIGHLIGHT_AFTER_MISSES = 2; /* misses before the wrong tiles are marked */
 export const REVEAL_AFTER_MISSES = 3; /* misses before "Show me the answer" appears */
 export const SHOW_READING = true; /* the reading beneath the text on every tile */
 ```
@@ -104,7 +105,7 @@ A short practice phrase needs only three fields:
 | `id` | Unique within its situation, and `:`-free. Nothing is stored against it now, so changing one is safe; keeping them stable still costs nothing if progress ever returns. Ids may be non-contiguous. |
 | `en` | The English prompt. |
 | `ans` | The canonical answer, `\|` between tiles. Particles split out, conjugation endings as their own tile: `食べ\|たい`. Spaces around the separator are ignored. |
-| `alts` | Optional. Other accepted answers, written whole. The bank segments each one and seeds any tile the canonical answer lacks, so every accepted answer is always buildable. **An alternate may use any number of tiles** — it does not have to match `ans`. |
+| `alts` | Optional. **Second-best answers**, written whole — understood, but not the phrasing the sentence is teaching. Building one is not a miss: the learner is offered another go, and a second Check accepts it and shows the `ans` phrasing. So author an alternate a learner should be nudged off, not one that is equally good. The bank segments each one and seeds any tile the canonical answer lacks, so every accepted answer is always buildable. **An alternate may use any number of tiles** — it does not have to match `ans`. |
 | `note` | Optional. Shown after a second miss. A sentence teaching a particle or a form earns one; a short phrase usually has nothing to explain. Omit the field — never give it `""`. |
 | `teaches` | Optional, and **nothing reads it yet** — it is authored for a later exercise. What the sentence **teaches**, not what it contains: almost every sentence has です in it and almost none are about です. Particle and pattern ids in one flat list; the loader checks each id and sorts it into the right bucket. |
 
@@ -116,7 +117,7 @@ bakery 03 — "メロンパン" is not in the lexicon
 
 ### Alternates are not tied to the canonical answer's length
 
-`パンをお願いします` can be accepted alongside `パン|を|ください` even though it segments into a different number of tiles. Write whatever is genuinely correct — the answer line draws only the tiles placed, so nothing counts against `ans`.
+`パンをお願いします` can be accepted alongside `パン|を|ください` even though it segments into a different number of tiles. The answer line draws only the tiles placed, so nothing counts against `ans`.
 
 ## Adding a situation
 

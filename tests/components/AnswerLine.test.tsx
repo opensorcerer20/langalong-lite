@@ -36,6 +36,23 @@ describe('AnswerLine', () => {
     expect(onRemove).not.toHaveBeenCalled();
   });
 
+  /* StyleX hashes class names, so the mark is read off the data attribute. */
+  it('marks the positions it is given as wrong, and no others', () => {
+    const { container } = line([2, 3, 0], { wrongPositions: [1] });
+    const marked = [...container.querySelectorAll('[data-wrong]')].map((el) => el.textContent);
+    expect(marked).toEqual(['をo']);
+  });
+
+  it('marks a repeat by position, not by which tile it is', () => {
+    const { container } = line([2, 2], { wrongPositions: [1] });
+    expect(container.querySelectorAll('[data-wrong]')).toHaveLength(1);
+  });
+
+  it('marks nothing when given no positions', () => {
+    const { container } = line([2, 3, 0]);
+    expect(container.querySelectorAll('[data-wrong]')).toHaveLength(0);
+  });
+
   /* The same tile can legitimately appear twice in one sentence, so the line
      must not collapse the repeat. */
   it('renders a repeated tile twice', () => {

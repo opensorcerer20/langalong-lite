@@ -8,13 +8,11 @@ Three lists. **Planned** is work that could start as things stand. **Needs progr
 
 ## Definite planned changes
 
-- Fix issues found testing on phone
-  - romaji hard to read, maybe make bold
-  - need to keep check button / hint / etc at bottom of screen
-- bakery exercise id 10
-  - add the note "this is the more natural phrasing as opposed to 'nani ga osusume desu ka'".
-- when a tile in the answer is clicked to remove it, all tiles to the right of it are also removed. this prevents removing a tile and then clicking the replacement only to see it added behind a tile that was originally behind the one that was removed (this may seem unclear, i can try to make more clear on request)
-- Highlight incorrect tile(s) in the answer after the 2nd incorrect answer, accounting for alternate answers
+Nothing outstanding — the last set closed on the `maintenance-01` branch, see [CHANGELOG.md](CHANGELOG.md).
+
+## Immediate future plans
+- Prefer hint to not be part of scroll
+  - suggestion: "additional info..." is a minimized block where the user clicks on it to get more info. it is in the same container as the button at the bottom, thus expanding upward and keeping the button at the bottom
 
 ## Features not yet planned
 

@@ -13,9 +13,14 @@
 import * as stylex from '@stylexjs/stylex';
 
 export const shared = stylex.create({
-  /* One screen fills the column below the header and progress rule. */
+  /* One screen fills the column below the header and progress rule.
+
+     `minHeight: 0` because a flex child otherwise refuses to shrink below its
+     content, and nothing inside it could ever scroll. */
   screen: {
     flex: 1,
+    minHeight: 0,
+    overflowY: 'auto',
     display: 'flex',
     flexDirection: 'column',
   },

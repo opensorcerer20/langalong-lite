@@ -1,4 +1,5 @@
-/* The line the sentence is built on. Tapping a placed tile sends it back.
+/* The line the sentence is built on. Tapping a placed tile sends it back, along
+   with everything after it, so the next tile tapped lands in that spot.
 
    No placeholder slots: they would give away the answer's length, and an
    alternate answer may be a different length anyway. */
@@ -16,6 +17,8 @@ export interface AnswerLineProps {
   readonly showReading?: boolean;
   /** The answer is settled: tiles stay put and stop responding. */
   readonly locked?: boolean;
+  /** Line positions to mark as not belonging. See HIGHLIGHT_AFTER_MISSES. */
+  readonly wrongPositions?: readonly number[];
   /** Called with the tile's position on the line, not its bank index. */
   readonly onRemove: (position: number) => void;
 }
@@ -25,6 +28,7 @@ export function AnswerLine({
   placed,
   showReading,
   locked = false,
+  wrongPositions = [],
   onRemove,
 }: AnswerLineProps) {
   return (
@@ -42,6 +46,7 @@ export function AnswerLine({
               variant="placed"
               showReading={showReading ?? true}
               disabled={locked}
+              wrong={wrongPositions.includes(position)}
               onClick={() => onRemove(position)}
             />
           );

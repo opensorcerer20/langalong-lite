@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import type { SentenceItem, Tile } from '../../src/data/types';
-import { acceptedAnswers, buildString, isCorrect } from '../../src/lib/checkAnswer';
+import {
+  acceptedAnswers,
+  buildString,
+  canonicalAnswer,
+  isCorrect,
+  judge,
+} from '../../src/lib/checkAnswer';
 
 const BANK: readonly Tile[] = [
   ['ください', 'kudasai'],
@@ -81,6 +87,30 @@ describe('isCorrect', () => {
 
   it('rejects an empty answer line', () => {
     expect(isCorrect(ITEM, '', JOINER)).toBe(false);
+  });
+});
+
+describe('canonicalAnswer', () => {
+  it('is the answer the item teaches, joined, whatever else it accepts', () => {
+    expect(canonicalAnswer(ITEM, JOINER)).toBe('パンをください');
+  });
+});
+
+describe('judge', () => {
+  it('tells the canonical answer apart from an alternate it also accepts', () => {
+    expect(judge(ITEM, 'パンをください', JOINER)).toBe('canonical');
+    expect(judge(ITEM, 'パンをお願いします', JOINER)).toBe('alt');
+  });
+
+  it('calls anything else wrong', () => {
+    expect(judge(ITEM, 'をパンください', JOINER)).toBe('wrong');
+    expect(judge(ITEM, '', JOINER)).toBe('wrong');
+  });
+
+  it('never returns alt for an item with no alternates', () => {
+    const noAlts: SentenceItem = { id: ITEM.id, en: ITEM.en, ans: ITEM.ans, tags: ITEM.tags };
+    expect(judge(noAlts, 'パンをください', JOINER)).toBe('canonical');
+    expect(judge(noAlts, 'パンをお願いします', JOINER)).toBe('wrong');
   });
 });
 
