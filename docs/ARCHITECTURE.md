@@ -112,6 +112,19 @@ src/pwa.ts            registers it, in production only
 
 **Registration is production-only, and gives up quietly.** In dev a cache-first worker serves back the file you just fixed. Outside a secure context `navigator.serviceWorker` is simply absent — plain http to a phone on the LAN — and the app runs without offline support rather than failing.
 
+## Judging the answer line
+
+**Wrong tiles are worked out against every accepted answer, not just the canonical one.** `wrongPositions` aligns the line with each candidate — `ans`, plus each `alts` entry segmented back into tiles — and returns whichever leaves the fewest positions unaccounted for. A learner most of the way to an alternate is marked on the tiles that alternate does not want, not on every tile missing from `ans`.
+
+**Alignment is a longest-common-subsequence walk, not a position-by-position comparison.** One tile left out early would otherwise shift every later tile and mark the whole line wrong. Each step of the walk:
+
+```
+line[i] === want[j]          -> both advance; the tile is accounted for
+skipping want[j] scores better -> the answer wants a tile the line lacks; nothing marked
+otherwise                    -> line[i] is marked wrong
+past the end of want         -> everything left on the line is wrong
+```
+
 ## File map
 
 | Path | What it is |
@@ -127,6 +140,7 @@ src/pwa.ts            registers it, in production only
 | `src/lib/segment.ts` | Splitting a written-out sentence back into tiles, longest match first |
 | `src/lib/checkAnswer.ts` | Building the answer string and judging it |
 | `src/lib/revealPlacement.ts` | Which bank positions spell the answer |
+| `src/lib/diffAnswer.ts` | Which positions on the answer line are wrong, allowing for alternates |
 | `src/lib/tags.ts` | Which words a sentence uses, which is what its distractors are built from |
 | `src/state/` | The reducer and the hook |
 | `src/components/<Name>.tsx` | One component and its StyleX styles, in one file |
