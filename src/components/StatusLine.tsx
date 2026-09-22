@@ -44,6 +44,8 @@ const s = stylex.create({
   status: {
     paddingLeft: 20,
     paddingRight: 20,
+    paddingTop: 10,
+    paddingBottom: 10,
     fontSize: 12,
     letterSpacing: '0.1em',
     textTransform: 'uppercase',

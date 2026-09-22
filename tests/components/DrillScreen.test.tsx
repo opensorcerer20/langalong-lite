@@ -154,6 +154,22 @@ describe('DrillScreen', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Not quite. Try again.');
   });
 
+  it('shows the taught phrasing only once an alternate has been taken', () => {
+    const { unmount } = render(<DrillScreen tsumiki={view({ status: 'alt' })} />);
+    expect(screen.queryByText('More natural')).not.toBeInTheDocument();
+    unmount();
+
+    render(<DrillScreen tsumiki={view({ status: 'accepted' }, { done: true })} />);
+    expect(screen.getByText('More natural')).toBeInTheDocument();
+    expect(screen.getByText('パンをください')).toBeInTheDocument();
+    expect(screen.getByText('pan o kudasai')).toBeInTheDocument();
+  });
+
+  it('advances instead of checking once an alternate has been taken', () => {
+    render(<DrillScreen tsumiki={view({ status: 'accepted' }, { done: true })} />);
+    expect(screen.getByRole('button', { name: 'Next sentence' })).toBeEnabled();
+  });
+
   it('locks the answer line and the bank once the answer is settled', async () => {
     const tsumiki = view({ placed: [2, 3, 0] }, { done: true });
     render(<DrillScreen tsumiki={tsumiki} />);

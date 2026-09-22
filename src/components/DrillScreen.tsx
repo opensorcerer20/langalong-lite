@@ -9,6 +9,7 @@ import { shared } from '../styles/shared';
 import { AnswerLine } from './AnswerLine';
 import { DrillActions } from './DrillActions';
 import { GrammarNote } from './GrammarNote';
+import { PreferredAnswer } from './PreferredAnswer';
 import { PromptBand } from './PromptBand';
 import { StatusLine } from './StatusLine';
 import { TileBank } from './TileBank';
@@ -49,6 +50,10 @@ export function DrillScreen({ tsumiki }: DrillScreenProps) {
       </div>
 
       <StatusLine status={state.status} noteOnScreen={showNote} />
+
+      {state.status === 'accepted' && (
+        <PreferredAnswer ans={item.ans} joiner={language.joiner} showReading={SHOW_READING} />
+      )}
 
       <DrillActions
         done={done}
