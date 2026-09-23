@@ -248,6 +248,54 @@ describe('advancing', () => {
   });
 });
 
+describe('timed mode', () => {
+  const timed = (over: Partial<AppState> = {}) => drilling({ mode: 'timed', ...over });
+  const TIMEOUT: AppAction = { type: 'timeout' };
+
+  it('keeps the chosen mode when a scenario is opened', () => {
+    const chosen = appReducer(initialState, { type: 'setMode', mode: 'timed' });
+    expect(appReducer(chosen, { type: 'openScenario', scenario: 1 }).mode).toBe('timed');
+  });
+
+  it('starts the clock on the first tap only in timed mode', () => {
+    expect(place(timed(), [2]).clockRunning).toBe(true);
+    expect(place(drilling(), [2]).clockRunning).toBe(false);
+  });
+
+  it('keeps the clock running when the line is emptied', () => {
+    const state = appReducer(place(timed(), [2]), { type: 'untap', position: 0 });
+    expect(state.clockRunning).toBe(true);
+  });
+
+  it('stops the clock on Check, whatever the verdict', () => {
+    for (const check of [CHECK, CHECK_ALT, CHECK_WRONG]) {
+      expect(run(place(timed(), RIGHT), check).clockRunning).toBe(false);
+    }
+  });
+
+  it('counts a timeout as a miss that clears the line the first time', () => {
+    const state = run(place(timed(), WRONG), TIMEOUT);
+    expect(state).toMatchObject({ status: 'timeout', misses: 1, placed: [], clockRunning: false });
+  });
+
+  it('leaves the line standing on a later timeout', () => {
+    const state = run(place(timed({ misses: 1 }), WRONG), TIMEOUT);
+    expect(state).toMatchObject({ status: 'timeout', misses: 2, placed: WRONG });
+  });
+
+  it('ignores a timeout once the clock has stopped', () => {
+    const checked = run(place(timed(), WRONG), CHECK_WRONG);
+    expect(appReducer(checked, TIMEOUT)).toBe(checked);
+    const left = run(place(timed(), WRONG), { type: 'goHome' });
+    expect(appReducer(left, TIMEOUT)).toBe(left);
+  });
+
+  it('withholds first-try credit after a timeout', () => {
+    const timedOut = run(place(timed(), WRONG), TIMEOUT);
+    expect(run(place(timedOut, RIGHT), CHECK).firstTry).toBe(0);
+  });
+});
+
 describe('isDone', () => {
   it('is true only once the answer is settled', () => {
     expect(isDone(drilling({ status: 'idle' }))).toBe(false);
