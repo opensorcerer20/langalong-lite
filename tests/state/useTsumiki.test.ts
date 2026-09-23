@@ -7,9 +7,14 @@
    shipped situations fail a state test. */
 
 import { act, renderHook } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { HIGHLIGHT_AFTER_MISSES, NOTE_AFTER_MISSES, REVEAL_AFTER_MISSES } from '../../src/config';
+import {
+  HIGHLIGHT_AFTER_MISSES,
+  NOTE_AFTER_MISSES,
+  REVEAL_AFTER_MISSES,
+  TIMED_SECONDS,
+} from '../../src/config';
 import type { LanguagePack, SentenceItem, Tile } from '../../src/data/types';
 import { revealIndices } from '../../src/lib/revealPlacement';
 import { useTsumiki } from '../../src/state/useTsumiki';
@@ -393,5 +398,53 @@ describe('an answer the item accepts but does not teach', () => {
     solve(view);
     act(() => view.result.current.check());
     expect(view.result.current.state.status).toBe('right');
+  });
+});
+
+describe('the timed-mode clock', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  const openTimed = () => {
+    const view = renderHook(() => useTsumiki(LANGUAGE));
+    act(() => view.result.current.setMode('timed'));
+    act(() => view.result.current.openScenario(0));
+    return view;
+  };
+
+  const wait = (seconds: number) => act(() => vi.advanceTimersByTime(seconds * 1000));
+
+  it('counts down from the first tap and marks a miss when time runs out', () => {
+    const view = openTimed();
+    act(() => view.result.current.tap(0));
+    wait(1);
+    expect(view.result.current.secondsLeft).toBe(TIMED_SECONDS - 1);
+
+    wait(TIMED_SECONDS - 1);
+    expect(view.result.current.state).toMatchObject({ status: 'timeout', misses: 1 });
+  });
+
+  it('does not time out an attempt that was checked in time', () => {
+    const view = openTimed();
+    solve(view);
+    act(() => view.result.current.check());
+    wait(TIMED_SECONDS * 2);
+    expect(view.result.current.state).toMatchObject({ status: 'right', misses: 0 });
+  });
+
+  it('gives the next attempt a full clock after a timeout', () => {
+    const view = openTimed();
+    act(() => view.result.current.tap(0));
+    wait(TIMED_SECONDS);
+    act(() => view.result.current.tap(0));
+    expect(view.result.current.secondsLeft).toBe(TIMED_SECONDS);
+    expect(view.result.current.state.status).toBe('idle');
+  });
+
+  it('never runs in free learning', () => {
+    const view = open();
+    act(() => view.result.current.tap(0));
+    wait(TIMED_SECONDS * 2);
+    expect(view.result.current.state).toMatchObject({ status: 'idle', misses: 0 });
   });
 });

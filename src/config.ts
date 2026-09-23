@@ -17,5 +17,8 @@ export const HIGHLIGHT_AFTER_MISSES = 2;
 /** Misses before the "Show me the answer" button appears. */
 export const REVEAL_AFTER_MISSES = 3;
 
+/** Timed mode: seconds from an attempt's first tap to pressing Check. */
+export const TIMED_SECONDS = 5;
+
 /** The romaji beneath the text on every tile. */
 export const SHOW_READING = true;

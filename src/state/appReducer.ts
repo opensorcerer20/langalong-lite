@@ -38,6 +38,8 @@ export interface AppState {
   readonly finished: boolean;
   /** Timed mode: an attempt is on the clock, from its first tap until Check. */
   readonly clockRunning: boolean;
+  /** Whole seconds the current attempt has been on the clock. */
+  readonly elapsed: number;
 }
 
 export const initialState: AppState = {
@@ -51,6 +53,7 @@ export const initialState: AppState = {
   firstTry: 0,
   finished: false,
   clockRunning: false,
+  elapsed: 0,
 };
 
 export type AppAction =
@@ -60,7 +63,8 @@ export type AppAction =
   | { type: 'tap'; bankIndex: number }
   | { type: 'untap'; position: number }
   | { type: 'check'; verdict: Verdict }
-  | { type: 'timeout' }
+  /* One second of the clock; `limit` is the seconds an attempt is allowed. */
+  | { type: 'tick'; limit: number }
   /* The bank positions that spell the answer. */
   | { type: 'reveal'; placed: readonly number[] }
   | { type: 'next'; itemCount: number }
@@ -72,7 +76,13 @@ export function isDone(state: AppState): boolean {
 }
 
 /** The state an item starts in. */
-const FRESH_ITEM = { placed: [], misses: 0, status: 'idle', clockRunning: false } as const;
+const FRESH_ITEM = {
+  placed: [],
+  misses: 0,
+  status: 'idle',
+  clockRunning: false,
+  elapsed: 0,
+} as const;
 
 function miss(state: AppState, status: 'wrong' | 'timeout'): AppState {
   return {
@@ -104,16 +114,19 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       /* Leaves the drill where it was; openScenario is what resets it. */
       return { ...state, screen: 'home', clockRunning: false };
 
-    case 'tap':
+    case 'tap': {
       if (isDone(state)) return state;
       if (state.placed.includes(action.bankIndex)) return state;
+      const starting = state.mode === 'timed' && !state.clockRunning;
       return {
         ...state,
         placed: [...state.placed, action.bankIndex],
         /* Clears the "not quite" line as soon as they start over. */
         status: 'idle',
-        clockRunning: state.clockRunning || state.mode === 'timed',
+        clockRunning: state.clockRunning || starting,
+        elapsed: starting ? 0 : state.elapsed,
       };
+    }
 
     case 'untap':
       if (isDone(state)) return state;
@@ -150,10 +163,11 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return miss(state, 'wrong');
     }
 
-    case 'timeout':
-      /* A timer that fires after Check, or after leaving the drill, is stale. */
+    case 'tick':
+      /* A tick that lands after Check, or after leaving the drill, is stale. */
       if (!state.clockRunning || isDone(state)) return state;
-      return miss(state, 'timeout');
+      if (state.elapsed + 1 >= action.limit) return miss(state, 'timeout');
+      return { ...state, elapsed: state.elapsed + 1 };
 
     case 'reveal':
       if (isDone(state)) return state;

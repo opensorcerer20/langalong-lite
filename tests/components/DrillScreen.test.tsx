@@ -86,6 +86,8 @@ function view(state: Partial<AppState> = {}, over: Partial<Tsumiki> = {}): Tsumi
     showReveal: false,
     wrongPositions: [],
     progress: 0,
+    timed: false,
+    secondsLeft: 5,
     setMode: vi.fn(),
     openScenario: vi.fn(),
     goHome: vi.fn(),

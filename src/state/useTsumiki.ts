@@ -9,15 +9,17 @@
    - looks the current scenario and item up in the content;
    - builds the tile bank for them;
    - judges what the learner built, and hands the reducer the verdict;
-   - applies the config dials, so no component knows what "two misses" means. */
+   - applies the config dials, so no component knows what "two misses" means;
+   - runs the timed-mode clock, one tick a second while an attempt is on it. */
 
-import { useCallback, useMemo, useReducer } from 'react';
+import { useCallback, useEffect, useMemo, useReducer } from 'react';
 
 import {
   HIGHLIGHT_AFTER_MISSES,
   NOTE_AFTER_MISSES,
   REVEAL_AFTER_MISSES,
   TILE_MULTIPLIER,
+  TIMED_SECONDS,
 } from '../config';
 import type { LanguagePack, Scenario, SentenceItem, Tile } from '../data/types';
 import { buildBank } from '../lib/buildBank';
@@ -59,6 +61,10 @@ export interface Tsumiki {
   readonly wrongPositions: readonly number[];
   /** How far through the set, 0–1, for the progress rule. */
   readonly progress: number;
+  /** The drill is in timed mode. */
+  readonly timed: boolean;
+  /** Timed mode: whole seconds left on the current attempt's clock. */
+  readonly secondsLeft: number;
 
   readonly setMode: (mode: DrillMode) => void;
   readonly openScenario: (scenario: number) => void;
@@ -119,6 +125,12 @@ export function useTsumiki(language: LanguagePack): Tsumiki {
   );
 
   const setMode = useCallback((mode: DrillMode) => dispatch({ type: 'setMode', mode }), []);
+  useEffect(() => {
+    if (!state.clockRunning) return;
+    const id = setInterval(() => dispatch({ type: 'tick', limit: TIMED_SECONDS }), 1000);
+    return () => clearInterval(id);
+  }, [state.clockRunning]);
+
   const openScenario = useCallback(
     (index: number) => dispatch({ type: 'openScenario', scenario: index }),
     [],
@@ -157,6 +169,8 @@ export function useTsumiki(language: LanguagePack): Tsumiki {
     wrongPositions: marks,
     /* A finished set reads 100%, not "last item". */
     progress: (state.finished ? total : state.item) / total,
+    timed: state.mode === 'timed',
+    secondsLeft: TIMED_SECONDS - state.elapsed,
     setMode,
     openScenario,
     goHome,
