@@ -26,8 +26,8 @@ import { buildBank } from '../lib/buildBank';
 import { buildString, judge } from '../lib/checkAnswer';
 import { wrongPositions } from '../lib/diffAnswer';
 import { revealIndices } from '../lib/revealPlacement';
-import { appReducer, initialState, isDone } from './appReducer';
 import type { AppState, DrillMode } from './appReducer';
+import { appReducer, initialState, isDone } from './appReducer';
 
 export interface Tsumiki {
   readonly state: AppState;

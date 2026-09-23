@@ -2,14 +2,15 @@
    through to the right pieces — not the drill rules, which live in appReducer
    and are tested there. */
 
+import { describe, expect, it, vi } from 'vitest';
+
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
 
 import { DrillScreen } from '../../src/components/DrillScreen';
 import type { LanguagePack, SentenceItem, Tile } from '../../src/data/types';
-import { initialState } from '../../src/state/appReducer';
 import type { AppState } from '../../src/state/appReducer';
+import { initialState } from '../../src/state/appReducer';
 import type { Tsumiki } from '../../src/state/useTsumiki';
 
 const BANK: readonly Tile[] = [

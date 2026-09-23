@@ -5,11 +5,7 @@
    The allowed keys are listed here, not in src/. A field added to PackFile but
    not here fails the first time content uses it, which is the safe direction. */
 
-import {
-  describe,
-  expect,
-  it,
-} from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import type { PackFile } from '../../src/data/loadPack';
 
