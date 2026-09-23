@@ -14,6 +14,18 @@ It installs to a home screen and works offline — the lessons are in the bundle
      broken images on every view, which costs more than the missing pictures do.
      Restore it once the captures exist — see docs/images/README.md. -->
 
+## Current app state: UNDER DEVELOPMENT
+
+This app is UNDER DEVELOPMENT, so major changes may still be introduced, and bugs may appear as a result.
+
+## Intended audience
+
+Anyone who wants to learn to build sentences in Japanese
+
+## What about other languages?
+
+This can be adapted to other languages, but first I wanted to get this app to a first major release before considering that.
+
 ## How it plays
 
 - Tap bank tiles to place them; tap a placed tile to send it back.
