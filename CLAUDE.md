@@ -113,6 +113,7 @@ When in doubt, default to a code/diagram representation even for simple structur
 ## Testing
 - When running a script to test it, apply a 15 second timeout in case a script does not exit properly, which prevents the tool from waiting forever for it to finish.
 - Unit tests should be high value; do not add tests just for the sake of having at least one test that pings the function/component
+- Unless otherwise specified, do not attempt to run browser tests for UI checks.
 
 ## Scope of coding for different environments
 - Look in README.md for the "Current app state" section. If it indicates the app is still under development, then documentation and other considerations should follow that style. If the app is in alpha or beta release, follow that style, and the same applies for being launched.
