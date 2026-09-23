@@ -25,7 +25,7 @@ import { buildString, judge } from '../lib/checkAnswer';
 import { wrongPositions } from '../lib/diffAnswer';
 import { revealIndices } from '../lib/revealPlacement';
 import { appReducer, initialState, isDone } from './appReducer';
-import type { AppState } from './appReducer';
+import type { AppState, DrillMode } from './appReducer';
 
 export interface Tsumiki {
   readonly state: AppState;
@@ -60,6 +60,7 @@ export interface Tsumiki {
   /** How far through the set, 0–1, for the progress rule. */
   readonly progress: number;
 
+  readonly setMode: (mode: DrillMode) => void;
   readonly openScenario: (scenario: number) => void;
   readonly goHome: () => void;
   readonly tap: (bankIndex: number) => void;
@@ -117,6 +118,7 @@ export function useTsumiki(language: LanguagePack): Tsumiki {
     [state.status, state.misses, state.placed, item, bank, language.joiner],
   );
 
+  const setMode = useCallback((mode: DrillMode) => dispatch({ type: 'setMode', mode }), []);
   const openScenario = useCallback(
     (index: number) => dispatch({ type: 'openScenario', scenario: index }),
     [],
@@ -155,6 +157,7 @@ export function useTsumiki(language: LanguagePack): Tsumiki {
     wrongPositions: marks,
     /* A finished set reads 100%, not "last item". */
     progress: (state.finished ? total : state.item) / total,
+    setMode,
     openScenario,
     goHome,
     tap,

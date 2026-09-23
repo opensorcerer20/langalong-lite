@@ -193,6 +193,18 @@ describe('App', () => {
     expect(screen.getByText(new RegExp(`item 1 of ${SECOND.items.length}`))).toBeInTheDocument();
   });
 
+  it('keeps the chosen mode across a visit to a situation', async () => {
+    const user = userEvent.setup();
+    render(<App language={LANGUAGE} />);
+    expect(screen.getByRole('radio', { name: 'Free learning' })).toBeChecked();
+
+    await user.click(screen.getByRole('radio', { name: 'Timed' }));
+    await user.click(screen.getByText(FIRST.name));
+    await user.click(screen.getByRole('button', { name: /all/i }));
+
+    expect(screen.getByRole('radio', { name: 'Timed' })).toBeChecked();
+  });
+
   it('restarts a set that is reopened rather than resuming it', async () => {
     const user = userEvent.setup();
     render(<App language={LANGUAGE} />);

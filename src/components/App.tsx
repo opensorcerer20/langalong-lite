@@ -35,7 +35,14 @@ export function App({ language: pack }: AppProps) {
 
       <ProgressBar value={inDrill ? tsumiki.progress : 0} />
 
-      {!inDrill && <HomeScreen scenarios={scenarios} onOpen={tsumiki.openScenario} />}
+      {!inDrill && (
+        <HomeScreen
+          scenarios={scenarios}
+          onOpen={tsumiki.openScenario}
+          mode={state.mode}
+          onModeChange={tsumiki.setMode}
+        />
+      )}
 
       {inDrill && !state.finished && <DrillScreen tsumiki={tsumiki} />}
 
