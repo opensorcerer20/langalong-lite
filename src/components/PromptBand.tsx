@@ -2,7 +2,9 @@
 
 import * as stylex from '@stylexjs/stylex';
 
+import type { DrillMode } from '../state/appReducer';
 import { shared } from '../styles/shared';
+import { MODE_LABELS } from './modeLabels';
 
 export interface PromptBandProps {
   /** The English prompt. */
@@ -12,14 +14,16 @@ export interface PromptBandProps {
   /** Zero-based index of the current item. */
   readonly index: number;
   readonly total: number;
+  readonly mode: DrillMode;
 }
 
-export function PromptBand({ prompt, language, index, total }: PromptBandProps) {
+export function PromptBand({ prompt, language, index, total, mode }: PromptBandProps) {
   return (
     <div {...stylex.props(s.band)}>
-      <div {...stylex.props(shared.kicker)}>
+      <div {...stylex.props(shared.kicker, shared.kickerTight)}>
         Say this in {language} — item {index + 1} of {total}
       </div>
+      <div {...stylex.props(s.mode)}>{MODE_LABELS[mode]}</div>
       <h1 {...stylex.props(s.prompt)}>{prompt}</h1>
     </div>
   );
@@ -34,6 +38,21 @@ const s = stylex.create({
     borderBottomWidth: 2,
     borderBottomStyle: 'solid',
     borderBottomColor: 'var(--color-divider)',
+  },
+
+  /* Matches the selected option of the home screen's `.seg` control. */
+  mode: {
+    display: 'inline-block',
+    marginTop: 8,
+    marginBottom: 12,
+    paddingTop: 7,
+    paddingRight: 12,
+    paddingBottom: 7,
+    paddingLeft: 12,
+    borderRadius: 'var(--radius-md)',
+    fontSize: 13,
+    backgroundColor: 'var(--color-accent)',
+    color: 'var(--color-bg)',
   },
 
   prompt: {

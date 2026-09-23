@@ -205,6 +205,18 @@ describe('App', () => {
     expect(screen.getByRole('radio', { name: 'Timed' })).toBeChecked();
   });
 
+  it('shows the chosen mode on the drill screen', async () => {
+    const user = userEvent.setup();
+    render(<App language={LANGUAGE} />);
+    await user.click(screen.getByText(FIRST.name));
+    expect(screen.getByText('Free learning')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /all/i }));
+    await user.click(screen.getByRole('radio', { name: 'Timed' }));
+    await user.click(screen.getByText(FIRST.name));
+    expect(screen.getByText('Timed')).toBeInTheDocument();
+  });
+
   it('restarts a set that is reopened rather than resuming it', async () => {
     const user = userEvent.setup();
     render(<App language={LANGUAGE} />);
