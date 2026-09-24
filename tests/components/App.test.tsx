@@ -86,7 +86,9 @@ describe('App', () => {
     expect(screen.getByText('Grammar')).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('Not yet — read the note');
 
-    /* Third miss — the reveal is offered. */
+    /* Third miss — the reveal is offered. The marked-up line has to be cleared
+       before another tile will go on. */
+    await user.click(screen.getByRole('button', { name: 'Try again' }));
     await user.click(wrongTile());
     await user.click(primary());
     const reveal = screen.getByRole('button', { name: /show me the answer/i });

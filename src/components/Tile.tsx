@@ -135,7 +135,7 @@ const s = stylex.create({
 
      Flat values, unlike `placed` above: StyleX merges per property, so these
      drop that rule's hover pair on purpose — a marked tile is meant to look
-     unfinished until it is tapped away. */
+     unfinished until Try again clears the line. */
   wrong: {
     backgroundColor: 'var(--color-surface)',
     color: 'var(--color-text)',

@@ -1,7 +1,8 @@
 /* The buttons at the foot of the drill.
 
-   One primary button does both jobs: it checks the answer while the item is
-   open, and advances once the answer is settled. The reveal button only appears
+   One primary button does every job: it checks the answer while the item is
+   open, clears a wrong answer left standing on the line, and advances once the
+   answer is settled. The reveal button only appears
    after enough misses — see REVEAL_AFTER_MISSES.
 
    The buttons themselves are the design system's `.btn` classes, unstyled by
@@ -16,8 +17,11 @@ export interface DrillActionsProps {
   readonly isLastItem: boolean;
   /** Nothing is on the answer line yet, so there is nothing to check. */
   readonly canCheck: boolean;
+  /** A wrong answer is standing on the line, so the primary button clears it instead of checking. */
+  readonly canRetry: boolean;
   readonly showReveal: boolean;
   readonly onCheck: () => void;
+  readonly onRetry: () => void;
   readonly onNext: () => void;
   readonly onReveal: () => void;
 }
@@ -26,12 +30,21 @@ export function DrillActions({
   done,
   isLastItem,
   canCheck,
+  canRetry,
   showReveal,
   onCheck,
+  onRetry,
   onNext,
   onReveal,
 }: DrillActionsProps) {
-  const label = done ? (isLastItem ? 'Finish set' : 'Next sentence') : 'Check';
+  const label = done
+    ? isLastItem
+      ? 'Finish set'
+      : 'Next sentence'
+    : canRetry
+      ? 'Try again'
+      : 'Check';
+  const onPrimary = done ? onNext : canRetry ? onRetry : onCheck;
 
   return (
     <div {...stylex.props(s.actions)}>
@@ -44,7 +57,7 @@ export function DrillActions({
         type="button"
         className="btn btn-primary btn-block"
         disabled={!done && !canCheck}
-        onClick={done ? onNext : onCheck}
+        onClick={onPrimary}
       >
         {label}
       </button>

@@ -114,7 +114,7 @@ src/pwa.ts            registers it, in production only
 
 ## Judging the answer line
 
-**Wrong tiles are worked out against every accepted answer, not just the canonical one.** `wrongPositions` aligns the line with each candidate — `ans`, plus each `alts` entry segmented back into tiles — and returns whichever leaves the fewest positions unaccounted for. A learner most of the way to an alternate is marked on the tiles that alternate does not want, not on every tile missing from `ans`.
+**Wrong tiles are always worked out against the canonical answer, never an alternate.** Highlighting wrong tiles should always compare against the same right answer to avoid confusion over multiple attempts. A learner most of the way to an alternate sees its extra tiles marked too.
 
 **Alignment is a longest-common-subsequence walk, not a position-by-position comparison.** One tile left out early would otherwise shift every later tile and mark the whole line wrong. Each step of the walk:
 
@@ -140,7 +140,7 @@ past the end of want         -> everything left on the line is wrong
 | `src/lib/segment.ts` | Splitting a written-out sentence back into tiles, longest match first |
 | `src/lib/checkAnswer.ts` | Building the answer string and judging it |
 | `src/lib/revealPlacement.ts` | Which bank positions spell the answer |
-| `src/lib/diffAnswer.ts` | Which positions on the answer line are wrong, allowing for alternates |
+| `src/lib/diffAnswer.ts` | Which positions on the answer line are wrong, against the canonical answer |
 | `src/lib/tags.ts` | Which words a sentence uses, which is what its distractors are built from |
 | `src/state/` | The reducer and the hook |
 | `src/components/<Name>.tsx` | One component and its StyleX styles, in one file |
