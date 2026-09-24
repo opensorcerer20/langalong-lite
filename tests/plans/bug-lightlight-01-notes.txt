@@ -1,0 +1,23 @@
+intiial work
+
+noticed an issue where a previous new feature (highlighting wrong tiles when forming a sentence in a language learning app) caused the normal flow of practicing prompts and responses to end up in a weird state with no obvious way forward.
+
+claude prompt:
+this language learning app uses tiles with japanese on them and scenarios with prompts to have the user assemble a response in a style similar to duolingo. after a second incorrect attempt, it shows which language tiles are correct and incorrect after the second attempt is made. however, at that point, the main action button says "check" due to older code and it needs to change to "try again", which clears the placed tiles back into the tile pool and waits for the third attempt
+
+as noted, initially on main branch
+
+realized i could use this bug and a new feature already in progress to make qa artifacts to show my work
+
+requested test plan template from claude chat client
+
+filled in test plan for tile highlight bug
+...details of test plan
+
+
+realized the number of changes had gone up and i hadnt reviewed the initial plan changes, so i decided to move to a separate branch
+
+claude prompt:
+i need another plan made. i added a test plan in tests/plans for this bug "BUG-wrong-tile-highlight..md". i enumerated several tests and their expected results. id like to make sure each case is covered in code, eg i know that when the wrong tiles are highlighted after the second attempt, the app currently does NOT lock down the tiles from being selected, so thats something that needs to be updated with this new claude plan. also note that i do not want to install any automated ui testing tools at this time, nor do i want you to do any ui testing; specify manual testing for now and i will do that.
+
+decided to manually test changes since automated ui testing tool was not in place and didnt want to introduce more changes
