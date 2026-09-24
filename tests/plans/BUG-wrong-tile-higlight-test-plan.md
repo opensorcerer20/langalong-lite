@@ -35,15 +35,15 @@ This should only affect the exercise screen and not the main scenario picking sc
 
 | # | Input / Action | Expected Result | Pass / Fail |
 |---|-----------------|------------------|--------------|
-| TC-0 | first attempt just failed, three failed attempts required to see "show answer" button | see disabled button say "Check", tiles reset to initial state | |
-| TC-0 | second attempt just failed, three failed attempts required to see "show answer" button | see button say "Try again", and right/wrong tiles highlighted | |
-| TC-0 | second attempt just failed, three failed attempts required to see "show answer" button, and the exercise has "alt" answers | see button say "Try again", and right/wrong tiles highlighted, but only for the main answer, not the "alt" answer | |
-| TC-0 | second attempt failed, user tries to click any tiles | nothing happens | |
-| TC-0 | second attempt failed, user clicks "try again" | tiles reset to initial state for third attempt | |
-| TC-0 | third attempt just failed, again three failed attempts required to see "show answer" button | see two buttons that say "show answer" and "try again" and right/wrong tiles highlighted | |
-| TC-0 | third attempt failed, user clicks "try again" | tiles reset to initial state for fourth attempt | |
-| TC-0 | third attempt failed, user clicks "show answer" | answer shown, action button says "next sentence" | |
-| TC-0 | any number of failed attempts after third attempt, which shows "show answer" button | same behavior as third attempt | |
+| TC-10 | first attempt just failed, three failed attempts required to see "show answer" button | see disabled button say "Check", tiles reset to initial state | Pass |
+| TC-20 | second attempt just failed, three failed attempts required to see "show answer" button | see button say "Try again", and right/wrong tiles highlighted | Pass |
+| TC-30 | second attempt just failed, three failed attempts required to see "show answer" button, and the exercise has "alt" answers | see button say "Try again", and right/wrong tiles highlighted, but only for the main answer, not the "alt" answer | Pass |
+| TC-40 | second attempt failed, user tries to click any tiles | nothing happens | Pass |
+| TC-50 | second attempt failed, user clicks "try again" | tiles reset to initial state for third attempt | Pass |
+| TC-60 | third attempt just failed, again three failed attempts required to see "show answer" button | see two buttons that say "show answer" and "try again" and right/wrong tiles highlighted | Pass |
+| TC-70 | third attempt failed, user clicks "try again" | tiles reset to initial state for fourth attempt | Pass |
+| TC-80 | third attempt failed, user clicks "show answer" | answer shown, action button says "next sentence" | Pass |
+| TC-90 | any number of failed attempts after third attempt, which shows "show answer" button | same behavior as third attempt | Pass |
 
 ---
 
