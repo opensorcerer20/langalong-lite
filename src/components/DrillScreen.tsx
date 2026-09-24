@@ -30,7 +30,7 @@ export function DrillScreen({ tsumiki }: DrillScreenProps) {
         bank={bank}
         placed={state.placed}
         showReading={SHOW_READING}
-        locked={done}
+        locked={done || canRetry}
         wrongPositions={tsumiki.wrongPositions}
         onRemove={tsumiki.untap}
       />
@@ -42,7 +42,7 @@ export function DrillScreen({ tsumiki }: DrillScreenProps) {
           bank={bank}
           placed={state.placed}
           showReading={SHOW_READING}
-          locked={done}
+          locked={done || canRetry}
           onPlace={tsumiki.tap}
         />
 

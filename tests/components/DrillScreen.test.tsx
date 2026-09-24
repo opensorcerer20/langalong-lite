@@ -156,6 +156,17 @@ describe('DrillScreen', () => {
     expect(tsumiki.check).not.toHaveBeenCalled();
   });
 
+  it('ignores tile taps while a wrong answer waits on Try again', async () => {
+    const tsumiki = view({ placed: [2, 1], status: 'wrong', misses: 2 }, { canRetry: true });
+    render(<DrillScreen tsumiki={tsumiki} />);
+
+    /* The placed は is first; its hidden bank slot comes after it. */
+    await userEvent.click(screen.getAllByText('は')[0]!);
+    await userEvent.click(screen.getByText('ください'));
+    expect(tsumiki.untap).not.toHaveBeenCalled();
+    expect(tsumiki.tap).not.toHaveBeenCalled();
+  });
+
   it('shows the note only when the view model says it is due', () => {
     const { unmount } = render(<DrillScreen tsumiki={view({ misses: 1 })} />);
     expect(screen.queryByText(NOTE)).not.toBeInTheDocument();
