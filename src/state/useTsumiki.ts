@@ -118,9 +118,9 @@ export function useTsumiki(language: LanguagePack): Tsumiki {
   const marks = useMemo(
     () =>
       state.status === 'wrong' && state.misses >= HIGHLIGHT_AFTER_MISSES
-        ? wrongPositions(item, bank, state.placed, language.joiner)
+        ? wrongPositions(item, bank, state.placed)
         : [],
-    [state.status, state.misses, state.placed, item, bank, language.joiner],
+    [state.status, state.misses, state.placed, item, bank],
   );
 
   const openScenario = useCallback(
