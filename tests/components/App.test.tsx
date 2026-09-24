@@ -1,10 +1,9 @@
 /* End-to-end through the real content and the real reducer — the test that
    would catch the conversion having quietly changed how a drill behaves. */
 
-import { describe, expect, it } from 'vitest';
-
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { describe, expect, it } from 'vitest';
 
 import { App } from '../../src/components/App';
 import { TILE_MULTIPLIER } from '../../src/config';
