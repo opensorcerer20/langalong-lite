@@ -21,7 +21,15 @@ The main action button says "check" but tiles are still in the selected pool.
 
 ---
 
-## 3. Test Cases and Pass-Fail
+## 3. What Else Might Be Affected
+
+*List any other app areas, features, or functions that share code, data, or state with this bug/feature — the places a fix or change here could cause a ripple effect elsewhere, even if you don't expect it to.*
+
+This should only affect the exercise screen and not the main scenario picking screen.
+
+---
+
+## 4. Test Cases and Pass-Fail
 
 *List 3–5 cases. Include at least one happy-path case and at least one edge case. For a bug, include the exact original failing case plus 1–2 nearby variations. For a feature, pick cases deliberately: one normal input, one invalid/unexpected input, one boundary condition.*
 
@@ -39,7 +47,7 @@ The main action button says "check" but tiles are still in the selected pool.
 
 ---
 
-## 4. Takeaway
+## 5. Takeaway
 
 *One or two sentences: what did this confirm? If you had more time, what would you test next?*
 
