@@ -140,6 +140,23 @@ describe('checking', () => {
   });
 });
 
+describe('retrying', () => {
+  const RETRY: AppAction = { type: 'retry' };
+
+  it('returns the tiles to the bank and keeps the misses after a marked-up answer', () => {
+    const once = run(place(drilling(), WRONG), CHECK_WRONG);
+    const twice = run(place(once, WRONG), CHECK_WRONG);
+    expect(appReducer(twice, RETRY)).toMatchObject({ status: 'idle', misses: 2, placed: [] });
+  });
+
+  it('does nothing unless the last check was wrong', () => {
+    const offered = run(place(drilling(), WRONG), CHECK_ALT);
+    expect(appReducer(offered, RETRY)).toBe(offered);
+    const settled = drilling({ status: 'right', placed: RIGHT, firstTry: 1 });
+    expect(appReducer(settled, RETRY)).toBe(settled);
+  });
+});
+
 describe('an accepted alternate', () => {
   const ALT = [3, 2, 0];
 

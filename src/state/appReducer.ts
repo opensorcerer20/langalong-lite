@@ -50,6 +50,7 @@ export type AppAction =
   | { type: 'tap'; bankIndex: number }
   | { type: 'untap'; position: number }
   | { type: 'check'; verdict: Verdict }
+  | { type: 'retry' }
   /* The bank positions that spell the answer. */
   | { type: 'reveal'; placed: readonly number[] }
   | { type: 'next'; itemCount: number }
@@ -126,6 +127,11 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         placed: state.misses === 0 ? [] : state.placed,
       };
     }
+
+    case 'retry':
+      if (state.status !== 'wrong') return state;
+      /* Misses stay, so the next attempt still climbs the miss ladder. */
+      return { ...state, placed: [], status: 'idle' };
 
     case 'reveal':
       if (isDone(state)) return state;

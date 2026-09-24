@@ -306,6 +306,20 @@ describe('useTsumiki', () => {
     expect(view.result.current.wrongPositions).toEqual([]);
   });
 
+  it('offers a retry only while a wrong answer is left on the line', () => {
+    const view = open();
+    const bad = distractor(view);
+
+    missWith(view, bad);
+    expect(view.result.current.canRetry).toBe(false);
+    missWith(view, bad);
+    expect(view.result.current.canRetry).toBe(true);
+
+    act(() => view.result.current.retry());
+    expect(view.result.current.state.placed).toEqual([]);
+    expect(view.result.current.canRetry).toBe(false);
+  });
+
   it('marks nothing once the answer is settled', () => {
     const view = open();
     const bad = distractor(view);
