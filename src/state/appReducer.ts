@@ -61,6 +61,11 @@ export function isDone(state: AppState): boolean {
   return state.status === 'right' || state.status === 'accepted' || state.status === 'shown';
 }
 
+/** A wrong answer is still on the line, marked up: taps are ignored until the learner retries. */
+export function isAwaitingRetry(state: AppState): boolean {
+  return state.status === 'wrong' && state.placed.length > 0;
+}
+
 /** The state an item starts in. */
 const FRESH_ITEM = { placed: [], misses: 0, status: 'idle' } as const;
 
@@ -79,7 +84,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, screen: 'home' };
 
     case 'tap':
-      if (isDone(state)) return state;
+      if (isDone(state) || isAwaitingRetry(state)) return state;
       if (state.placed.includes(action.bankIndex)) return state;
       return {
         ...state,
@@ -89,7 +94,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       };
 
     case 'untap':
-      if (isDone(state)) return state;
+      if (isDone(state) || isAwaitingRetry(state)) return state;
       return {
         ...state,
         /* The tile and everything after it, so the next tap lands in the spot

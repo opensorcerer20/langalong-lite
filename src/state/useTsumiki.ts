@@ -24,7 +24,7 @@ import { buildBank } from '../lib/buildBank';
 import { buildString, judge } from '../lib/checkAnswer';
 import { wrongPositions } from '../lib/diffAnswer';
 import { revealIndices } from '../lib/revealPlacement';
-import { appReducer, initialState, isDone } from './appReducer';
+import { appReducer, initialState, isAwaitingRetry, isDone } from './appReducer';
 import type { AppState } from './appReducer';
 
 export interface Tsumiki {
@@ -160,7 +160,7 @@ export function useTsumiki(language: LanguagePack): Tsumiki {
     isLastItem: state.item === total - 1,
     showNote: item.note !== undefined && (state.misses >= NOTE_AFTER_MISSES || done),
     showReveal: state.misses >= REVEAL_AFTER_MISSES && !done,
-    canRetry: state.status === 'wrong' && state.placed.length > 0,
+    canRetry: isAwaitingRetry(state),
     wrongPositions: marks,
     /* A finished set reads 100%, not "last item". */
     progress: (state.finished ? total : state.item) / total,

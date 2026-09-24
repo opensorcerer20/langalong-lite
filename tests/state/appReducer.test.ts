@@ -149,6 +149,13 @@ describe('retrying', () => {
     expect(appReducer(twice, RETRY)).toMatchObject({ status: 'idle', misses: 2, placed: [] });
   });
 
+  it('ignores taps on a marked-up line until it is retried', () => {
+    const once = run(place(drilling(), WRONG), CHECK_WRONG);
+    const twice = run(place(once, WRONG), CHECK_WRONG);
+    expect(appReducer(twice, { type: 'tap', bankIndex: 3 })).toBe(twice);
+    expect(appReducer(twice, { type: 'untap', position: 0 })).toBe(twice);
+  });
+
   it('does nothing unless the last check was wrong', () => {
     const offered = run(place(drilling(), WRONG), CHECK_ALT);
     expect(appReducer(offered, RETRY)).toBe(offered);
