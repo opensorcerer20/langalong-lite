@@ -65,6 +65,7 @@ export type AppAction =
   | { type: 'check'; verdict: Verdict }
   /* One second of the clock; `limit` is the seconds an attempt is allowed. */
   | { type: 'tick'; limit: number }
+  | { type: 'retry' }
   /* The bank positions that spell the answer. */
   | { type: 'reveal'; placed: readonly number[] }
   | { type: 'next'; itemCount: number }
@@ -73,6 +74,11 @@ export type AppAction =
 /** True once the answer is settled, right or revealed: the line stops accepting taps. */
 export function isDone(state: AppState): boolean {
   return state.status === 'right' || state.status === 'accepted' || state.status === 'shown';
+}
+
+/** A wrong answer is still on the line, marked up: taps are ignored until the learner retries. */
+export function isAwaitingRetry(state: AppState): boolean {
+  return state.status === 'wrong' && state.placed.length > 0;
 }
 
 /** The state an item starts in. */
@@ -115,7 +121,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, screen: 'home', clockRunning: false };
 
     case 'tap': {
-      if (isDone(state)) return state;
+      if (isDone(state) || isAwaitingRetry(state)) return state;
       if (state.placed.includes(action.bankIndex)) return state;
       const starting = state.mode === 'timed' && !state.clockRunning;
       return {
@@ -129,7 +135,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     }
 
     case 'untap':
-      if (isDone(state)) return state;
+      if (isDone(state) || isAwaitingRetry(state)) return state;
       return {
         ...state,
         /* The tile and everything after it, so the next tap lands in the spot
@@ -168,6 +174,11 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       if (!state.clockRunning || isDone(state)) return state;
       if (state.elapsed + 1 >= action.limit) return miss(state, 'timeout');
       return { ...state, elapsed: state.elapsed + 1 };
+
+    case 'retry':
+      if (state.status !== 'wrong') return state;
+      /* Misses stay, so the next attempt still climbs the miss ladder. */
+      return { ...state, placed: [], status: 'idle' };
 
     case 'reveal':
       if (isDone(state)) return state;

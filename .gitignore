@@ -16,3 +16,5 @@ dist/
 # (relative url() and href), so there is no public/ directory to ignore.
 
 .vite/
+
+temp/

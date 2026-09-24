@@ -289,26 +289,34 @@ describe('useTsumiki', () => {
     expect(view.result.current.wrongPositions).toEqual([0]);
   });
 
-  it('clears the marks when a tile is taken off the line', () => {
+  it('keeps the marks through taps, and clears them on retry', () => {
     const view = open();
     const bad = distractor(view);
     for (let miss = 0; miss < HIGHLIGHT_AFTER_MISSES; miss++) missWith(view, bad);
-    expect(view.result.current.wrongPositions).not.toEqual([]);
+    const marks = view.result.current.wrongPositions;
+    expect(marks).not.toEqual([]);
 
+    const other = view.result.current.bank.findIndex((_, index) => index !== bad);
+    act(() => view.result.current.tap(other));
     act(() => view.result.current.untap(0));
+    expect(view.result.current.wrongPositions).toEqual(marks);
+
+    act(() => view.result.current.retry());
     expect(view.result.current.wrongPositions).toEqual([]);
   });
 
-  it('clears the marks when another tile is added to the line', () => {
+  it('offers a retry only while a wrong answer is left on the line', () => {
     const view = open();
     const bad = distractor(view);
-    for (let miss = 0; miss < HIGHLIGHT_AFTER_MISSES; miss++) missWith(view, bad);
 
-    /* A different tile: tapping one already on the line is a no-op, so it would
-       not reset the status. */
-    const other = view.result.current.bank.findIndex((_, index) => index !== bad);
-    act(() => view.result.current.tap(other));
-    expect(view.result.current.wrongPositions).toEqual([]);
+    missWith(view, bad);
+    expect(view.result.current.canRetry).toBe(false);
+    missWith(view, bad);
+    expect(view.result.current.canRetry).toBe(true);
+
+    act(() => view.result.current.retry());
+    expect(view.result.current.state.placed).toEqual([]);
+    expect(view.result.current.canRetry).toBe(false);
   });
 
   it('marks nothing once the answer is settled', () => {

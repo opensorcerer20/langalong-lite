@@ -84,6 +84,7 @@ function view(state: Partial<AppState> = {}, over: Partial<Tsumiki> = {}): Tsumi
     isLastItem: false,
     showNote: false,
     showReveal: false,
+    canRetry: false,
     wrongPositions: [],
     progress: 0,
     timed: false,
@@ -94,6 +95,7 @@ function view(state: Partial<AppState> = {}, over: Partial<Tsumiki> = {}): Tsumi
     tap: vi.fn(),
     untap: vi.fn(),
     check: vi.fn(),
+    retry: vi.fn(),
     reveal: vi.fn(),
     next: vi.fn(),
     restart: vi.fn(),
@@ -145,6 +147,27 @@ describe('DrillScreen', () => {
 
     render(<DrillScreen tsumiki={view({ placed: [2] })} />);
     expect(screen.getByRole('button', { name: 'Check' })).toBeEnabled();
+  });
+
+  it('offers to try again instead of checking while a wrong answer stands', async () => {
+    const tsumiki = view({ placed: [2, 1], status: 'wrong', misses: 2 }, { canRetry: true });
+    render(<DrillScreen tsumiki={tsumiki} />);
+    expect(screen.queryByRole('button', { name: 'Check' })).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    expect(tsumiki.retry).toHaveBeenCalled();
+    expect(tsumiki.check).not.toHaveBeenCalled();
+  });
+
+  it('ignores tile taps while a wrong answer waits on Try again', async () => {
+    const tsumiki = view({ placed: [2, 1], status: 'wrong', misses: 2 }, { canRetry: true });
+    render(<DrillScreen tsumiki={tsumiki} />);
+
+    /* The placed は is first; its hidden bank slot comes after it. */
+    await userEvent.click(screen.getAllByText('は')[0]!);
+    await userEvent.click(screen.getByText('ください'));
+    expect(tsumiki.untap).not.toHaveBeenCalled();
+    expect(tsumiki.tap).not.toHaveBeenCalled();
   });
 
   it('shows the note only when the view model says it is due', () => {

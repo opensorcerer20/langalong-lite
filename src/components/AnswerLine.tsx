@@ -15,7 +15,7 @@ export interface AnswerLineProps {
   /** Bank positions the learner has placed, in order. */
   readonly placed: readonly number[];
   readonly showReading?: boolean;
-  /** The answer is settled: tiles stay put and stop responding. */
+  /** The answer is settled, or a wrong one is waiting on Try again: tiles stay put and stop responding. */
   readonly locked?: boolean;
   /** Line positions to mark as not belonging. See HIGHLIGHT_AFTER_MISSES. */
   readonly wrongPositions?: readonly number[];

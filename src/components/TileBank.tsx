@@ -14,7 +14,7 @@ export interface TileBankProps {
   /** Bank positions currently on the answer line. */
   readonly placed: readonly number[];
   readonly showReading?: boolean;
-  /** The answer is settled: the bank stops responding. */
+  /** The answer is settled, or a wrong one is waiting on Try again: the bank stops responding. */
   readonly locked?: boolean;
   readonly onPlace: (bankIndex: number) => void;
 }

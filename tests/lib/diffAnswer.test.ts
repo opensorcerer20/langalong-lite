@@ -3,9 +3,6 @@ import { describe, expect, it } from 'vitest';
 import type { SentenceItem, Tile } from '../../src/data/types';
 import { wrongPositions } from '../../src/lib/diffAnswer';
 
-/* The fixture is Japanese, which is written without spaces. */
-const JOINER = '';
-
 const BANK: readonly Tile[] = [
   ['パン', 'pan'],
   ['を', 'o'],
@@ -28,7 +25,7 @@ const ITEM: SentenceItem = {
   tags: { particles: [], conjugations: [] },
 };
 
-const wrong = (placed: readonly number[]) => wrongPositions(ITEM, BANK, placed, JOINER);
+const wrong = (placed: readonly number[]) => wrongPositions(ITEM, BANK, placed);
 
 describe('wrongPositions', () => {
   it('marks nothing on a correct line', () => {
@@ -56,15 +53,10 @@ describe('wrongPositions', () => {
     expect(wrong([4, 5])).toEqual([0, 1]);
   });
 
-  /* The point of comparing against alternates: お願いします is nowhere in `ans`,
-     so judging against the canonical answer alone would mark it wrong. */
-  it('judges a line against the alternate it is closest to', () => {
-    expect(wrong([0, 1, 3])).toEqual([]);
-    expect(wrong([0, 3])).toEqual([]);
-  });
-
-  it('marks an extra tile in a line built towards an alternate', () => {
-    expect(wrong([0, 1, 5, 3])).toEqual([2]);
+  /* An exact alternate checks as `alt` and never reaches marking, so only a
+     wrong line built towards one gets here. */
+  it('marks a line built towards an alternate against the canonical answer', () => {
+    expect(wrong([0, 5, 3])).toEqual([1, 2]);
   });
 
   /* Content and bank drifting apart must not leave a position unaccounted for. */

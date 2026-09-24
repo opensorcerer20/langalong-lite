@@ -1,10 +1,9 @@
 /* Which tiles on the answer line do not belong. See docs/ARCHITECTURE.md. */
 
 import type { SentenceItem, Tile } from '../data/types';
-import { segmentLongestFirst } from './segment';
 
 /**
- * Line positions whose tile is not part of the closest accepted answer.
+ * Line positions whose tile is not part of the canonical answer.
  *
  * Positions are indices into `placed`. A position whose bank index does not
  * resolve counts as wrong — dropping it the way `buildString` does would shift
@@ -14,40 +13,14 @@ export function wrongPositions(
   item: SentenceItem,
   bank: readonly Tile[],
   placed: readonly number[],
-  joiner: string,
 ): readonly number[] {
   if (placed.length === 0) return [];
 
+  /* Never against an alternate: marks that switched target between attempts
+     would contradict each other. */
   const line = placed.map((index) => bank[index]?.[0]);
-
-  let best: readonly number[] | null = null;
-  for (const candidate of candidateTexts(item, bank, joiner)) {
-    const wrong = unmatched(line, candidate);
-    /* Strict `<`, so the canonical answer wins a tie. */
-    if (best === null || wrong.length < best.length) best = wrong;
-    if (best.length === 0) break;
-  }
-
-  return best ?? [];
-}
-
-/** The tile texts of each accepted answer, canonical first. */
-function candidateTexts(
-  item: SentenceItem,
-  bank: readonly Tile[],
-  joiner: string,
-): readonly string[][] {
-  const candidates: string[][] = [item.ans.map((tile) => tile[0])];
-
-  for (const alt of item.alts ?? []) {
-    const { tiles, rest } = segmentLongestFirst(alt, bank, joiner);
-    /* A leftover remainder means the bank cannot build this alternate, so it is
-       dropped rather than compared half-built. tests/data/languages.test.ts
-       asserts shipped content never gets here. */
-    if (rest === '') candidates.push(tiles.map((tile) => tile[0]));
-  }
-
-  return candidates;
+  const want = item.ans.map((tile) => tile[0]);
+  return unmatched(line, want);
 }
 
 /** Positions of `line` left out of its longest common subsequence with `want`. */

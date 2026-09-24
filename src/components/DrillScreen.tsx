@@ -19,7 +19,8 @@ export interface DrillScreenProps {
 }
 
 export function DrillScreen({ tsumiki }: DrillScreenProps) {
-  const { state, language, item, bank, total, done, isLastItem, showNote, showReveal } = tsumiki;
+  const { state, language, item, bank, total, done, isLastItem, showNote, showReveal, canRetry } =
+    tsumiki;
 
   return (
     <section {...stylex.props(shared.screen, s.drill)}>
@@ -35,7 +36,7 @@ export function DrillScreen({ tsumiki }: DrillScreenProps) {
         bank={bank}
         placed={state.placed}
         showReading={SHOW_READING}
-        locked={done}
+        locked={done || canRetry}
         wrongPositions={tsumiki.wrongPositions}
         onRemove={tsumiki.untap}
       />
@@ -47,7 +48,7 @@ export function DrillScreen({ tsumiki }: DrillScreenProps) {
           bank={bank}
           placed={state.placed}
           showReading={SHOW_READING}
-          locked={done}
+          locked={done || canRetry}
           onPlace={tsumiki.tap}
         />
 
@@ -66,8 +67,10 @@ export function DrillScreen({ tsumiki }: DrillScreenProps) {
         done={done}
         isLastItem={isLastItem}
         canCheck={state.placed.length > 0}
+        canRetry={canRetry}
         showReveal={showReveal}
         onCheck={tsumiki.check}
+        onRetry={tsumiki.retry}
         onNext={tsumiki.next}
         onReveal={tsumiki.reveal}
       />

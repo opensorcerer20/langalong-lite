@@ -26,8 +26,8 @@ import { buildBank } from '../lib/buildBank';
 import { buildString, judge } from '../lib/checkAnswer';
 import { wrongPositions } from '../lib/diffAnswer';
 import { revealIndices } from '../lib/revealPlacement';
-import { appReducer, initialState, isDone } from './appReducer';
 import type { AppState, DrillMode } from './appReducer';
+import { appReducer, initialState, isAwaitingRetry, isDone } from './appReducer';
 
 export interface Tsumiki {
   readonly state: AppState;
@@ -55,6 +55,11 @@ export interface Tsumiki {
   /** Show the "Show me the answer" button. */
   readonly showReveal: boolean;
   /**
+   * A wrong answer is still standing on the line, so the primary button clears
+   * it rather than checking the same tiles again.
+   */
+  readonly canRetry: boolean;
+  /**
    * Line positions to mark as wrong. Empty until the miss count earns them, and
    * empty again on the next tap, because that resets the status to `idle`.
    */
@@ -72,6 +77,7 @@ export interface Tsumiki {
   readonly tap: (bankIndex: number) => void;
   readonly untap: (position: number) => void;
   readonly check: () => void;
+  readonly retry: () => void;
   readonly reveal: () => void;
   readonly next: () => void;
   readonly restart: () => void;
@@ -119,9 +125,9 @@ export function useTsumiki(language: LanguagePack): Tsumiki {
   const marks = useMemo(
     () =>
       state.status === 'wrong' && state.misses >= HIGHLIGHT_AFTER_MISSES
-        ? wrongPositions(item, bank, state.placed, language.joiner)
+        ? wrongPositions(item, bank, state.placed)
         : [],
-    [state.status, state.misses, state.placed, item, bank, language.joiner],
+    [state.status, state.misses, state.placed, item, bank],
   );
 
   const setMode = useCallback((mode: DrillMode) => dispatch({ type: 'setMode', mode }), []);
@@ -146,6 +152,8 @@ export function useTsumiki(language: LanguagePack): Tsumiki {
     dispatch({ type: 'check', verdict });
   }, [state.placed, item, bank, language.joiner]);
 
+  const retry = useCallback(() => dispatch({ type: 'retry' }), []);
+
   const reveal = useCallback(
     () => dispatch({ type: 'reveal', placed: revealIndices(item, bank) }),
     [item, bank],
@@ -166,6 +174,7 @@ export function useTsumiki(language: LanguagePack): Tsumiki {
     isLastItem: state.item === total - 1,
     showNote: item.note !== undefined && (state.misses >= NOTE_AFTER_MISSES || done),
     showReveal: state.misses >= REVEAL_AFTER_MISSES && !done,
+    canRetry: isAwaitingRetry(state),
     wrongPositions: marks,
     /* A finished set reads 100%, not "last item". */
     progress: (state.finished ? total : state.item) / total,
@@ -177,6 +186,7 @@ export function useTsumiki(language: LanguagePack): Tsumiki {
     tap,
     untap,
     check,
+    retry,
     reveal,
     next,
     restart,
