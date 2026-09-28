@@ -76,6 +76,8 @@ If a request is ambiguous, or implementing it would require acting in conflict w
 
 Code comments should only be added for a decision that is either not obvious or not typical; do not add comments regarding general mechanics; those are best saved for documentation. Do not use existing long comments as a pattern to follow; this directive overrides that.
 
+Comments in place of future changes are allowed.
+
 Code comments and documentation should not have forced line breaks.
 
 Documentation that requires long descriptions should be broken up into bullet points where possible; the goal is to prevent a long paragraph of information and speed up review of changes.

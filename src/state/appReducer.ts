@@ -8,16 +8,19 @@ import type { Verdict } from '../lib/checkAnswer';
 /** Which screen is showing. */
 export type Screen = 'home' | 'drill';
 
+export type DrillMode = 'free' | 'timed';
+
 /**
  * How the last Check went.
  *
  * - `alt` — accepted, but not the phrasing being taught. Offered, not settled.
  * - `right`, `accepted`, `shown` — done: the line locks and the button advances.
  */
-export type DrillStatus = 'idle' | 'wrong' | 'alt' | 'right' | 'accepted' | 'shown';
+export type DrillStatus = 'idle' | 'wrong' | 'timeout' | 'alt' | 'right' | 'accepted' | 'shown';
 
 export interface AppState {
   readonly screen: Screen;
+  readonly mode: DrillMode;
   /** Index into the language's scenarios. */
   readonly scenario: number;
   /** Index of the current item within that scenario's set. */
@@ -31,10 +34,14 @@ export interface AppState {
   readonly firstTry: number;
   /** Set finished — show the done screen instead of the drill. */
   readonly finished: boolean;
+  readonly clockRunning: boolean;
+  /** Ticks the current attempt has been on the clock. */
+  readonly elapsed: number;
 }
 
 export const initialState: AppState = {
   screen: 'home',
+  mode: 'free',
   scenario: 0,
   item: 0,
   placed: [],
@@ -42,15 +49,19 @@ export const initialState: AppState = {
   status: 'idle',
   firstTry: 0,
   finished: false,
+  clockRunning: false,
+  elapsed: 0,
 };
 
 export type AppAction =
   | { type: 'openScenario'; scenario: number }
+  | { type: 'setMode'; mode: DrillMode }
   | { type: 'goHome' }
   | { type: 'tap'; bankIndex: number }
   | { type: 'untap'; position: number }
   | { type: 'check'; verdict: Verdict }
   | { type: 'retry' }
+  | { type: 'tick'; limit: number }
   /* The bank positions that spell the answer. */
   | { type: 'reveal'; placed: readonly number[] }
   | { type: 'next'; itemCount: number }
@@ -63,11 +74,29 @@ export function isDone(state: AppState): boolean {
 
 /** A wrong answer is still on the line, marked up: taps are ignored until the learner retries. */
 export function isAwaitingRetry(state: AppState): boolean {
-  return state.status === 'wrong' && state.placed.length > 0;
+  return (state.status === 'wrong' || state.status === 'timeout') && state.placed.length > 0;
 }
 
 /** The state an item starts in. */
-const FRESH_ITEM = { placed: [], misses: 0, status: 'idle' } as const;
+const FRESH_ITEM = {
+  placed: [],
+  misses: 0,
+  status: 'idle',
+  clockRunning: false,
+  elapsed: 0,
+} as const;
+
+function miss(state: AppState, status: 'wrong' | 'timeout'): AppState {
+  return {
+    ...state,
+    status,
+    misses: state.misses + 1,
+    /* The first miss clears the line; later ones leave it standing to be
+       marked up. */
+    placed: state.misses === 0 ? [] : state.placed,
+    clockRunning: false,
+  };
+}
 
 export function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
@@ -77,21 +106,29 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         ...initialState,
         screen: 'drill',
         scenario: action.scenario,
+        mode: state.mode,
       };
+
+    case 'setMode':
+      return { ...state, mode: action.mode };
 
     case 'goHome':
       /* Leaves the drill where it was; openScenario is what resets it. */
-      return { ...state, screen: 'home' };
+      return { ...state, screen: 'home', clockRunning: false };
 
-    case 'tap':
+    case 'tap': {
       if (isDone(state) || isAwaitingRetry(state)) return state;
       if (state.placed.includes(action.bankIndex)) return state;
+      const starting = state.mode === 'timed' && !state.clockRunning;
       return {
         ...state,
         placed: [...state.placed, action.bankIndex],
         /* Clears the "not quite" line as soon as they start over. */
         status: 'idle',
+        clockRunning: state.clockRunning || starting,
+        elapsed: starting ? 0 : state.elapsed,
       };
+    }
 
     case 'untap':
       if (isDone(state) || isAwaitingRetry(state)) return state;
@@ -107,10 +144,12 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       if (isDone(state)) return state;
       if (state.placed.length === 0) return state;
 
+      const checked = { ...state, clockRunning: false };
+
       /* An alternate taken on the offer scores like any other clean answer:
          misses are what count, not which phrasing they landed on. */
       const scored = {
-        ...state,
+        ...checked,
         firstTry: state.misses === 0 ? state.firstTry + 1 : state.firstTry,
       };
 
@@ -120,23 +159,24 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         /* A tap or an untap would have reset the status, so a check still in
            `alt` can only be the answer that was offered. */
         if (state.status === 'alt') return { ...scored, status: 'accepted' };
-        return { ...state, status: 'alt' };
+        return { ...checked, status: 'alt' };
       }
 
-      return {
-        ...state,
-        status: 'wrong',
-        misses: state.misses + 1,
-        /* The first miss clears the line; later ones leave it standing to be
-           marked up. */
-        placed: state.misses === 0 ? [] : state.placed,
-      };
+      return miss(state, 'wrong');
     }
 
     case 'retry':
-      if (state.status !== 'wrong') return state;
+      if (state.status !== 'wrong' && state.status !== 'timeout') return state;
       /* Misses stay, so the next attempt still climbs the miss ladder. */
       return { ...state, placed: [], status: 'idle' };
+
+    case 'tick':
+      /* A tick that lands after Check, or after leaving the drill, is stale. */
+      if (!state.clockRunning || isDone(state)) return state;
+      if (state.elapsed + 1 >= action.limit) {
+        return { ...miss(state, 'timeout'), elapsed: state.elapsed + 1 };
+      }
+      return { ...state, elapsed: state.elapsed + 1 };
 
     case 'reveal':
       if (isDone(state)) return state;
@@ -144,6 +184,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         placed: action.placed,
         status: 'shown',
+        clockRunning: false,
         /* No firstTry credit: revealing forfeits it. */
       };
 

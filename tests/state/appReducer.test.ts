@@ -272,6 +272,72 @@ describe('advancing', () => {
   });
 });
 
+describe('timed mode', () => {
+  const timed = (over: Partial<AppState> = {}) => drilling({ mode: 'timed', ...over });
+  const TICK: AppAction = { type: 'tick', limit: 3 };
+  const TIMEOUT: AppAction[] = [TICK, TICK, TICK];
+
+  it('keeps the chosen mode when a scenario is opened', () => {
+    const chosen = appReducer(initialState, { type: 'setMode', mode: 'timed' });
+    expect(appReducer(chosen, { type: 'openScenario', scenario: 1 }).mode).toBe('timed');
+  });
+
+  it('starts the clock on the first tap only in timed mode', () => {
+    expect(place(timed(), [2]).clockRunning).toBe(true);
+    expect(place(drilling(), [2]).clockRunning).toBe(false);
+  });
+
+  it('counts the ticks of an attempt without timing out before the limit', () => {
+    const state = run(place(timed(), [2]), TICK, TICK);
+    expect(state).toMatchObject({ elapsed: 2, status: 'idle', clockRunning: true });
+  });
+
+  it('starts each attempt from zero ticks', () => {
+    const missed = run(place(timed(), WRONG), TICK, CHECK_WRONG);
+    expect(place(missed, [2]).elapsed).toBe(0);
+  });
+
+  it('does not restart the count on later taps or when the line is emptied', () => {
+    const state = run(place(timed(), [2]), TICK);
+    expect(place(state, [3]).elapsed).toBe(1);
+    expect(appReducer(state, { type: 'untap', position: 0 })).toMatchObject({
+      elapsed: 1,
+      clockRunning: true,
+    });
+  });
+
+  it('stops the clock on Check, whatever the verdict', () => {
+    for (const check of [CHECK, CHECK_ALT, CHECK_WRONG]) {
+      expect(run(place(timed(), RIGHT), check).clockRunning).toBe(false);
+    }
+  });
+
+  it('counts a timeout as a miss that clears the line the first time', () => {
+    const state = run(place(timed(), WRONG), ...TIMEOUT);
+    expect(state).toMatchObject({
+      status: 'timeout',
+      misses: 1,
+      placed: [],
+      clockRunning: false,
+      elapsed: 3,
+    });
+  });
+
+  it('leaves a later timeout on the line until it is retried', () => {
+    const timedOut = run(place(timed({ misses: 1 }), WRONG), ...TIMEOUT);
+    expect(timedOut).toMatchObject({ status: 'timeout', misses: 2, placed: WRONG });
+    expect(appReducer(timedOut, { type: 'tap', bankIndex: 3 })).toBe(timedOut);
+    expect(appReducer(timedOut, { type: 'retry' })).toMatchObject({ status: 'idle', placed: [] });
+  });
+
+  it('ignores a tick once the clock has stopped', () => {
+    const checked = run(place(timed(), WRONG), CHECK_WRONG);
+    expect(appReducer(checked, TICK)).toBe(checked);
+    const left = run(place(timed(), WRONG), { type: 'goHome' });
+    expect(appReducer(left, TICK)).toBe(left);
+  });
+});
+
 describe('isDone', () => {
   it('is true only once the answer is settled', () => {
     expect(isDone(drilling({ status: 'idle' }))).toBe(false);

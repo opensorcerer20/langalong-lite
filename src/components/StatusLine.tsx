@@ -34,6 +34,7 @@ export function StatusLine({ status, noteOnScreen }: StatusLineProps) {
 /** What each status says. `wrong` depends on whether the note is showing. */
 const MESSAGES: Record<Exclude<DrillStatus, 'wrong'>, string> = {
   idle: '',
+  timeout: 'Time ran out',
   alt: 'Acceptable, but there is more natural phrasing. Retry or tap Check to continue.',
   right: 'Correct',
   accepted: 'Accepted',
@@ -57,6 +58,7 @@ const s = stylex.create({
   idle: { color: 'var(--color-neutral-600)' },
   /* A deep ramp step: the accent itself is not contrasty enough at this size. */
   wrong: { color: 'var(--color-accent-700)' },
+  timeout: { color: 'var(--color-accent-700)' },
   alt: { color: 'var(--color-accent-700)' },
   right: { color: 'var(--color-text)' },
   accepted: { color: 'var(--color-text)' },
@@ -69,6 +71,7 @@ const s = stylex.create({
 const TONE = {
   idle: s.idle,
   wrong: s.wrong,
+  timeout: s.timeout,
   alt: s.alt,
   right: s.right,
   accepted: s.accepted,
