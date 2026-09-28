@@ -24,7 +24,13 @@ export function DrillScreen({ tsumiki }: DrillScreenProps) {
 
   return (
     <section {...stylex.props(shared.screen, s.drill)}>
-      <PromptBand prompt={item.en} language={language.name} index={state.item} total={total} />
+      <PromptBand
+        prompt={item.en}
+        language={language.name}
+        index={state.item}
+        total={total}
+        misses={state.misses}
+      />
 
       <AnswerLine
         bank={bank}

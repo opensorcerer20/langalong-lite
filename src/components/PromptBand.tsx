@@ -12,14 +12,20 @@ export interface PromptBandProps {
   /** Zero-based index of the current item. */
   readonly index: number;
   readonly total: number;
+  /** Misses on the current item. */
+  readonly misses: number;
 }
 
-export function PromptBand({ prompt, language, index, total }: PromptBandProps) {
+export function PromptBand({ prompt, language, index, total, misses }: PromptBandProps) {
   return (
     <div {...stylex.props(s.band)}>
       <div {...stylex.props(shared.kicker)}>
         Say this in {language} — item {index + 1} of {total}
       </div>
+      {/* A testing aid for the drill states in docs/DRILL-SCREEN.md; never shipped. */}
+      {import.meta.env.DEV && (
+        <div {...stylex.props(shared.kicker)}>Number of misses: {misses}</div>
+      )}
       <h1 {...stylex.props(s.prompt)}>{prompt}</h1>
     </div>
   );

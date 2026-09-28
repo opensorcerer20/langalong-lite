@@ -8,7 +8,8 @@ Three lists. **Planned** is work that could start as things stand. **Needs progr
 
 ## Definite planned changes
 
-Nothing outstanding — the last set closed on the `maintenance-01` branch, see [CHANGELOG.md](CHANGELOG.md).
+- Screen gets cluttered with lots of misses and hitting an alternate answer, needs consideration on how to un-clutter
+  - Example: "pan o onegaishimasu"
 
 ## Immediate future plans
 - Prefer hint to not be part of scroll

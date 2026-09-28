@@ -105,6 +105,7 @@ The app is organised so each piece can be read on its own: the language content 
 | --- | --- |
 | [prototype/DESIGN.md](prototype/DESIGN.md) | Why the app works the way it does |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the code is arranged, and the StyleX rules |
+| [docs/DRILL-SCREEN.md](docs/DRILL-SCREEN.md) | What the drill screen shows in each state, and which actions move between them |
 | [docs/AUTHORING.md](docs/AUTHORING.md) | Adding sentences, situations, languages and glyphs |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | What isn't built yet |
 | [docs/MAINTENANCE.md](docs/MAINTENANCE.md) | Known debt, the prototype, troubleshooting |
