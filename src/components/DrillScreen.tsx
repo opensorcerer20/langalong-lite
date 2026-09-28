@@ -29,6 +29,7 @@ export function DrillScreen({ tsumiki }: DrillScreenProps) {
         language={language.name}
         index={state.item}
         total={total}
+        misses={state.misses}
         mode={state.mode}
       />
 

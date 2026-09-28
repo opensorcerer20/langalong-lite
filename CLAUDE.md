@@ -58,6 +58,7 @@ Every few completed steps, or when a feature roadmap finishes, give a short summ
 - `src/` — implementation code
 - `tests/` — at most one test file per component
 - `prototype/` - holds original prototype for app, no further changes desired here
+- `docs/DRILL-SCREEN.md` — the drill screen's states and transitions; check it before changing drill behaviour, and update it in the same step
 
 ## Action scope
 Do not assume any scope outside the scope from the user prompt; if action may be needed outside the scope given, confirm with the user first.
@@ -118,3 +119,6 @@ When in doubt, default to a code/diagram representation even for simple structur
 ## Scope of coding for different environments
 - Look in README.md for the "Current app state" section. If it indicates the app is still under development, then documentation and other considerations should follow that style. If the app is in alpha or beta release, follow that style, and the same applies for being launched.
 - You can also take style cues from the "Intended audience" section. If it is intended for a general informal type of audience, that is a different style than if the app supports thousands of users.
+
+## Scope restrictions
+- Do not touch or look in the temp/ folder unless specifically asked to.
