@@ -3,21 +3,27 @@
 import * as stylex from '@stylexjs/stylex';
 
 import type { Scenario } from '../data/types';
+import type { DrillMode } from '../state/appReducer';
 import { shared } from '../styles/shared';
+import { ModeSelect } from './ModeSelect';
 import { ScenarioList } from './ScenarioList';
 
 export interface HomeScreenProps {
   readonly scenarios: readonly Scenario[];
   readonly onOpen: (index: number) => void;
+  readonly mode: DrillMode;
+  readonly onModeChange: (mode: DrillMode) => void;
 }
 
-export function HomeScreen({ scenarios, onOpen }: HomeScreenProps) {
+export function HomeScreen({ scenarios, onOpen, mode, onModeChange }: HomeScreenProps) {
   return (
     <section {...stylex.props(shared.screen)}>
       <div {...stylex.props(s.band)}>
         <div {...stylex.props(shared.kicker)}>Choose a situation</div>
         <h1 {...stylex.props(s.display)}>Build sentences you will actually need.</h1>
       </div>
+
+      <ModeSelect mode={mode} onChange={onModeChange} />
 
       <ScenarioList scenarios={scenarios} onOpen={onOpen} />
 
