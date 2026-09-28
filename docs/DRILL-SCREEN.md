@@ -5,6 +5,7 @@
 What the drill (exercise) screen shows in each state, and which action moves it to which state. Update this in the same step as any change to the drill screen's behaviour.
 
 - The states are split into groups, each with its own diagram and tables. A state named in more than one group is the same state.
+- The mode chosen on the home screen, Free learning or Timed, shows under the prompt's "Say this in …" line in every state.
 
 ## Assumptions
 

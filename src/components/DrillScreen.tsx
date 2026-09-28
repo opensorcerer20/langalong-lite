@@ -30,6 +30,7 @@ export function DrillScreen({ tsumiki }: DrillScreenProps) {
         index={state.item}
         total={total}
         misses={state.misses}
+        mode={state.mode}
       />
 
       <AnswerLine

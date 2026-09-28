@@ -2,7 +2,9 @@
 
 import * as stylex from '@stylexjs/stylex';
 
+import type { DrillMode } from '../state/appReducer';
 import { shared } from '../styles/shared';
+import { MODE_LABELS } from './modeLabels';
 
 export interface PromptBandProps {
   /** The English prompt. */
@@ -14,14 +16,16 @@ export interface PromptBandProps {
   readonly total: number;
   /** Misses on the current item. */
   readonly misses: number;
+  readonly mode: DrillMode;
 }
 
-export function PromptBand({ prompt, language, index, total, misses }: PromptBandProps) {
+export function PromptBand({ prompt, language, index, total, misses, mode }: PromptBandProps) {
   return (
     <div {...stylex.props(s.band)}>
       <div {...stylex.props(shared.kicker)}>
         Say this in {language} — item {index + 1} of {total}
       </div>
+      <div {...stylex.props(s.mode)}>{MODE_LABELS[mode]}</div>
       {/* A testing aid for the drill states in docs/DRILL-SCREEN.md; never shipped. */}
       {import.meta.env.DEV && (
         <div {...stylex.props(shared.kicker)}>Number of misses: {misses}</div>
@@ -40,6 +44,20 @@ const s = stylex.create({
     borderBottomWidth: 2,
     borderBottomStyle: 'solid',
     borderBottomColor: 'var(--color-divider)',
+  },
+
+  /* Matches the selected option of the home screen's `.seg` control. */
+  mode: {
+    display: 'inline-block',
+    marginBottom: 12,
+    paddingTop: 7,
+    paddingRight: 12,
+    paddingBottom: 7,
+    paddingLeft: 12,
+    borderRadius: 'var(--radius-md)',
+    fontSize: 13,
+    backgroundColor: 'var(--color-accent)',
+    color: 'var(--color-bg)',
   },
 
   prompt: {
